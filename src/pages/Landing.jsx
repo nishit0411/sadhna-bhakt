@@ -285,15 +285,18 @@ export default function Landing() {
             <p className="mt-10 font-display text-sm italic" style={{ color: `${CHARCOAL}99` }}>
               {t("landing.offeredAtLotusFeet")}
             </p>
-            <div className="mt-5 flex justify-center gap-6 lg:justify-start">
+            <div className="mt-5 flex flex-wrap justify-center gap-6 lg:justify-start">
               {ACHARYAS.map(({ photo, name }) => (
-                <figure key={name} className="flex flex-col items-center gap-2">
+                <figure key={name} className="flex flex-col items-center gap-2.5">
                   <span
                     className="overflow-hidden rounded-xl border-2 shadow-[0_6px_20px_rgba(46,13,23,0.12)]"
                     style={{ borderColor: GOLD }}
                   >
-                    <img src={photo} alt={name} className="h-40 w-32 object-cover object-top sm:h-48 sm:w-40" />
+                    <img src={photo} alt={name} className="h-36 w-28 object-cover object-top sm:h-52 sm:w-40 lg:h-64 lg:w-52" />
                   </span>
+                  <figcaption className="max-w-[9rem] font-display text-sm font-medium italic leading-tight sm:max-w-[11rem] sm:text-base" style={{ color: BURGUNDY }}>
+                    {name}
+                  </figcaption>
                 </figure>
               ))}
             </div>
