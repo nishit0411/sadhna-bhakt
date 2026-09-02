@@ -294,7 +294,7 @@ export default function Landing() {
                   >
                     <img src={photo} alt={name} className="h-36 w-28 object-cover object-top sm:h-52 sm:w-40 lg:h-64 lg:w-52" />
                   </span>
-                  <figcaption className="max-w-[9rem] font-display text-sm font-medium italic leading-tight sm:max-w-[11rem] sm:text-base" style={{ color: BURGUNDY }}>
+                  <figcaption className="max-w-[9rem] font-display text-sm font-bold italic leading-tight sm:max-w-[11rem] sm:text-base" style={{ color: BURGUNDY }}>
                     {name}
                   </figcaption>
                 </figure>
