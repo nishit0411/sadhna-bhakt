@@ -150,7 +150,8 @@
     "codeResent": "A new code has been sent.",
     "errOtpRequired": "Please enter the verification code.",
     "errOtpInvalid": "Invalid or expired code. Please request a new one.",
-    "changeEmail": "Use a different email"
+    "changeEmail": "Use a different email",
+    "otpOrLinkHint": "You can either enter the code above, or use the link in that same email."
   },
   "resetPassword": {
     "title": "Set a New Password",
@@ -224,6 +225,7 @@
     "password": "Password",
     "passwordPlaceholder": "Create a password",
     "passwordHelper": "At least 6 characters.",
+    "passwordManagerHelper": "At least 6 characters. Your browser can save this password securely for next time.",
     "errPassword": "Please create a password.",
     "errPasswordInvalid": "Password must be at least 6 characters.",
     "checkEmailTitle": "Check Your Email",
@@ -385,6 +387,15 @@
     "profileUpdated": "Profile updated successfully.",
     "passwordComingSoon": "Password changes will be available once accounts go live.",
     "exportComingSoon": "Export will be available soon."
+  },
+  "adminLogin": {
+    "eyebrow": "Restricted Access",
+    "title": "Admin Sign In",
+    "subtitle": "For authorized Sadhana Bhakti administrators only.",
+    "submitButton": "Sign In to Admin",
+    "notAuthorized": "This account does not have admin access.",
+    "notAdmin": "Not an admin?",
+    "userLoginLink": "Go to devotee login"
   },
   "admin": {
     "dashboardTitle": "Admin / Mentor Dashboard",

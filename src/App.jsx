@@ -15,6 +15,7 @@ import History from "./pages/devotee/History";
 import MonthlyReport from "./pages/devotee/MonthlyReport";
 import Profile from "./pages/devotee/Profile";
 
+import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Devotees from "./pages/admin/Devotees";
 import DevoteeDetail from "./pages/admin/DevoteeDetail";
@@ -28,6 +29,7 @@ export default function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/admin/login" element={<AdminLogin />} />
 
       <Route element={<ProtectedRoute role="devotee" />}>
         <Route element={<DevoteeLayout />}>

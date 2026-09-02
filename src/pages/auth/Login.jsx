@@ -127,6 +127,7 @@ export default function Login() {
               label={t("auth.emailLabel")}
               name="email"
               type="email"
+              autoComplete="username"
               placeholder={t("auth.emailPlaceholder")}
               value={form.email}
               onChange={handleChange}
@@ -138,6 +139,7 @@ export default function Login() {
                 label={t("auth.passwordLabel")}
                 name="password"
                 type="password"
+                autoComplete="current-password"
                 placeholder={t("auth.passwordPlaceholder")}
                 value={form.password}
                 onChange={handleChange}

@@ -146,6 +146,7 @@ export default function ForgotPassword() {
                   label={t("auth.emailLabel")}
                   name="email"
                   type="email"
+                  autoComplete="username"
                   placeholder={t("auth.emailPlaceholder")}
                   value={email}
                   onChange={(e) => {
@@ -169,6 +170,7 @@ export default function ForgotPassword() {
               </span>
               <h1 className="mt-4 font-display text-xl font-semibold text-maroon-600">{t("forgotPassword.otpTitle")}</h1>
               <p className="mt-2 text-sm text-brown-600">{t("forgotPassword.otpSubtitle", { email })}</p>
+              <p className="mt-1 text-xs text-brown-500">{t("forgotPassword.otpOrLinkHint")}</p>
 
               <form onSubmit={handleOtpSubmit} className="mt-6 flex flex-col gap-4 text-left" noValidate>
                 <Input
@@ -227,6 +229,7 @@ export default function ForgotPassword() {
                   label={t("resetPassword.newPasswordLabel")}
                   name="password"
                   type="password"
+                  autoComplete="new-password"
                   placeholder={t("resetPassword.newPasswordPlaceholder")}
                   value={form.password}
                   onChange={handlePasswordChange}
@@ -237,6 +240,7 @@ export default function ForgotPassword() {
                   label={t("resetPassword.confirmPasswordLabel")}
                   name="confirmPassword"
                   type="password"
+                  autoComplete="new-password"
                   placeholder={t("resetPassword.confirmPasswordPlaceholder")}
                   value={form.confirmPassword}
                   onChange={handlePasswordChange}

@@ -132,6 +132,7 @@ export default function ResetPassword() {
                   label={t("resetPassword.newPasswordLabel")}
                   name="password"
                   type="password"
+                  autoComplete="new-password"
                   placeholder={t("resetPassword.newPasswordPlaceholder")}
                   value={form.password}
                   onChange={handleChange}
@@ -142,6 +143,7 @@ export default function ResetPassword() {
                   label={t("resetPassword.confirmPasswordLabel")}
                   name="confirmPassword"
                   type="password"
+                  autoComplete="new-password"
                   placeholder={t("resetPassword.confirmPasswordPlaceholder")}
                   value={form.confirmPassword}
                   onChange={handleChange}

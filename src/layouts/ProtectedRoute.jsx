@@ -6,7 +6,7 @@ export default function ProtectedRoute({ role }) {
   const { isAuthenticated, isLoading, user } = useAuth();
 
   if (isLoading) return <LoadingState fullHeight label="Preparing your Sadhana space…" />;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to={role === "admin" ? "/admin/login" : "/login"} replace />;
   if (role && user?.role !== role) {
     return <Navigate to={user?.role === "admin" ? "/admin/dashboard" : "/devotee/dashboard"} replace />;
   }

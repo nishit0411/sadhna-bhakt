@@ -254,3 +254,34 @@ create policy "autofill_update_own"
 -- the app — nothing above does this automatically, on purpose.
 -- ----------------------------------------------------------------------------
 -- update public.profiles set role = 'admin' where email = 'you@example.com';
+
+-- ----------------------------------------------------------------------------
+-- 9. Prevent self-promotion to admin.
+-- "profiles_update_own" above (section 7) lets any signed-in user update
+-- their OWN row — which is required for the app's normal profile-edit
+-- feature — but it does not restrict which COLUMNS can change. Without
+-- this trigger, a signed-in devotee could call the Supabase client
+-- directly (bypassing the app's UI entirely) and set their own `role` to
+-- 'admin'. This trigger closes that gap: any attempted role change made
+-- by a non-admin is silently reverted back to its previous value, while
+-- every other column (name, phone, centre, mentor, etc.) is unaffected —
+-- so the app's existing "update my profile" flow keeps working exactly
+-- as before. Safe to run on an existing database; purely additive.
+-- ----------------------------------------------------------------------------
+create or replace function public.prevent_role_self_escalation()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role and not public.is_admin() then
+    new.role := old.role;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_prevent_role_escalation on public.profiles;
+create trigger profiles_prevent_role_escalation
+  before update on public.profiles
+  for each row execute function public.prevent_role_self_escalation();

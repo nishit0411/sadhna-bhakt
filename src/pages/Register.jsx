@@ -360,6 +360,7 @@ export default function Register() {
                 required
                 type="email"
                 name="email"
+                autoComplete="username"
                 icon={Mail}
                 placeholder={t("register.emailAddressPlaceholder")}
                 value={form.email}
@@ -374,8 +375,9 @@ export default function Register() {
                   required
                   type="password"
                   name="password"
+                  autoComplete="new-password"
                   placeholder={t("register.passwordPlaceholder")}
-                  helperText={t("register.passwordHelper")}
+                  helperText={t("register.passwordManagerHelper")}
                   value={form.password}
                   onChange={handleChange}
                   error={errors.password}

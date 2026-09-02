@@ -127,7 +127,11 @@ export async function register(form) {
   }
 
   await delay(500);
-  const completedProfile = { ...form, mobileNumber: `+91 ${form.mobileNumber.trim()}` };
+  // `password` never has a real value in mock mode (the field isn't shown
+  // when Supabase isn't configured) but is stripped before persisting
+  // regardless — nothing resembling a password belongs in localStorage.
+  const { password: _password, ...formWithoutPassword } = form;
+  const completedProfile = { ...formWithoutPassword, mobileNumber: `+91 ${form.mobileNumber.trim()}` };
   localStorage.setItem("devoteeProfile", JSON.stringify(completedProfile));
   return completedProfile;
 }
