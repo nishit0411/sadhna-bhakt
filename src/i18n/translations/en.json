@@ -105,7 +105,8 @@
     "journeyDaysDesc": "The whole of your journey, held gently.",
     "quoteText": "Where remembrance becomes a habit, Sadhna becomes a way of life.",
     "footerTagline": "An eternal journey of Sadhna, Seva & Smaran.",
-    "footerClosing": "All glories to Sri Guru and Gauranga."
+    "footerClosing": "All glories to Sri Guru and Gauranga.",
+    "adminLoginLink": "Admin"
   },
   "auth": {
     "welcomeBack": "Welcome Back",

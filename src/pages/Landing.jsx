@@ -434,6 +434,9 @@ export default function Landing() {
           <p className="text-[11px]" style={{ color: "#7d7264" }}>
             &copy; {new Date().getFullYear()} Sadhana Bhakti
           </p>
+          <Link to="/login" className="text-[11px] opacity-40 transition-opacity hover:opacity-80" style={{ color: "#7d7264" }}>
+            {t("landing.adminLoginLink")}
+          </Link>
         </div>
       </footer>
     </div>
