@@ -192,9 +192,11 @@ export async function resendVerificationEmail(email) {
 }
 
 /**
- * Sends a password-reset email. `redirectTo` points back at this app's
- * own `/reset-password` route (hash-based, so it survives Supabase's
- * server-side redirect) where `confirmPasswordReset` finishes the job.
+ * Sends the password-reset email. Supabase's "Reset Password" template
+ * carries both a `{{ .ConfirmationURL }}` link (redirectTo below, handled
+ * by ResetPassword.jsx as a fallback) and a `{{ .Token }}` one-time code —
+ * ForgotPassword.jsx's primary flow uses the code via `verifyPasswordResetOtp`
+ * below, entirely in-app, no email link click required.
  */
 export async function requestPasswordReset(email) {
   if (!isSupabaseConfigured) {
@@ -202,6 +204,20 @@ export async function requestPasswordReset(email) {
   }
   const redirectTo = `${window.location.origin}${window.location.pathname}#/reset-password`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+/**
+ * Verifies the 6-digit code from the password-reset email. Success
+ * establishes a real (short-lived) recovery session — `confirmPasswordReset`
+ * then sets the new password on it. This is the only place in the app an
+ * OTP is required; normal login never involves one.
+ */
+export async function verifyPasswordResetOtp(email, token) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Password reset requires a live backend connection.");
+  }
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "recovery" });
   if (error) throw error;
 }
 

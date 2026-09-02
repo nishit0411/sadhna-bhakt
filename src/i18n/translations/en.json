@@ -132,12 +132,23 @@
   },
   "forgotPassword": {
     "title": "Reset Your Password",
-    "subtitle": "Enter your email and we'll send you a link to reset your password.",
-    "sendButton": "Send Reset Link",
+    "subtitle": "Enter your email and we'll send you a verification code to reset your password.",
+    "sendButton": "Send Verification Code",
     "sentTitle": "Check Your Email",
-    "sentMessage": "If an account exists for this email, a password reset link has been sent.",
+    "sentMessage": "If an account exists for this email, a verification code has been sent.",
     "mockModeMessage": "Password reset requires a live backend connection. This demo is currently running on mock data.",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "otpTitle": "Enter Verification Code",
+    "otpSubtitle": "We've sent a 6-digit code to {{email}}.",
+    "otpLabel": "Verification Code",
+    "otpPlaceholder": "Enter 6-digit code",
+    "verifyButton": "Verify Code",
+    "resendCode": "Resend Code",
+    "resendIn": "Resend in {{seconds}}s",
+    "codeResent": "A new code has been sent.",
+    "errOtpRequired": "Please enter the verification code.",
+    "errOtpInvalid": "Invalid or expired code. Please request a new one.",
+    "changeEmail": "Use a different email"
   },
   "resetPassword": {
     "title": "Set a New Password",
