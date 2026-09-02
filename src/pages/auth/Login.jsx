@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
-import { Mail } from "lucide-react";
+import { useNavigate, useLocation, Link } from "react-router-dom";
+import { Mail, MailWarning } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
-import { quickLoginIds } from "../../services/authService";
+import { quickLoginIds, resendVerificationEmail } from "../../services/authService";
 import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import { useTranslation } from "../../i18n/LanguageContext";
 import Logo from "../../components/layout/Logo";
@@ -12,18 +12,28 @@ import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 
+/** Supabase throws this (message text or `.code`, depending on version) when signing in before the email link is confirmed. */
+function isUnconfirmedEmailError(err) {
+  return err?.code === "email_not_confirmed" || /email.*not.*confirm/i.test(err?.message ?? "");
+}
+
 export default function Login() {
   const { login, loginAs } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+  const location = useLocation();
   const { t } = useTranslation();
   const [form, setForm] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOtpSubmitting, setIsOtpSubmitting] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState(null);
+  const [isResending, setIsResending] = useState(false);
+  const [resetSuccess] = useState(Boolean(location.state?.passwordResetSuccess));
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setUnverifiedEmail(null);
   }
 
   function goToDashboard(user) {
@@ -38,15 +48,32 @@ export default function Login() {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length) return;
 
+    setUnverifiedEmail(null);
     setIsSubmitting(true);
     try {
       const user = await login(form);
       addToast(`${t("common.hareKrishna")}, ${user.name.split(" ")[0]} 🙏`);
       goToDashboard(user);
     } catch (err) {
-      addToast(err.message, "error");
+      if (isUnconfirmedEmailError(err)) {
+        setUnverifiedEmail(form.email);
+      } else {
+        addToast(err.message, "error");
+      }
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    setIsResending(true);
+    try {
+      await resendVerificationEmail(unverifiedEmail);
+      addToast(t("auth.resendSuccess"));
+    } catch (err) {
+      addToast(err.message, "error");
+    } finally {
+      setIsResending(false);
     }
   }
 
@@ -89,6 +116,12 @@ export default function Login() {
           <h1 className="font-display text-2xl font-semibold text-maroon-600">{t("auth.welcomeBack")}</h1>
           <p className="mt-1 text-sm text-brown-500">{t("auth.continueJourney")}</p>
 
+          {resetSuccess && (
+            <p className="mt-4 rounded-xl bg-sage-50 px-4 py-3 text-sm font-medium text-sage-600">
+              {t("auth.passwordResetSuccess")}
+            </p>
+          )}
+
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
             <Input
               label={t("auth.emailLabel")}
@@ -100,21 +133,38 @@ export default function Login() {
               error={errors.email}
               required
             />
-            <Input
-              label={t("auth.passwordLabel")}
-              name="password"
-              type="password"
-              placeholder={t("auth.passwordPlaceholder")}
-              value={form.password}
-              onChange={handleChange}
-              error={errors.password}
-              required
-            />
+            <div>
+              <Input
+                label={t("auth.passwordLabel")}
+                name="password"
+                type="password"
+                placeholder={t("auth.passwordPlaceholder")}
+                value={form.password}
+                onChange={handleChange}
+                error={errors.password}
+                required
+              />
+              <Link to="/forgot-password" className="mt-1.5 inline-block text-xs font-medium text-maroon-600 hover:underline">
+                {t("auth.forgotPasswordLink")}
+              </Link>
+            </div>
 
             <Button type="submit" size="lg" isLoading={isSubmitting} className="mt-1 w-full">
               {t("auth.loginButton")}
             </Button>
           </form>
+
+          {unverifiedEmail && (
+            <div className="mt-4 flex flex-col gap-2 rounded-xl border border-saffron-300 bg-saffron-50 p-4 text-sm">
+              <div className="flex items-start gap-2 text-brown-700">
+                <MailWarning className="mt-0.5 h-4 w-4 shrink-0 text-maroon-500" />
+                <p>{t("auth.unverifiedEmailMessage")}</p>
+              </div>
+              <Button variant="outline" size="sm" isLoading={isResending} onClick={handleResendVerification} className="self-start">
+                {t("auth.resendVerificationButton")}
+              </Button>
+            </div>
+          )}
 
           {!isSupabaseConfigured && (
             <>

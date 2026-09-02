@@ -182,6 +182,44 @@ export async function loginAs(userId) {
   return withOverrides(user);
 }
 
+/** Re-sends the signup confirmation email. Supabase-only. */
+export async function resendVerificationEmail(email) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Email verification isn't available in mock mode.");
+  }
+  const { error } = await supabase.auth.resend({ type: "signup", email });
+  if (error) throw error;
+}
+
+/**
+ * Sends a password-reset email. `redirectTo` points back at this app's
+ * own `/reset-password` route (hash-based, so it survives Supabase's
+ * server-side redirect) where `confirmPasswordReset` finishes the job.
+ */
+export async function requestPasswordReset(email) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Password reset requires a live backend connection.");
+  }
+  const redirectTo = `${window.location.origin}${window.location.pathname}#/reset-password`;
+  const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+/**
+ * Completes a password reset. Only valid once Supabase has established a
+ * recovery session from the emailed link (see ResetPassword.jsx). Signs
+ * the recovery session out afterward so the user lands back on Login and
+ * signs in fresh with the new password.
+ */
+export async function confirmPasswordReset(newPassword) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Password reset requires a live backend connection.");
+  }
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+  await supabase.auth.signOut();
+}
+
 export async function updateProfile(userId, updates) {
   if (isSupabaseConfigured) {
     const { error } = await supabase

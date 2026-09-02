@@ -76,7 +76,38 @@
     "newHere": "New here?",
     "createAccount": "Create an account",
     "emailRequired": "Please enter your email.",
-    "passwordRequired": "Please enter your password."
+    "passwordRequired": "Please enter your password.",
+    "forgotPasswordLink": "Forgot password?",
+    "unverifiedEmailMessage": "Please verify your email before logging in. Check your inbox for the confirmation link.",
+    "resendVerificationButton": "Resend verification email",
+    "resendSuccess": "Verification email sent — please check your inbox.",
+    "passwordResetSuccess": "Your password has been reset. Please sign in with your new password."
+  },
+  "forgotPassword": {
+    "title": "Reset Your Password",
+    "subtitle": "Enter your email and we'll send you a link to reset your password.",
+    "sendButton": "Send Reset Link",
+    "sentTitle": "Check Your Email",
+    "sentMessage": "If an account exists for this email, a password reset link has been sent.",
+    "mockModeMessage": "Password reset requires a live backend connection. This demo is currently running on mock data.",
+    "backToLogin": "Back to Login"
+  },
+  "resetPassword": {
+    "title": "Set a New Password",
+    "subtitle": "Choose a new password for your account.",
+    "checkingTitle": "Verifying Your Link",
+    "checkingMessage": "Please wait a moment while we confirm your password reset link.",
+    "invalidTitle": "Link Expired or Invalid",
+    "invalidMessage": "This password reset link is no longer valid. Please request a new one.",
+    "requestNewLinkButton": "Request a New Link",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "confirmPasswordPlaceholder": "Re-enter new password",
+    "submitButton": "Update Password",
+    "errPassword": "Please enter a new password.",
+    "errPasswordInvalid": "Password must be at least 6 characters.",
+    "errMismatch": "Passwords do not match."
   },
   "register": {
     "hareKrishna": "🙏 Hare Krishna",
