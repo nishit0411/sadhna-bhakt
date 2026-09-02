@@ -20,6 +20,7 @@ import { useTranslation } from "../i18n/LanguageContext";
 import guruPhotoMeditating from "../assets/guru-photo-1-meditating.jpeg";
 import guruPhotoGarlanded from "../assets/guru-photo-2-garlanded.jpeg";
 import deityPhoto from "../assets/deities-radha-krishna-balaram.jpeg";
+import vrindavanAltarPhoto from "../assets/deities-vrindavan-altar.jpeg";
 
 // Antique-gold / royal-burgundy palette, scoped to this page only — the
 // rest of the app keeps its existing rose/maroon theme untouched.
@@ -262,14 +263,17 @@ export default function Landing() {
       {/* ---------- Thakur remembrance ---------- */}
       <section id="thakur" className="relative overflow-hidden px-5 py-24 sm:px-8">
         <div className="mx-auto grid max-w-5xl items-center gap-14 lg:grid-cols-[0.85fr_1fr]">
-          <Reveal className="relative mx-auto w-full max-w-sm">
+          <Reveal className="relative mx-auto w-full max-w-md">
             <div
               className="absolute -inset-[3px] rounded-[1.6rem]"
               style={{ background: `linear-gradient(135deg, ${GOLD_SOFT}, ${GOLD}, ${GOLD_DEEP})` }}
               aria-hidden="true"
             />
-            <div className="relative overflow-hidden rounded-[1.45rem] border-4 border-double" style={{ borderColor: GOLD_SOFT, backgroundColor: BURGUNDY_DEEP }}>
-              <img src={deityPhoto} alt={t("landing.deityCaption")} className="h-[26rem] w-full object-cover object-top" />
+            <div
+              className="relative overflow-hidden rounded-[1.45rem] border-4 border-double"
+              style={{ borderColor: GOLD_SOFT, backgroundColor: BURGUNDY_DEEP, aspectRatio: "1840 / 1304" }}
+            >
+              <img src={vrindavanAltarPhoto} alt={t("landing.deityCaption")} className="h-full w-full object-cover" />
             </div>
           </Reveal>
 
