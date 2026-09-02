@@ -1,0 +1,33 @@
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import { LayoutDashboard, Users, FileBarChart } from "lucide-react";
+import Navbar from "../components/layout/Navbar";
+import Sidebar from "../components/layout/Sidebar";
+import MobileNav from "../components/layout/MobileNav";
+import { useTranslation } from "../i18n/LanguageContext";
+
+export default function AdminLayout() {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const { t } = useTranslation();
+
+  const NAV_ITEMS = [
+    { label: t("nav.adminDashboard"), to: "/admin/dashboard", icon: LayoutDashboard, end: true },
+    { label: t("nav.adminDevotees"), to: "/admin/devotees", icon: Users },
+    { label: t("nav.adminReports"), to: "/admin/reports", icon: FileBarChart },
+  ];
+
+  return (
+    <div className="flex min-h-screen bg-cream-50">
+      <Sidebar items={NAV_ITEMS} isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
+      <div className="flex min-h-screen flex-1 flex-col">
+        <Navbar onMenuClick={() => setMobileNavOpen(true)} />
+        <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 sm:pb-10 lg:px-8">
+          <div className="mx-auto w-full max-w-6xl">
+            <Outlet />
+          </div>
+        </main>
+        <MobileNav items={NAV_ITEMS} />
+      </div>
+    </div>
+  );
+}
