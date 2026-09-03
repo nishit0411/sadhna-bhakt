@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, Users, FileBarChart } from "lucide-react";
+import { LayoutDashboard, Users, FileBarChart, ChartNoAxesCombined } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
@@ -13,6 +13,7 @@ export default function AdminLayout() {
   const NAV_ITEMS = [
     { label: t("nav.adminDashboard"), to: "/admin/dashboard", icon: LayoutDashboard, end: true },
     { label: t("nav.adminDevotees"), to: "/admin/devotees", icon: Users },
+    { label: t("nav.adminAnalytics"), to: "/admin/analytics", icon: ChartNoAxesCombined },
     { label: t("nav.adminReports"), to: "/admin/reports", icon: FileBarChart },
   ];
 

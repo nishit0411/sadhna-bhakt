@@ -17,6 +17,7 @@ import Profile from "./pages/devotee/Profile";
 
 import AdminLogin from "./pages/admin/AdminLogin";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import Analytics from "./pages/admin/Analytics";
 import Devotees from "./pages/admin/Devotees";
 import DevoteeDetail from "./pages/admin/DevoteeDetail";
 import Reports from "./pages/admin/Reports";
@@ -45,6 +46,7 @@ export default function App() {
       <Route element={<ProtectedRoute role="admin" />}>
         <Route element={<AdminLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/analytics" element={<Analytics />} />
           <Route path="/admin/devotees" element={<Devotees />} />
           <Route path="/admin/devotees/:id" element={<DevoteeDetail />} />
           <Route path="/admin/reports" element={<Reports />} />

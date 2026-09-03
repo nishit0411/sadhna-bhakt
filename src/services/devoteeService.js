@@ -64,13 +64,19 @@ async function fetchAllRecordsGrouped() {
   return byDevotee;
 }
 
-function summarize(devotee, records, forDate) {
+/**
+ * `windowDays` controls how far back "average"/"consistency"/"total" look
+ * — 7, 30, or Infinity for all-time (used by the Analytics page's period
+ * filter). Defaults to 30 to match every existing caller's behavior
+ * exactly, so nothing else needed to change when this was added.
+ */
+function summarize(devotee, records, forDate, windowDays = 30) {
   const targetDate = forDate ?? toISODate(new Date());
   const targetEntry = records.find((r) => r.date === targetDate);
-  const last30 = records.slice(-30);
-  const avgMala = last30.length
-    ? Math.round((last30.reduce((sum, r) => sum + r.totalMala, 0) / last30.length) * 10) / 10
-    : 0;
+  const windowRecords = Number.isFinite(windowDays) ? records.slice(-windowDays) : records;
+  const windowSize = Number.isFinite(windowDays) ? windowDays : windowRecords.length;
+  const windowTotalMala = windowRecords.reduce((sum, r) => sum + r.totalMala, 0);
+  const avgMala = windowRecords.length ? Math.round((windowTotalMala / windowRecords.length) * 10) / 10 : 0;
 
   return {
     ...devotee,
@@ -83,20 +89,62 @@ function summarize(devotee, records, forDate) {
     todayGaudiyaKirtan: targetEntry ? (targetEntry.gaudiyaKirtan ? "Yes" : "No") : null,
     status: targetEntry ? "Completed" : "Pending",
     averageMala: avgMala,
-    completionRate: last30.length ? Math.round((last30.length / 30) * 100) : 0,
+    windowTotalMala,
+    windowMalaOnAsan: windowRecords.reduce((sum, r) => sum + r.malaOnAsan, 0),
+    windowMalaWithoutAsan: windowRecords.reduce((sum, r) => sum + r.malaWithoutAsan, 0),
+    completionRate: windowSize ? Math.round((windowRecords.length / windowSize) * 100) : 0,
     currentStreak: calculateCurrentStreak(records),
     daysSubmitted: records.length,
+    lastSubmittedDate: records.length ? records[records.length - 1].date : null,
   };
 }
 
-export async function getDevoteeDirectory(forDate) {
+export async function getDevoteeDirectory(forDate, windowDays = 30) {
   if (isSupabaseConfigured) {
     const [devotees, recordsByDevotee] = await Promise.all([fetchAllDevotees(), fetchAllRecordsGrouped()]);
-    return devotees.map((d) => summarize(d, recordsByDevotee.get(d.id) ?? [], forDate));
+    return devotees.map((d) => summarize(d, recordsByDevotee.get(d.id) ?? [], forDate, windowDays));
   }
 
   await delay();
-  return getDevoteesOnly().map((d) => summarize(d, getAllRecordsForDevotee(d.id), forDate));
+  return getDevoteesOnly().map((d) => summarize(d, getAllRecordsForDevotee(d.id), forDate, windowDays));
+}
+
+/**
+ * Per-day submission counts and average mala for the last `days` days
+ * (inclusive of today), across every devotee — the Analytics page's
+ * weekly trend chart. Days with zero submissions still appear, at 0.
+ */
+export async function getSubmissionTrend(days = 7) {
+  let recordsByDevotee;
+  if (isSupabaseConfigured) {
+    recordsByDevotee = await fetchAllRecordsGrouped();
+  } else {
+    await delay();
+    recordsByDevotee = new Map(getDevoteesOnly().map((d) => [d.id, getAllRecordsForDevotee(d.id)]));
+  }
+
+  const byDate = new Map();
+  const today = new Date();
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    byDate.set(toISODate(d), { submissions: 0, totalMala: 0 });
+  }
+
+  recordsByDevotee.forEach((records) => {
+    records.forEach((r) => {
+      const bucket = byDate.get(r.date);
+      if (!bucket) return; // outside the requested window
+      bucket.submissions += 1;
+      bucket.totalMala += r.totalMala;
+    });
+  });
+
+  return [...byDate.entries()].map(([date, { submissions, totalMala }]) => ({
+    date,
+    submissions,
+    averageMala: submissions ? Math.round((totalMala / submissions) * 10) / 10 : 0,
+  }));
 }
 
 export async function getDevoteeSummary(devoteeId) {

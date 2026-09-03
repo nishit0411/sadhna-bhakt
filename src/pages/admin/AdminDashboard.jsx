@@ -10,10 +10,6 @@ import MalaBreakdownTable from "../../components/admin/MalaBreakdownTable";
 import LoadingState from "../../components/ui/LoadingState";
 import Card from "../../components/ui/Card";
 
-function scrollToMalaBreakdown() {
-  document.getElementById("mala-breakdown")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 export default function AdminDashboard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -62,27 +58,27 @@ export default function AdminDashboard() {
       <div>
         <h2 className="mb-3 font-display text-xl font-semibold text-maroon-600">{t("admin.malaSummaryToday")}</h2>
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <StatCard icon={Repeat} label={t("admin.averageMala")} value={overview.averageMala} tone="maroon" onClick={scrollToMalaBreakdown} />
+          <StatCard icon={Repeat} label={t("admin.averageMala")} value={overview.averageMala} tone="maroon" onClick={() => navigate("/admin/analytics")} />
           <StatCard
             icon={Repeat}
             label={t("admin.totalMalaChanted")}
             value={overview.totalMalaChanted}
             tone="saffron"
-            onClick={scrollToMalaBreakdown}
+            onClick={() => navigate("/admin/analytics")}
           />
           <StatCard
             icon={Armchair}
             label={t("admin.totalOnAsan")}
             value={overview.totalMalaOnAsan}
             tone="sage"
-            onClick={scrollToMalaBreakdown}
+            onClick={() => navigate("/admin/analytics")}
           />
           <StatCard
             icon={PersonStanding}
             label={t("admin.totalWithoutAsan")}
             value={overview.totalMalaWithoutAsan}
             tone="clay"
-            onClick={scrollToMalaBreakdown}
+            onClick={() => navigate("/admin/analytics")}
           />
         </div>
       </div>
