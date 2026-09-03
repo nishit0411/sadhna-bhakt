@@ -236,7 +236,7 @@ export default function Landing() {
 
           <div className="animate-fade-up delay-3 mt-8 flex items-center justify-center sm:mt-10">
             <Link
-              to="/register"
+              to="/login"
               className="inline-flex w-full max-w-xs items-center justify-center rounded-full px-8 py-3.5 font-display text-base font-semibold tracking-wide text-[#f7f2e7] shadow-[0_10px_30px_rgba(92,26,43,0.45)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
               style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})`, border: `1px solid ${GOLD_SOFT}` }}
             >
