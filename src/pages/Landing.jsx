@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Logo from "../components/layout/Logo";
 import LanguageSwitcher from "../components/layout/LanguageSwitcher";
+import DeveloperCredit from "../components/layout/DeveloperCredit";
 import { useTranslation } from "../i18n/LanguageContext";
 import guruPhotoMeditating from "../assets/guru-photo-1-meditating.jpeg";
 import guruPhotoGarlanded from "../assets/guru-photo-2-garlanded.jpeg";
@@ -437,6 +438,8 @@ export default function Landing() {
           <Link to="/admin/login" className="text-[11px] opacity-40 transition-opacity hover:opacity-80" style={{ color: "#7d7264" }}>
             {t("landing.adminLoginLink")}
           </Link>
+
+          <DeveloperCredit dark className="mt-4" />
         </div>
       </footer>
     </div>

@@ -4,6 +4,7 @@ import { LayoutDashboard, NotebookPen, History, BarChart3, UserRound } from "luc
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
+import DeveloperCredit from "../components/layout/DeveloperCredit";
 import { useTranslation } from "../i18n/LanguageContext";
 
 export default function DevoteeLayout() {
@@ -27,6 +28,7 @@ export default function DevoteeLayout() {
           <div className="mx-auto w-full max-w-6xl">
             <Outlet />
           </div>
+          <DeveloperCredit className="mt-10 pb-2" />
         </main>
         <MobileNav items={NAV_ITEMS} />
       </div>

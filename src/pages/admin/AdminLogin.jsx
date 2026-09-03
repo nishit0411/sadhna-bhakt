@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import Logo from "../../components/layout/Logo";
+import DeveloperCredit from "../../components/layout/DeveloperCredit";
 import Button from "../../components/ui/Button";
 
 // Matches the footer/quote-section dark palette from Landing.jsx, kept
@@ -156,6 +157,8 @@ export default function AdminLogin() {
             {t("adminLogin.userLoginLink")}
           </Link>
         </p>
+
+        <DeveloperCredit dark className="mt-6" />
       </div>
     </div>
   );

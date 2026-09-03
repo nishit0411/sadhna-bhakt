@@ -7,6 +7,7 @@ import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useTranslation } from "../i18n/LanguageContext";
 import Logo from "../components/layout/Logo";
 import LanguageSwitcher from "../components/layout/LanguageSwitcher";
+import DeveloperCredit from "../components/layout/DeveloperCredit";
 import Card from "../components/ui/Card";
 import Button from "../components/ui/Button";
 import ProgressBar from "../components/ui/ProgressBar";
@@ -122,6 +123,8 @@ export default function Register() {
           <Button size="lg" icon={ArrowRight} className="mt-6 w-full" onClick={() => navigate("/login")}>
             {t("register.backToLogin")}
           </Button>
+
+          <DeveloperCredit className="mt-8" />
         </div>
       </div>
     );
@@ -180,6 +183,8 @@ export default function Register() {
           <Button size="lg" icon={ArrowRight} className="mt-6 w-full" onClick={handleContinue}>
             {t("register.continueButton")}
           </Button>
+
+          <DeveloperCredit className="mt-8" />
         </div>
       </div>
     );
@@ -408,6 +413,8 @@ export default function Register() {
             <p className="text-center text-xs text-brown-500">{t("register.submitNote")}</p>
           </div>
         </form>
+
+        <DeveloperCredit className="mt-8 pb-2" />
       </div>
     </div>
   );

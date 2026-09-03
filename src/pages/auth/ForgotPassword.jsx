@@ -6,6 +6,7 @@ import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import { useTranslation } from "../../i18n/LanguageContext";
 import Logo from "../../components/layout/Logo";
 import LanguageSwitcher from "../../components/layout/LanguageSwitcher";
+import DeveloperCredit from "../../components/layout/DeveloperCredit";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
@@ -275,6 +276,8 @@ export default function ForgotPassword() {
             {t("forgotPassword.backToLogin")}
           </Link>
         </Card>
+
+        <DeveloperCredit className="mt-6" />
       </div>
     </div>
   );

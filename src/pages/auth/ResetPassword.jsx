@@ -6,6 +6,7 @@ import { supabase, isSupabaseConfigured, PASSWORD_RECOVERY_FLAG_KEY } from "../.
 import { useTranslation } from "../../i18n/LanguageContext";
 import Logo from "../../components/layout/Logo";
 import LanguageSwitcher from "../../components/layout/LanguageSwitcher";
+import DeveloperCredit from "../../components/layout/DeveloperCredit";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
@@ -157,6 +158,8 @@ export default function ResetPassword() {
             </>
           )}
         </Card>
+
+        <DeveloperCredit className="mt-6" />
       </div>
     </div>
   );
