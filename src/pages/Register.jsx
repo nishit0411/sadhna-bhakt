@@ -18,6 +18,12 @@ import GenderSelector from "../components/GenderSelector";
 
 const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
+const GURUDEV_OPTIONS = [
+  "Srila Bhaktivedanta Narayana Gosvami Maharaja",
+  "Srila Bhaktivedanta Sridhar Goswami Maharaja",
+  "Other",
+];
+
 const MENTOR_OPTIONS = [
   "Srila Gurudev",
   "Sripad Gaursunder Prabhu",
@@ -41,6 +47,7 @@ const INITIAL_FORM = {
   initiationYear: "",
   sex: "",
   city: "",
+  gurudevOther: "",
   mentorName: "",
   mentorOther: "",
   mobileNumber: "",
@@ -108,6 +115,7 @@ export default function Register() {
     try {
       const submission = {
         ...form,
+        gurudevName: form.gurudevName === "Other" ? form.gurudevOther.trim() : form.gurudevName,
         mentorName: form.mentorName === "Other" ? form.mentorOther.trim() : form.mentorName,
       };
       const result = await register(submission);
@@ -224,13 +232,23 @@ export default function Register() {
           </FormSection>
 
           <FormSection icon={Sparkles} title={t("register.spiritualInfoTitle")} description={t("register.spiritualInfoDesc")}>
-            <FormInput
+            <FormSelect
               label={t("register.gurudevName")}
               name="gurudevName"
               placeholder={t("register.gurudevNamePlaceholder")}
+              options={GURUDEV_OPTIONS}
               value={form.gurudevName}
               onChange={handleChange}
             />
+            {form.gurudevName === "Other" && (
+              <FormInput
+                label={t("register.gurudevOtherLabel")}
+                name="gurudevOther"
+                placeholder={t("register.gurudevOtherPlaceholder")}
+                value={form.gurudevOther}
+                onChange={handleChange}
+              />
+            )}
             <FormSelect
               label={t("register.mentorName")}
               name="mentorName"
