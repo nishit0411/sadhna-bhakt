@@ -14,7 +14,7 @@ export default function Select({ label, required, id, className = "", children, 
       <div className="relative">
         <select
           id={selectId}
-          className={`w-full appearance-none rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 pr-10 text-sm text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 ${className}`}
+          className={`w-full appearance-none rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 pr-10 text-base text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm ${className}`}
           {...props}
         >
           {children}

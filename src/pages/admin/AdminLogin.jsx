@@ -112,7 +112,7 @@ export default function AdminLogin() {
                 placeholder={t("auth.emailPlaceholder")}
                 value={form.email}
                 onChange={handleChange}
-                className="mt-1.5 w-full rounded-xl border bg-transparent px-4 py-2.5 text-sm outline-none transition-colors focus:ring-2"
+                className="mt-1.5 w-full rounded-xl border bg-transparent px-4 py-2.5 text-base outline-none transition-colors focus:ring-2 sm:text-sm"
                 style={{ borderColor: errors.email ? "#cc4a3d" : `${GOLD}44`, color: "#f7f2e7" }}
               />
               {errors.email && <p className="mt-1.5 text-xs" style={{ color: "#e0938a" }}>{errors.email}</p>}
@@ -130,7 +130,7 @@ export default function AdminLogin() {
                 placeholder={t("auth.passwordPlaceholder")}
                 value={form.password}
                 onChange={handleChange}
-                className="mt-1.5 w-full rounded-xl border bg-transparent px-4 py-2.5 text-sm outline-none transition-colors focus:ring-2"
+                className="mt-1.5 w-full rounded-xl border bg-transparent px-4 py-2.5 text-base outline-none transition-colors focus:ring-2 sm:text-sm"
                 style={{ borderColor: errors.password ? "#cc4a3d" : `${GOLD}44`, color: "#f7f2e7" }}
               />
               {errors.password && <p className="mt-1.5 text-xs" style={{ color: "#e0938a" }}>{errors.password}</p>}

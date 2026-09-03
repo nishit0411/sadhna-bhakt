@@ -20,7 +20,7 @@ export default function TimePicker({ label, required, value, onChange, id, name 
           type="time"
           value={value}
           onChange={onChange}
-          className="w-full rounded-xl border border-brown-900/10 bg-cream-50 py-3 pl-11 pr-4 text-sm font-medium text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200"
+          className="w-full rounded-xl border border-brown-900/10 bg-cream-50 py-3 pl-11 pr-4 text-base font-medium text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm"
         />
       </div>
       {value && <p className="pl-1 text-xs text-brown-500">{to12Hour(value)}</p>}

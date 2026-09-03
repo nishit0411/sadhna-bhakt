@@ -99,7 +99,7 @@ export default function Devotees() {
               onChange={(e) => setSearch(e.target.value)}
               placeholder={t("admin.searchPlaceholder")}
               aria-label={t("admin.searchPlaceholder")}
-              className="w-full rounded-xl border border-brown-900/10 bg-cream-50 py-2.5 pl-10 pr-4 text-sm focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200"
+              className="w-full rounded-xl border border-brown-900/10 bg-cream-50 py-2.5 pl-10 pr-4 text-base focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm"
             />
           </div>
           <Input label="" type="date" aria-label={t("common.date")} value={date} onChange={(e) => setDate(e.target.value)} max={toISODate(new Date())} />

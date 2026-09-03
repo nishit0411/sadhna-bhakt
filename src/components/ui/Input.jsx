@@ -11,7 +11,7 @@ export default function Input({ label, error, required, id, className = "", ...p
       )}
       <input
         id={inputId}
-        className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-sm text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 disabled:cursor-not-allowed disabled:bg-beige-100 disabled:text-brown-500 ${error ? "border-clay-400" : ""} ${className}`}
+        className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-base text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 disabled:cursor-not-allowed disabled:bg-beige-100 disabled:text-brown-500 sm:text-sm ${error ? "border-clay-400" : ""} ${className}`}
         aria-invalid={Boolean(error)}
         aria-describedby={error ? `${inputId}-error` : undefined}
         {...props}

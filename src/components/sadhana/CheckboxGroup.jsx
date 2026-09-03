@@ -70,7 +70,7 @@ export default function CheckboxGroup({
             value={otherText}
             onChange={(e) => onOtherTextChange(e.target.value)}
             placeholder={otherPlaceholder}
-            className="w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-sm text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200"
+            className="w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-base text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm"
           />
         </div>
       )}

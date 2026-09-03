@@ -46,7 +46,7 @@ export default function NumberField({ label, required, error, helperText, value,
         onKeyDown={(e) => {
           if (e.key === "-" || e.key === "." || e.key === "e" || e.key === "+") e.preventDefault();
         }}
-        className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-sm text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 ${
+        className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 text-base text-brown-900 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm ${
           error ? "border-clay-400" : ""
         }`}
         aria-invalid={Boolean(error)}
