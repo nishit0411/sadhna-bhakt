@@ -234,21 +234,14 @@ export default function Landing() {
             {t("landing.heroSubhead")}
           </p>
 
-          <div className="animate-fade-up delay-3 mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="animate-fade-up delay-3 mt-8 flex items-center justify-center sm:mt-10">
             <Link
               to="/register"
-              className="inline-flex w-full items-center justify-center rounded-full px-8 py-3.5 font-display text-base font-semibold tracking-wide text-[#f7f2e7] shadow-[0_10px_30px_rgba(92,26,43,0.45)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
+              className="inline-flex w-full max-w-xs items-center justify-center rounded-full px-8 py-3.5 font-display text-base font-semibold tracking-wide text-[#f7f2e7] shadow-[0_10px_30px_rgba(92,26,43,0.45)] transition-transform duration-300 hover:-translate-y-0.5 sm:w-auto"
               style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})`, border: `1px solid ${GOLD_SOFT}` }}
             >
               {t("landing.beginSadhnaButton")}
             </Link>
-            <a
-              href="#sadhna"
-              className="inline-flex w-full items-center justify-center gap-2 rounded-full border px-8 py-3.5 font-display text-base font-medium tracking-wide text-[#f7f2e7] backdrop-blur-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-white/10 sm:w-auto"
-              style={{ borderColor: `${GOLD_SOFT}88` }}
-            >
-              {t("landing.exploreSadhnaButton")}
-            </a>
           </div>
         </div>
 
