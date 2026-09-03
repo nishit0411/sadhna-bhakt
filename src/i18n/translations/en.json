@@ -131,7 +131,8 @@
     "unverifiedEmailMessage": "Please verify your email before logging in. Check your inbox for the confirmation link.",
     "resendVerificationButton": "Resend verification email",
     "resendSuccess": "Verification email sent — please check your inbox.",
-    "passwordResetSuccess": "Your password has been reset. Please sign in with your new password."
+    "passwordResetSuccess": "Your password has been reset. Please sign in with your new password.",
+    "registrationSuccess": "Your account has been created. Please sign in to begin your Sadhana."
   },
   "forgotPassword": {
     "title": "Reset Your Password",
@@ -196,7 +197,9 @@
     "gurudevName": "Srila Gurudev Name",
     "gurudevNamePlaceholder": "Enter Srila Gurudev's name",
     "mentorName": "Mentor Name",
-    "mentorNamePlaceholder": "Enter mentor name",
+    "mentorNamePlaceholder": "Select your mentor",
+    "mentorOtherLabel": "Please specify your mentor's name",
+    "mentorOtherPlaceholder": "Write the name",
     "dikshaStage": "Diksha Stage",
     "dikshaStagePlaceholder": "Select Diksha stage",
     "initiationDate": "Initiation Date",

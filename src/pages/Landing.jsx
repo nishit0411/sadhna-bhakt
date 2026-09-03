@@ -18,6 +18,7 @@ import Logo from "../components/layout/Logo";
 import LanguageSwitcher from "../components/layout/LanguageSwitcher";
 import DeveloperCredit from "../components/layout/DeveloperCredit";
 import { useTranslation } from "../i18n/LanguageContext";
+import { useAuth } from "../context/AuthContext";
 import guruPhotoMeditating from "../assets/guru-photo-1-meditating.jpeg";
 import guruPhotoGarlanded from "../assets/guru-photo-2-garlanded.jpeg";
 import deityPhoto from "../assets/deities-radha-krishna-balaram.jpeg";
@@ -74,6 +75,7 @@ function Reveal({ children, className = "", delay = 0, as: Tag = "div" }) {
 
 export default function Landing() {
   const { t } = useTranslation();
+  const { hasAccountOnDevice } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -150,13 +152,15 @@ export default function Landing() {
             >
               {t("common.login")}
             </Link>
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 font-display text-sm font-semibold tracking-wide text-[#f7f2e7] shadow-[0_4px_16px_rgba(92,26,43,0.3)] transition-transform duration-300 hover:-translate-y-0.5"
-              style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})`, border: `1px solid ${GOLD_SOFT}` }}
-            >
-              {t("landing.navBeginSadhna")} →
-            </Link>
+            {!hasAccountOnDevice && (
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-1.5 rounded-full px-5 py-2 font-display text-sm font-semibold tracking-wide text-[#f7f2e7] shadow-[0_4px_16px_rgba(92,26,43,0.3)] transition-transform duration-300 hover:-translate-y-0.5"
+                style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})`, border: `1px solid ${GOLD_SOFT}` }}
+              >
+                {t("landing.navBeginSadhna")} →
+              </Link>
+            )}
           </div>
 
           <button
@@ -190,13 +194,15 @@ export default function Landing() {
               <Link to="/login" className="font-display text-sm" style={{ color: CHARCOAL }}>
                 {t("common.login")}
               </Link>
-              <Link
-                to="/register"
-                className="rounded-full px-5 py-2 font-display text-sm font-semibold text-[#f7f2e7]"
-                style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})` }}
-              >
-                {t("landing.navBeginSadhna")}
-              </Link>
+              {!hasAccountOnDevice && (
+                <Link
+                  to="/register"
+                  className="rounded-full px-5 py-2 font-display text-sm font-semibold text-[#f7f2e7]"
+                  style={{ background: `linear-gradient(135deg, ${BURGUNDY}, ${BURGUNDY_DEEP})` }}
+                >
+                  {t("landing.navBeginSadhna")}
+                </Link>
+              )}
             </div>
           </div>
         )}

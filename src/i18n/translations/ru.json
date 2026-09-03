@@ -131,7 +131,8 @@
     "unverifiedEmailMessage": "Пожалуйста, подтвердите вашу эл. почту перед входом. Проверьте почту — там ссылка для подтверждения.",
     "resendVerificationButton": "Отправить письмо подтверждения ещё раз",
     "resendSuccess": "Письмо подтверждения отправлено — проверьте вашу почту.",
-    "passwordResetSuccess": "Ваш пароль изменён. Пожалуйста, войдите с новым паролем."
+    "passwordResetSuccess": "Ваш пароль изменён. Пожалуйста, войдите с новым паролем.",
+    "registrationSuccess": "Ваш аккаунт создан. Пожалуйста, войдите, чтобы начать вашу Садхану."
   },
   "forgotPassword": {
     "title": "Сброс пароля",
@@ -196,7 +197,9 @@
     "gurudevName": "Имя Шрилы Гурудева",
     "gurudevNamePlaceholder": "Введите имя Шрилы Гурудева",
     "mentorName": "Имя наставника",
-    "mentorNamePlaceholder": "Введите имя наставника",
+    "mentorNamePlaceholder": "Выберите вашего наставника",
+    "mentorOtherLabel": "Пожалуйста, укажите имя вашего наставника",
+    "mentorOtherPlaceholder": "Введите имя",
     "dikshaStage": "Ступень дикши",
     "dikshaStagePlaceholder": "Выберите ступень дикши",
     "initiationDate": "Дата посвящения",

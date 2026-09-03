@@ -18,6 +18,17 @@ import GenderSelector from "../components/GenderSelector";
 
 const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
+const MENTOR_OPTIONS = [
+  "Srila Gurudev",
+  "Sripad Gaursunder Prabhu",
+  "Sripad Krishandas Prabhu",
+  "Sripad Madhav Prabhu",
+  "Sripad Sanjay Prabhu",
+  "Sripad Shyamanand Prabhu",
+  "Sripad Tapan Prabhu",
+  "Other",
+];
+
 const INITIAL_FORM = {
   firstName: "",
   lastName: "",
@@ -31,6 +42,7 @@ const INITIAL_FORM = {
   sex: "",
   city: "",
   mentorName: "",
+  mentorOther: "",
   mobileNumber: "",
   email: "",
   password: "",
@@ -44,13 +56,12 @@ const PHONE_PATTERN = /^\d{7,12}$/;
 
 export default function Register() {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, endSessionAfterRegistration } = useAuth();
   const { addToast } = useToast();
   const { t } = useTranslation();
   const [form, setForm] = useState(INITIAL_FORM);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [profile, setProfile] = useState(null);
   const [pendingEmail, setPendingEmail] = useState(null);
 
   function setField(field, value) {
@@ -95,21 +106,22 @@ export default function Register() {
 
     setIsSubmitting(true);
     try {
-      const result = await register(form);
+      const submission = {
+        ...form,
+        mentorName: form.mentorName === "Other" ? form.mentorOther.trim() : form.mentorName,
+      };
+      const result = await register(submission);
       if (result?.pendingEmailConfirmation) {
         setPendingEmail(result.email);
       } else {
-        setProfile(result);
+        await endSessionAfterRegistration();
+        navigate("/login", { state: { registrationSuccess: true } });
       }
     } catch (err) {
       addToast(err.message, "error");
     } finally {
       setIsSubmitting(false);
     }
-  }
-
-  function handleContinue() {
-    navigate("/devotee/dashboard");
   }
 
   if (pendingEmail) {
@@ -122,66 +134,6 @@ export default function Register() {
           <p className="mt-2 text-brown-600">{t("register.checkEmailBody", { email: pendingEmail })}</p>
           <Button size="lg" icon={ArrowRight} className="mt-6 w-full" onClick={() => navigate("/login")}>
             {t("register.backToLogin")}
-          </Button>
-
-          <DeveloperCredit className="mt-8" />
-        </div>
-      </div>
-    );
-  }
-
-  if (profile) {
-    return (
-      <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-cream-50 px-4 py-10">
-        <div className="devotional-pattern pointer-events-none absolute inset-0 opacity-50" />
-        <div className="relative w-full max-w-md text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-saffron-100 text-3xl">🙏</span>
-          <h1 className="mt-5 font-display text-2xl font-semibold text-maroon-600 sm:text-3xl">{t("register.successTitle")}</h1>
-          <p className="mt-2 text-brown-600">
-            {t("register.successGreeting")} {profile.firstName} 🙏
-          </p>
-
-          <Card className="mt-6 px-7 py-6 text-left" padded={false}>
-            <dl className="flex flex-col gap-3">
-              <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
-                <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("common.name")}</dt>
-                <dd className="font-medium text-brown-900">
-                  {profile.firstName} {profile.lastName}
-                </dd>
-              </div>
-              {profile.dob && (
-                <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.dob")}</dt>
-                  <dd className="font-medium text-brown-900">{profile.dob}</dd>
-                </div>
-              )}
-              {profile.spiritualName && (
-                <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.spiritualName")}</dt>
-                  <dd className="font-medium text-brown-900">{profile.spiritualName}</dd>
-                </div>
-              )}
-              <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
-                <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.dikshaStage")}</dt>
-                <dd className="font-medium text-brown-900">{profile.dikshaStage}</dd>
-              </div>
-              {(profile.initiationDate || profile.initiationYear) && (
-                <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
-                  <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.initiationDate")}</dt>
-                  <dd className="font-medium text-brown-900">
-                    {profile.initiationDateMode === "year" ? profile.initiationYear : profile.initiationDate}
-                  </dd>
-                </div>
-              )}
-              <div className="flex items-center justify-between">
-                <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("common.city")}</dt>
-                <dd className="font-medium text-brown-900">{profile.city}</dd>
-              </div>
-            </dl>
-          </Card>
-
-          <Button size="lg" icon={ArrowRight} className="mt-6 w-full" onClick={handleContinue}>
-            {t("register.continueButton")}
           </Button>
 
           <DeveloperCredit className="mt-8" />
@@ -279,13 +231,23 @@ export default function Register() {
               value={form.gurudevName}
               onChange={handleChange}
             />
-            <FormInput
+            <FormSelect
               label={t("register.mentorName")}
               name="mentorName"
               placeholder={t("register.mentorNamePlaceholder")}
+              options={MENTOR_OPTIONS}
               value={form.mentorName}
               onChange={handleChange}
             />
+            {form.mentorName === "Other" && (
+              <FormInput
+                label={t("register.mentorOtherLabel")}
+                name="mentorOther"
+                placeholder={t("register.mentorOtherPlaceholder")}
+                value={form.mentorOther}
+                onChange={handleChange}
+              />
+            )}
             <div data-error={Boolean(errors.dikshaStage)}>
               <FormSelect
                 label={t("register.dikshaStage")}

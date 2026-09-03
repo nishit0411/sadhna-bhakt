@@ -39,22 +39,10 @@ const ACTIVITY_ICONS = {
   gurudev: Sparkles,
 };
 
-function useRegisteredProfile() {
-  return useMemo(() => {
-    try {
-      const raw = localStorage.getItem("devoteeProfile");
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  }, []);
-}
-
 export default function Dashboard() {
   const { user } = useAuth();
   const { t, locale } = useTranslation();
-  const registeredProfile = useRegisteredProfile();
-  const displayFirstName = registeredProfile?.firstName || user.name.split(" ")[0];
+  const displayName = user.spiritualName || user.name.split(" ")[0];
   const [isLoading, setIsLoading] = useState(true);
   const [todayEntry, setTodayEntry] = useState(null);
   const [recentDays, setRecentDays] = useState([]);
@@ -111,11 +99,8 @@ export default function Dashboard() {
     <div className="flex flex-col gap-6">
       <div>
         <h1 className="font-display text-2xl font-semibold text-maroon-600 sm:text-3xl">
-          {t("dashboard.greeting")} {displayFirstName} 🙏
+          {t("dashboard.greeting")} {displayName} 🙏
         </h1>
-        {registeredProfile?.spiritualName && (
-          <p className="-mt-0.5 text-sm font-medium text-saffron-600">{registeredProfile.spiritualName}</p>
-        )}
         <p className="mt-1 text-sm text-brown-600">{t("dashboard.subtitle")}</p>
         <p className="mt-2 text-xs font-medium uppercase tracking-wide text-brown-400">{formatLongDate(today, locale)}</p>
       </div>

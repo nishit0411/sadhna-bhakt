@@ -19,7 +19,7 @@ function isUnconfirmedEmailError(err) {
 }
 
 export default function Login() {
-  const { login, loginAs } = useAuth();
+  const { login, loginAs, hasAccountOnDevice } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -31,6 +31,7 @@ export default function Login() {
   const [unverifiedEmail, setUnverifiedEmail] = useState(null);
   const [isResending, setIsResending] = useState(false);
   const [resetSuccess] = useState(Boolean(location.state?.passwordResetSuccess));
+  const [registrationSuccess] = useState(Boolean(location.state?.registrationSuccess));
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -122,6 +123,11 @@ export default function Login() {
               {t("auth.passwordResetSuccess")}
             </p>
           )}
+          {registrationSuccess && (
+            <p className="mt-4 rounded-xl bg-sage-50 px-4 py-3 text-sm font-medium text-sage-600">
+              {t("auth.registrationSuccess")}
+            </p>
+          )}
 
           <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4" noValidate>
             <Input
@@ -200,12 +206,14 @@ export default function Login() {
             </>
           )}
 
-          <p className="mt-6 text-center text-sm text-brown-500">
-            {t("auth.newHere")}{" "}
-            <Link to="/register" className="font-medium text-maroon-600 hover:underline">
-              {t("auth.createAccount")}
-            </Link>
-          </p>
+          {!hasAccountOnDevice && (
+            <p className="mt-6 text-center text-sm text-brown-500">
+              {t("auth.newHere")}{" "}
+              <Link to="/register" className="font-medium text-maroon-600 hover:underline">
+                {t("auth.createAccount")}
+              </Link>
+            </p>
+          )}
         </Card>
 
         <DeveloperCredit className="mt-6" />
