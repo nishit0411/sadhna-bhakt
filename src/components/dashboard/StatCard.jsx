@@ -7,9 +7,19 @@ const TONES = {
   clay: "bg-clay-100 text-clay-600",
 };
 
-export default function StatCard({ icon: Icon, label, value, suffix, tone = "maroon", trend }) {
+/** `onClick` is optional — cards remain plain display when omitted, become an interactive button (with hover/focus affordance) when provided. */
+export default function StatCard({ icon: Icon, label, value, suffix, tone = "maroon", trend, onClick }) {
+  const interactive = Boolean(onClick);
+
   return (
-    <Card className="flex items-center gap-4">
+    <Card
+      as={interactive ? "button" : "div"}
+      type={interactive ? "button" : undefined}
+      onClick={onClick}
+      className={`flex w-full items-center gap-4 text-left ${
+        interactive ? "cursor-pointer transition-all duration-150 hover:-translate-y-0.5 hover:shadow-lifted focus-visible:outline-none" : ""
+      }`}
+    >
       <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${TONES[tone]}`}>
         <Icon className="h-5 w-5" aria-hidden="true" />
       </span>

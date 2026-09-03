@@ -413,6 +413,7 @@
     "totalWithoutAsan": "Total Without Asan",
     "todaysOverview": "Today's Sadhana Overview",
     "malaBreakdown": "Mala Breakdown — On Asan vs Without Asan",
+    "rowClickHint": "Click any row to view that devotee's profile. Click a column header to sort.",
     "noMalaToday": "No Mala submitted yet today",
     "noMalaTodayDesc": "Devotee Mala counts will appear here once submitted.",
     "devoteesTitle": "Devotees",

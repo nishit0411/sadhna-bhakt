@@ -1,4 +1,6 @@
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronUp, ChevronDown, ChevronsUpDown } from "lucide-react";
 import StatusBadge from "../ui/StatusBadge";
 import EmptyState from "../ui/EmptyState";
 import { Users } from "lucide-react";
@@ -17,15 +19,71 @@ function initialsAvatar(devotee) {
   );
 }
 
+const YES_NO_RANK = { Yes: 2, No: 1 };
+
+const SORTERS = {
+  name: (d) => d.name?.toLowerCase() ?? "",
+  totalMala: (d) => d.todayTotalMala ?? -1,
+  granth: (d) => YES_NO_RANK[d.todayGranth] ?? 0,
+  harikatha: (d) => YES_NO_RANK[d.todayHarikatha] ?? 0,
+  gaudiyaKirtan: (d) => YES_NO_RANK[d.todayGaudiyaKirtan] ?? 0,
+  status: (d) => d.status ?? "",
+};
+
+function SortableHeader({ label, sortKeyName, activeKey, dir, onSort }) {
+  const isActive = activeKey === sortKeyName;
+  const Icon = isActive ? (dir === "asc" ? ChevronUp : ChevronDown) : ChevronsUpDown;
+  return (
+    <th className="px-4 py-3">
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onSort(sortKeyName);
+        }}
+        className={`flex items-center gap-1 uppercase tracking-wide hover:text-maroon-600 ${isActive ? "text-maroon-600" : ""}`}
+      >
+        {label}
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      </button>
+    </th>
+  );
+}
+
 export default function DevoteeTable({ devotees }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const [sortKey, setSortKey] = useState(null);
+  const [sortDir, setSortDir] = useState("asc");
 
   function yn(value) {
     if (value === "Yes") return t("common.yes");
     if (value === "No") return t("common.no");
     return "—";
   }
+
+  function handleSort(key) {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  }
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return devotees;
+    const getValue = SORTERS[sortKey];
+    const copy = [...devotees].sort((a, b) => {
+      const av = getValue(a);
+      const bv = getValue(b);
+      if (av < bv) return -1;
+      if (av > bv) return 1;
+      return 0;
+    });
+    if (sortDir === "desc") copy.reverse();
+    return copy;
+  }, [devotees, sortKey, sortDir]);
 
   if (!devotees.length) {
     return <EmptyState icon={Users} title={t("admin.noDevoteesFound")} description={t("admin.noDevoteesFoundDesc")} />;
@@ -36,16 +94,16 @@ export default function DevoteeTable({ devotees }) {
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
-            <th className="px-4 py-3">{t("admin.table.devotee")}</th>
-            <th className="px-4 py-3">{t("admin.table.totalMala")}</th>
-            <th className="px-4 py-3">{t("admin.table.granth")}</th>
-            <th className="px-4 py-3">{t("admin.table.harikatha")}</th>
-            <th className="px-4 py-3">{t("admin.table.gaudiyaKirtan")}</th>
-            <th className="px-4 py-3">{t("admin.table.status")}</th>
+            <SortableHeader label={t("admin.table.devotee")} sortKeyName="name" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label={t("admin.table.totalMala")} sortKeyName="totalMala" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label={t("admin.table.granth")} sortKeyName="granth" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label={t("admin.table.harikatha")} sortKeyName="harikatha" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label={t("admin.table.gaudiyaKirtan")} sortKeyName="gaudiyaKirtan" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+            <SortableHeader label={t("admin.table.status")} sortKeyName="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
           </tr>
         </thead>
         <tbody>
-          {devotees.map((devotee) => (
+          {sorted.map((devotee) => (
             <tr
               key={devotee.id}
               onClick={() => navigate(`/admin/devotees/${devotee.id}`)}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Search } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import { toISODate } from "../../utils/dateHelpers";
@@ -10,14 +11,36 @@ import Select from "../../components/ui/Select";
 import DevoteeTable from "../../components/admin/DevoteeTable";
 import LoadingState from "../../components/ui/LoadingState";
 
+const VALID_STATUS_FILTERS = ["Completed", "Pending"];
+
 export default function Devotees() {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [devotees, setDevotees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [date, setDate] = useState(toISODate(new Date()));
   const [malaFilter, setMalaFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("all");
+  // Seeded from ?status=Completed|Pending (the Admin Dashboard's "Submitted
+  // Today" / "Pending Today" cards link here) — falls back to "all" for a
+  // plain visit, and stays in sync if the user changes it via the select.
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const fromUrl = searchParams.get("status");
+    return VALID_STATUS_FILTERS.includes(fromUrl) ? fromUrl : "all";
+  });
+
+  function handleStatusFilterChange(value) {
+    setStatusFilter(value);
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (value === "all") next.delete("status");
+        else next.set("status", value);
+        return next;
+      },
+      { replace: true }
+    );
+  }
 
   const MALA_FILTERS = [
     { value: "all", label: t("admin.anyMalaCount") },
@@ -87,7 +110,7 @@ export default function Devotees() {
               </option>
             ))}
           </Select>
-          <Select aria-label={t("admin.allStatuses")} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <Select aria-label={t("admin.allStatuses")} value={statusFilter} onChange={(e) => handleStatusFilterChange(e.target.value)}>
             {STATUS_FILTERS.map((f) => (
               <option key={f.value} value={f.value}>
                 {f.label}
