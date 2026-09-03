@@ -13,6 +13,7 @@ import ActivityConsistencyChart from "../../components/charts/ActivityConsistenc
 import LoadingState from "../../components/ui/LoadingState";
 import EmptyState from "../../components/ui/EmptyState";
 import { formatLongDate } from "../../utils/dateHelpers";
+import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
 
@@ -21,7 +22,7 @@ const TONES = { maroon: "bg-maroon-500", saffron: "bg-saffron-500", sage: "bg-sa
 function initiationSummary(devotee) {
   if (!devotee.dikshaStage) return null;
   const dateOrYear = devotee.initiationDate
-    ? formatLongDate(devotee.initiationDate)
+    ? formatDateDDMMYYYY(devotee.initiationDate)
     : devotee.initiationYear
       ? devotee.initiationYear
       : null;
