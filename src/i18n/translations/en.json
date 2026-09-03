@@ -151,7 +151,8 @@
     "errOtpRequired": "Please enter the verification code.",
     "errOtpInvalid": "Invalid or expired code. Please request a new one.",
     "changeEmail": "Use a different email",
-    "otpOrLinkHint": "You can either enter the code above, or use the link in that same email."
+    "otpOrLinkHint": "You can either enter the code above, or use the link in that same email.",
+    "errSendFailed": "We couldn't send the email right now. Please try again in a few minutes."
   },
   "resetPassword": {
     "title": "Set a New Password",

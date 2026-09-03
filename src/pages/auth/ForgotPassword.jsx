@@ -13,6 +13,17 @@ import Button from "../../components/ui/Button";
 const RESEND_COOLDOWN_SECONDS = 30;
 
 /**
+ * Supabase's own error text for an SMTP/email-transport failure ("Error
+ * sending recovery email") is accurate but not something a devotee should
+ * have to parse — this is swapped for a plain-language, translated
+ * message at each call site, while other errors (e.g. rate limiting) are
+ * still shown as Supabase reports them.
+ */
+function isEmailSendFailure(err) {
+  return /error sending|sending.*email|smtp/i.test(err?.message ?? "");
+}
+
+/**
  * Forgot Password → Enter email → Send code → Verify code → Set new
  * password → Login. This is the only place in the app an OTP is required
  * — normal login never involves one. Everything happens in-app (no email
@@ -50,7 +61,7 @@ export default function ForgotPassword() {
       setCooldown(RESEND_COOLDOWN_SECONDS);
       setStep("otp");
     } catch (err) {
-      setErrors({ email: err.message });
+      setErrors({ email: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : err.message });
     } finally {
       setIsSubmitting(false);
     }
@@ -64,7 +75,7 @@ export default function ForgotPassword() {
       setCooldown(RESEND_COOLDOWN_SECONDS);
       setErrors({});
     } catch (err) {
-      setErrors({ otp: err.message });
+      setErrors({ otp: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : err.message });
     } finally {
       setIsSubmitting(false);
     }
