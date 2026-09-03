@@ -25,9 +25,9 @@ export default function StatCard({ icon: Icon, label, value, suffix, tone = "mar
       </span>
       <div className="min-w-0">
         <p className="text-xs font-medium uppercase tracking-wide text-brown-500">{label}</p>
-        <p className="mt-0.5 truncate font-display text-2xl font-semibold text-brown-900">
-          {value}
-          {suffix && <span className="ml-1 text-sm font-sans font-normal text-brown-500">{suffix}</span>}
+        <p className="mt-0.5 flex flex-wrap items-baseline gap-x-1 font-display text-2xl font-semibold text-brown-900">
+          <span className="truncate">{value}</span>
+          {suffix && <span className="text-sm font-sans font-normal text-brown-500">{suffix}</span>}
         </p>
         {trend && <p className="mt-0.5 text-xs text-sage-600">{trend}</p>}
       </div>

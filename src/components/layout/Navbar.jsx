@@ -20,8 +20,8 @@ export default function Navbar({ onMenuClick }) {
   }
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-brown-900/5 bg-cream-50/95 px-4 backdrop-blur sm:px-6">
-      <div className="flex items-center gap-3">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-brown-900/5 bg-cream-50/95 px-3 backdrop-blur sm:px-6">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         {onMenuClick && (
           <button
             onClick={onMenuClick}
@@ -34,7 +34,9 @@ export default function Navbar({ onMenuClick }) {
         <Link to={profileHref} className="hidden items-center gap-2 sm:flex">
           <Logo compact />
         </Link>
-        <p className="font-display text-base font-medium text-maroon-600 sm:hidden">{t("landing.hareKrishnaGreeting")}</p>
+        <p className="min-w-0 truncate font-display text-base font-medium text-maroon-600 sm:hidden">
+          {t("landing.hareKrishnaGreeting")}
+        </p>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-4">

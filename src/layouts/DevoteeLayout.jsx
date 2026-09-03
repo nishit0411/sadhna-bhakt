@@ -22,7 +22,7 @@ export default function DevoteeLayout() {
   return (
     <div className="flex min-h-screen bg-cream-50">
       <Sidebar items={NAV_ITEMS} isOpen={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
-      <div className="flex min-h-screen flex-1 flex-col">
+      <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Navbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 sm:pb-10 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">
