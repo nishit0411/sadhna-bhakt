@@ -135,10 +135,10 @@
   },
   "forgotPassword": {
     "title": "Reset Your Password",
-    "subtitle": "Enter your email and we'll send you a link to reset your password.",
-    "sendButton": "Send Reset Link",
+    "subtitle": "Enter your email and we'll send you a verification code to reset your password.",
+    "sendButton": "Send Verification Code",
     "sentTitle": "Check Your Email",
-    "sentMessage": "Password reset link has been sent to your email. Please check your inbox.",
+    "sentMessage": "If an account exists for this email, a verification code has been sent.",
     "mockModeMessage": "Password reset requires a live backend connection. This demo is currently running on mock data.",
     "backToLogin": "Back to Login",
     "otpTitle": "Enter Verification Code",

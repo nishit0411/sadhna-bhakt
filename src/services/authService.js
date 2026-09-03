@@ -198,11 +198,12 @@ export async function resendVerificationEmail(email) {
 }
 
 /**
- * Sends the password-reset email — a link built from `redirectTo` below,
- * using Supabase's standard `{{ .ConfirmationURL }}` template variable.
- * Works with an unmodified default "Reset Password" template; no custom
- * `{{ .Token }}` variable required. ResetPassword.jsx picks up the
- * recovery session Supabase establishes once the user clicks that link.
+ * Sends the password-reset email. `redirectTo` covers the link-click
+ * fallback (ResetPassword.jsx, via {{ .ConfirmationURL }}); the primary
+ * ForgotPassword.jsx flow uses the 6-digit {{ .Token }} the same email
+ * carries — that variable MUST be added to Supabase's "Reset Password"
+ * email template (Authentication -> Emails -> Templates) or there will
+ * be no code for the user to enter on step 2.
  */
 export async function requestPasswordReset(email) {
   if (!isSupabaseConfigured) {
@@ -210,6 +211,20 @@ export async function requestPasswordReset(email) {
   }
   const redirectTo = `${window.location.origin}${window.location.pathname}#/reset-password`;
   const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+/**
+ * Verifies the 6-digit code from the password-reset email (Supabase's
+ * recovery OTPs are always 6 digits — this is not configurable). Success
+ * establishes a real (short-lived) recovery session — `confirmPasswordReset`
+ * then sets the new password on it.
+ */
+export async function verifyPasswordResetOtp(email, token) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Password reset requires a live backend connection.");
+  }
+  const { error } = await supabase.auth.verifyOtp({ email, token, type: "recovery" });
   if (error) throw error;
 }
 
