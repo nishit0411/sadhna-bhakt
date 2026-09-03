@@ -21,7 +21,7 @@ export default function SadhanaFormFields({ form, errors, setField, setMalaField
 
   return (
     <>
-      <SadhanaQuestion icon={Sunrise} title={t("sadhana.morningTitle")} question={t("sadhana.jaiDhwaniQuestion")}>
+      <SadhanaQuestion icon={Sunrise} title={t("sadhana.morningTitle")}>
         <div className="mb-4" data-error={Boolean(errors.wakeUpTime)}>
           <TimePicker
             label={t("sadhana.wakeUpTime")}
@@ -31,6 +31,10 @@ export default function SadhanaFormFields({ form, errors, setField, setMalaField
             onChange={(e) => setField("wakeUpTime", e.target.value)}
           />
         </div>
+        <p className="mb-4 text-sm leading-relaxed text-brown-700 sm:text-base">
+          {t("sadhana.jaiDhwaniQuestion")}
+          <span className="ml-0.5 text-maroon-500">*</span>
+        </p>
         <div data-error={Boolean(errors.gurudevRemembrance)}>
           <YesNoSelector name="gurudevRemembrance" value={form.gurudevRemembrance} onChange={(v) => setField("gurudevRemembrance", v)} />
           {errors.gurudevRemembrance && <p className="mt-2 text-xs text-clay-600">{errors.gurudevRemembrance}</p>}
