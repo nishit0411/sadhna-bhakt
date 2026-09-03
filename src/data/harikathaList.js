@@ -6,7 +6,7 @@ export const HARIKATHA_OPTIONS = [
   "Sripad Krishandas Prabhu",
   "Sripad Madhav Prabhu",
   "Sripad Sanjay Prabhu",
-  "Sripad Shyamanda Prabhu",
+  "Sripad Shyamanand Prabhu",
   "Sripad Tapan Prabhu",
   "Other",
   NO_HARIKATHA_VALUE,
