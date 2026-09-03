@@ -114,6 +114,7 @@ export default function Profile() {
           <Input label={t("profile.phone")} name="phone" value={form.phone} onChange={handleChange} disabled={!isEditing} />
           <Input label={t("profile.centre")} name="centre" value={form.centre} onChange={handleChange} disabled={!isEditing} />
           <Input label={t("profile.mentor")} name="mentor" value={form.mentor} onChange={handleChange} disabled={!isEditing} className="sm:col-span-2" />
+          {user.dob && <Input label={t("profile.dob")} value={user.dob} disabled />}
           {user.dikshaStage && <Input label={t("profile.dikshaStage")} value={user.dikshaStage} disabled />}
           {(user.initiationDate || user.initiationYear) && (
             <Input label={t("profile.initiationDate")} value={user.initiationDate || user.initiationYear} disabled />

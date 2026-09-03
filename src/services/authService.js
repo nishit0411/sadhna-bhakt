@@ -56,6 +56,7 @@ export function mapProfileRow(row) {
     avatarColor: row.avatar_color ?? "maroon",
     initials,
     joinedOn: row.created_at,
+    dob: row.date_of_birth ?? null,
     dikshaStage: row.diksha_stage ?? null,
     initiationDate: row.initiation_date ?? null,
     initiationYear: row.initiation_year ?? null,
@@ -103,6 +104,7 @@ export async function register(form) {
         data: {
           first_name: form.firstName,
           last_name: form.lastName,
+          date_of_birth: form.dob || null,
           spiritual_name: form.spiritualName || null,
           gurudev_name: form.gurudevName || null,
           diksha_stage: form.dikshaStage || null,

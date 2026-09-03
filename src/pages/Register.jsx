@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Sparkles, Heart, MapPin, Phone, Mail, ArrowRight } from "lucide-react";
+import { User, Sparkles, Heart, MapPin, Phone, Mail, ArrowRight, Cake } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
@@ -20,6 +20,7 @@ const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 const INITIAL_FORM = {
   firstName: "",
   lastName: "",
+  dob: "",
   spiritualName: "",
   gurudevName: "",
   dikshaStage: "",
@@ -145,6 +146,12 @@ export default function Register() {
                   {profile.firstName} {profile.lastName}
                 </dd>
               </div>
+              {profile.dob && (
+                <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
+                  <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.dob")}</dt>
+                  <dd className="font-medium text-brown-900">{profile.dob}</dd>
+                </div>
+              )}
               {profile.spiritualName && (
                 <div className="flex items-center justify-between border-b border-brown-900/5 pb-3">
                   <dt className="text-xs font-medium uppercase tracking-wide text-brown-500">{t("register.spiritualName")}</dt>
@@ -230,6 +237,14 @@ export default function Register() {
                 error={errors.lastName}
               />
             </div>
+            <FormInput
+              label={t("register.dob")}
+              type="date"
+              name="dob"
+              icon={Cake}
+              value={form.dob}
+              onChange={handleChange}
+            />
             <FormInput
               label={t("register.spiritualName")}
               name="spiritualName"

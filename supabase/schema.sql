@@ -17,6 +17,7 @@ create table if not exists public.profiles (
   email text not null unique,
   first_name text not null default '',
   last_name text not null default '',
+  date_of_birth date,
   spiritual_name text,
   gurudev_name text,
   diksha_stage text check (diksha_stage in ('Initial', 'Harinaam', 'Gopal Mantra', 'Diksha')),
@@ -150,7 +151,7 @@ security definer set search_path = public
 as $$
 begin
   insert into public.profiles (
-    id, email, first_name, last_name, spiritual_name, gurudev_name,
+    id, email, first_name, last_name, date_of_birth, spiritual_name, gurudev_name,
     diksha_stage, initiation_date, initiation_year, sex, city,
     mentor_name, mobile_number
   )
@@ -159,6 +160,7 @@ begin
     new.email,
     coalesce(new.raw_user_meta_data ->> 'first_name', ''),
     coalesce(new.raw_user_meta_data ->> 'last_name', ''),
+    nullif(new.raw_user_meta_data ->> 'date_of_birth', '')::date,
     new.raw_user_meta_data ->> 'spiritual_name',
     new.raw_user_meta_data ->> 'gurudev_name',
     new.raw_user_meta_data ->> 'diksha_stage',
@@ -285,3 +287,12 @@ drop trigger if exists profiles_prevent_role_escalation on public.profiles;
 create trigger profiles_prevent_role_escalation
   before update on public.profiles
   for each row execute function public.prevent_role_self_escalation();
+
+-- ----------------------------------------------------------------------------
+-- 10. Add date_of_birth to profiles (existing databases).
+-- The CREATE TABLE at the top of this file already includes this column,
+-- but "create table if not exists" is a no-op on a database that already
+-- has the table — this ALTER is what actually adds it to yours. Nullable,
+-- no default, so it doesn't affect any existing row. Safe to re-run.
+-- ----------------------------------------------------------------------------
+alter table public.profiles add column if not exists date_of_birth date;
