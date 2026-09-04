@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Flame, Repeat, CalendarCheck, Sparkles, Users } from "lucide-react";
+import { ArrowLeft, Flame, Repeat, CalendarCheck, Sparkles, Users, Download } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import * as sadhanaService from "../../services/sadhanaService";
 import { getActivityBreakdown } from "../../utils/activityBreakdown";
+import { downloadCSV } from "../../utils/csvExport";
 import { useTranslation } from "../../i18n/LanguageContext";
 import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
 import StatCard from "../../components/dashboard/StatCard";
 import StatusBadge from "../../components/ui/StatusBadge";
 import ChartCard from "../../components/charts/ChartCard";
@@ -78,14 +80,44 @@ export default function DevoteeDetail() {
 
   const initiation = initiationSummary(devotee);
 
+  function handleExport() {
+    downloadCSV(
+      `${devotee.name.replace(/\s+/g, "-").toLowerCase()}-sadhana-history`,
+      records.map((r) => ({
+        date: r.date,
+        totalMala: r.totalMala ?? 0,
+        malaOnAsan: r.malaOnAsan ?? 0,
+        malaWithoutAsan: r.malaWithoutAsan ?? 0,
+        granthRead: yn(r.granthRead.some((g) => g !== NO_GRANTH_VALUE)),
+        harikatha: yn(r.harikathaSources.some((h) => h !== NO_HARIKATHA_VALUE)),
+        gaudiyaKirtan: yn(r.gaudiyaKirtan),
+      })),
+      [
+        { key: "date", label: "Date" },
+        { key: "totalMala", label: "Total Mala" },
+        { key: "malaOnAsan", label: "Mala On Asan" },
+        { key: "malaWithoutAsan", label: "Mala Without Asan" },
+        { key: "granthRead", label: "Granth Read" },
+        { key: "harikatha", label: "Harikatha" },
+        { key: "gaudiyaKirtan", label: "Gaudiya Kirtan" },
+      ],
+      "Exported by: Nishit Singla"
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
-      <button
-        onClick={() => navigate("/admin/devotees")}
-        className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brown-500 hover:text-maroon-600"
-      >
-        <ArrowLeft className="h-4 w-4" /> {t("admin.backToDevotees")}
-      </button>
+      <div className="flex items-center justify-between gap-3">
+        <button
+          onClick={() => navigate("/admin/devotees")}
+          className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brown-500 hover:text-maroon-600"
+        >
+          <ArrowLeft className="h-4 w-4" /> {t("admin.backToDevotees")}
+        </button>
+        <Button variant="outline" size="sm" icon={Download} onClick={handleExport} disabled={!records.length}>
+          {t("admin.exportCsv")}
+        </Button>
+      </div>
 
       <Card className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
         <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-2xl font-semibold text-cream-50 ${TONES[devotee.avatarColor] ?? TONES.maroon}`}>

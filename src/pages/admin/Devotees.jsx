@@ -1,15 +1,26 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import { toISODate } from "../../utils/dateHelpers";
+import { downloadCSV } from "../../utils/csvExport";
 import { useTranslation } from "../../i18n/LanguageContext";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
+import Button from "../../components/ui/Button";
 import DevoteeTable from "../../components/admin/DevoteeTable";
 import LoadingState from "../../components/ui/LoadingState";
+
+// Kept deliberately minimal — no email/phone/mentor/mala detail — since
+// this export is meant to be safe to share outside the admin panel.
+const EXPORT_COLUMNS = [
+  { key: "name", label: "Name" },
+  { key: "status", label: "Status Today" },
+];
+
+const EXPORTED_BY = "Nishit Singla";
 
 const VALID_STATUS_FILTERS = ["Completed", "Pending"];
 
@@ -82,10 +93,19 @@ export default function Devotees() {
     });
   }, [devotees, search, malaFilter, statusFilter]);
 
+  function handleExport() {
+    downloadCSV(`devotees-${date}`, filtered, EXPORT_COLUMNS, `Exported by: ${EXPORTED_BY} · ${date}`);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title={t("admin.devoteesTitle")}
+        action={
+          <Button variant="outline" size="sm" icon={Download} onClick={handleExport} disabled={!filtered.length}>
+            {t("admin.exportCsv")}
+          </Button>
+        }
         subtitle={`${t("admin.devoteesSubtitle")} ${filtered.length} ${t("admin.of")} ${devotees.length} ${t("admin.devoteesWord")}.`}
       />
 
