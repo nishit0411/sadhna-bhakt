@@ -19,7 +19,7 @@ function isUnconfirmedEmailError(err) {
 }
 
 export default function Login() {
-  const { login, loginAs, hasAccountOnDevice } = useAuth();
+  const { login, loginAs } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
@@ -206,14 +206,12 @@ export default function Login() {
             </>
           )}
 
-          {!hasAccountOnDevice && (
-            <p className="mt-6 text-center text-sm text-brown-500">
-              {t("auth.newHere")}{" "}
-              <Link to="/register" className="font-medium text-maroon-600 hover:underline">
-                {t("auth.createAccount")}
-              </Link>
-            </p>
-          )}
+          <p className="mt-6 text-center text-sm text-brown-500">
+            {t("auth.newHere")}{" "}
+            <Link to="/register" className="font-medium text-maroon-600 hover:underline">
+              {t("auth.createAccount")}
+            </Link>
+          </p>
         </Card>
 
         <DeveloperCredit className="mt-6" />
