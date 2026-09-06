@@ -51,7 +51,8 @@ export function mapProfileRow(row) {
     email: row.email,
     phone: row.mobile_number ?? "",
     centre: row.centre ?? "",
-    mentor: row.mentor_name ?? "",
+    mentor: row.mentor_names ?? [],
+    mentorOther: row.mentor_other ?? "",
     role: row.role,
     avatarColor: row.avatar_color ?? "maroon",
     initials,
@@ -112,7 +113,8 @@ export async function register(form) {
           initiation_year: form.initiationDateMode === "year" ? form.initiationYear || null : null,
           sex: form.sex || null,
           city: form.city || null,
-          mentor_name: form.mentorName || null,
+          mentor_names: form.mentorNames ?? [],
+          mentor_other: form.mentorOther || null,
           mobile_number: form.mobileNumber || null,
         },
       },
@@ -252,7 +254,8 @@ export async function updateProfile(userId, updates) {
         last_name: updates.name?.split(" ").slice(1).join(" "),
         mobile_number: updates.phone,
         centre: updates.centre,
-        mentor_name: updates.mentor,
+        mentor_names: updates.mentor,
+        mentor_other: updates.mentorOther || null,
       })
       .eq("id", userId);
     if (error) throw error;

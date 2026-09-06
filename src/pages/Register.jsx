@@ -15,23 +15,14 @@ import FormSection from "../components/FormSection";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import GenderSelector from "../components/GenderSelector";
+import CheckboxGroup from "../components/sadhana/CheckboxGroup";
+import { MENTOR_OPTIONS } from "../data/mentorList";
 
 const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
 const GURUDEV_OPTIONS = [
   "Srila Bhaktivedanta Narayana Gosvami Maharaja",
   "Srila Bhaktivedanta Sridhar Goswami Maharaja",
-  "Other",
-];
-
-const MENTOR_OPTIONS = [
-  "Srila Gurudev",
-  "Sripad Gaursunder Prabhu",
-  "Sripad Krishandas Prabhu",
-  "Sripad Madhav Prabhu",
-  "Sripad Sanjay Prabhu",
-  "Sripad Shyamanand Prabhu",
-  "Sripad Tapan Prabhu",
   "Other",
 ];
 
@@ -48,7 +39,7 @@ const INITIAL_FORM = {
   sex: "",
   city: "",
   gurudevOther: "",
-  mentorName: "",
+  mentorNames: [],
   mentorOther: "",
   mobileNumber: "",
   email: "",
@@ -89,6 +80,7 @@ export default function Register() {
       next.initiationYear = t("register.errInitiationYear");
     }
     if (!form.sex) next.sex = t("register.errSex");
+    if (form.mentorNames.includes("Other") && !form.mentorOther.trim()) next.mentorOther = t("register.errMentorOther");
     if (!form.city.trim()) next.city = t("register.errCity");
     if (!form.mobileNumber.trim()) next.mobileNumber = t("register.errMobile");
     else if (!PHONE_PATTERN.test(form.mobileNumber.trim())) next.mobileNumber = t("register.errMobileInvalid");
@@ -116,7 +108,7 @@ export default function Register() {
       const submission = {
         ...form,
         gurudevName: form.gurudevName === "Other" ? form.gurudevOther.trim() : form.gurudevName,
-        mentorName: form.mentorName === "Other" ? form.mentorOther.trim() : form.mentorName,
+        mentorOther: form.mentorNames.includes("Other") ? form.mentorOther.trim() : "",
       };
       const result = await register(submission);
       if (result?.pendingEmailConfirmation) {
@@ -249,23 +241,21 @@ export default function Register() {
                 onChange={handleChange}
               />
             )}
-            <FormSelect
-              label={t("register.mentorName")}
-              name="mentorName"
-              placeholder={t("register.mentorNamePlaceholder")}
-              options={MENTOR_OPTIONS}
-              value={form.mentorName}
-              onChange={handleChange}
-            />
-            {form.mentorName === "Other" && (
-              <FormInput
-                label={t("register.mentorOtherLabel")}
-                name="mentorOther"
-                placeholder={t("register.mentorOtherPlaceholder")}
-                value={form.mentorOther}
-                onChange={handleChange}
+            <div className="sm:col-span-2">
+              <label className="mb-2 block text-sm font-medium text-brown-700">{t("register.mentorName")}</label>
+              <CheckboxGroup
+                name="mentorNames"
+                options={MENTOR_OPTIONS}
+                values={form.mentorNames}
+                onChange={(v) => setField("mentorNames", v)}
+                otherValue="Other"
+                otherText={form.mentorOther}
+                onOtherTextChange={(v) => setField("mentorOther", v)}
+                otherLabel={t("register.mentorOtherLabel")}
+                otherPlaceholder={t("register.mentorOtherPlaceholder")}
               />
-            )}
+              {errors.mentorOther && <p className="mt-2 text-xs text-clay-600">{errors.mentorOther}</p>}
+            </div>
             <div data-error={Boolean(errors.dikshaStage)}>
               <FormSelect
                 label={t("register.dikshaStage")}

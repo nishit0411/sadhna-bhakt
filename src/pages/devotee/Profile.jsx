@@ -7,6 +7,8 @@ import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
+import { MENTOR_OPTIONS, formatMentorNames } from "../../data/mentorList";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 
 const TONES = {
@@ -42,7 +44,13 @@ export default function Profile() {
   const { addToast } = useToast();
   const { t, language } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
-  const [form, setForm] = useState({ name: user.name, phone: user.phone, centre: user.centre, mentor: user.mentor });
+  const [form, setForm] = useState({
+    name: user.name,
+    phone: user.phone,
+    centre: user.centre,
+    mentor: user.mentor ?? [],
+    mentorOther: user.mentorOther ?? "",
+  });
   const [isSaving, setIsSaving] = useState(false);
   const [prefs, setPrefs] = useState({ dailyReminder: true, weeklySummary: true, mentorUpdates: false });
 
@@ -50,6 +58,10 @@ export default function Profile() {
 
   function handleChange(e) {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }
+
+  function setMentors(values) {
+    setForm((prev) => ({ ...prev, mentor: values }));
   }
 
   async function handleSave() {
@@ -64,7 +76,13 @@ export default function Profile() {
   }
 
   function handleCancel() {
-    setForm({ name: user.name, phone: user.phone, centre: user.centre, mentor: user.mentor });
+    setForm({
+      name: user.name,
+      phone: user.phone,
+      centre: user.centre,
+      mentor: user.mentor ?? [],
+      mentorOther: user.mentorOther ?? "",
+    });
     setIsEditing(false);
   }
 
@@ -114,7 +132,29 @@ export default function Profile() {
           <Input label={t("profile.email")} value={user.email} disabled />
           <Input label={t("profile.phone")} name="phone" value={form.phone} onChange={handleChange} disabled={!isEditing} />
           <Input label={t("profile.centre")} name="centre" value={form.centre} onChange={handleChange} disabled={!isEditing} />
-          <Input label={t("profile.mentor")} name="mentor" value={form.mentor} onChange={handleChange} disabled={!isEditing} className="sm:col-span-2" />
+          {isEditing ? (
+            <div className="sm:col-span-2">
+              <label className="mb-1.5 block text-sm font-medium text-brown-700">{t("profile.mentor")}</label>
+              <CheckboxGroup
+                name="mentor"
+                options={MENTOR_OPTIONS}
+                values={form.mentor}
+                onChange={setMentors}
+                otherValue="Other"
+                otherText={form.mentorOther}
+                onOtherTextChange={(v) => setForm((prev) => ({ ...prev, mentorOther: v }))}
+                otherLabel={t("register.mentorOtherLabel")}
+                otherPlaceholder={t("register.mentorOtherPlaceholder")}
+              />
+            </div>
+          ) : (
+            <Input
+              label={t("profile.mentor")}
+              value={formatMentorNames(user.mentor, user.mentorOther)}
+              disabled
+              className="sm:col-span-2"
+            />
+          )}
           {user.dob && <Input label={t("profile.dob")} value={formatDateDDMMYYYY(user.dob)} disabled />}
           {user.dikshaStage && <Input label={t("profile.dikshaStage")} value={user.dikshaStage} disabled />}
           {(user.initiationDate || user.initiationYear) && (

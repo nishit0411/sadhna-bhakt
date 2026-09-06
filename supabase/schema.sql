@@ -25,7 +25,8 @@ create table if not exists public.profiles (
   initiation_year text,
   sex text check (sex in ('Male', 'Female')),
   city text,
-  mentor_name text,
+  mentor_names text[] not null default '{}',
+  mentor_other text,
   mobile_number text,
   centre text,
   role text not null default 'devotee' check (role in ('devotee', 'admin')),
@@ -153,7 +154,7 @@ begin
   insert into public.profiles (
     id, email, first_name, last_name, date_of_birth, spiritual_name, gurudev_name,
     diksha_stage, initiation_date, initiation_year, sex, city,
-    mentor_name, mobile_number
+    mentor_names, mentor_other, mobile_number
   )
   values (
     new.id,
@@ -168,7 +169,11 @@ begin
     new.raw_user_meta_data ->> 'initiation_year',
     new.raw_user_meta_data ->> 'sex',
     new.raw_user_meta_data ->> 'city',
-    new.raw_user_meta_data ->> 'mentor_name',
+    coalesce(
+      array(select jsonb_array_elements_text(coalesce(new.raw_user_meta_data -> 'mentor_names', '[]'::jsonb))),
+      '{}'
+    ),
+    new.raw_user_meta_data ->> 'mentor_other',
     new.raw_user_meta_data ->> 'mobile_number'
   )
   on conflict (id) do nothing;
@@ -296,3 +301,28 @@ create trigger profiles_prevent_role_escalation
 -- no default, so it doesn't affect any existing row. Safe to re-run.
 -- ----------------------------------------------------------------------------
 alter table public.profiles add column if not exists date_of_birth date;
+
+-- ----------------------------------------------------------------------------
+-- 11. Multiple mentors per devotee (existing databases).
+-- Replaces the single mentor_name text column with mentor_names (text[]) +
+-- mentor_other, matching the granth_read/harikatha_sources multi-select
+-- pattern elsewhere in this schema. Adds the new columns, backfills
+-- mentor_names from any existing mentor_name value, then drops the old
+-- column. Safe to re-run.
+-- ----------------------------------------------------------------------------
+alter table public.profiles add column if not exists mentor_names text[] not null default '{}';
+alter table public.profiles add column if not exists mentor_other text;
+
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'mentor_name'
+  ) then
+    update public.profiles
+    set mentor_names = array[mentor_name]
+    where mentor_name is not null and mentor_name <> '' and mentor_names = '{}';
+
+    alter table public.profiles drop column mentor_name;
+  end if;
+end $$;

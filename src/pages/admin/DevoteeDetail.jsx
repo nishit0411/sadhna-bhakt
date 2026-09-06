@@ -18,6 +18,7 @@ import { formatLongDate } from "../../utils/dateHelpers";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
+import { formatMentorNames } from "../../data/mentorList";
 
 const TONES = { maroon: "bg-maroon-500", saffron: "bg-saffron-500", sage: "bg-sage-500" };
 
@@ -126,7 +127,7 @@ export default function DevoteeDetail() {
         <div className="flex-1">
           <p className="font-display text-2xl font-semibold text-brown-900">{devotee.name}</p>
           <p className="text-sm text-brown-500">
-            {devotee.centre} · {t("profile.mentor")}: {devotee.mentor}
+            {devotee.centre} · {t("profile.mentor")}: {formatMentorNames(devotee.mentor, devotee.mentorOther)}
           </p>
           <p className="text-xs text-brown-400">{devotee.email}</p>
           {initiation && (
