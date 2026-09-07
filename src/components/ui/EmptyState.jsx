@@ -2,7 +2,7 @@ import { Flower2 } from "lucide-react";
 
 export default function EmptyState({ icon: Icon = Flower2, title, description, action }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-maroon-200 bg-beige-50 px-6 py-12 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-maroon-200 bg-beige-100 px-6 py-12 text-center">
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-saffron-100 text-saffron-600">
         <Icon className="h-6 w-6" aria-hidden="true" />
       </span>

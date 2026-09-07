@@ -107,7 +107,7 @@ export default function DevoteeTable({ devotees }) {
             <tr
               key={devotee.id}
               onClick={() => navigate(`/admin/devotees/${devotee.id}`)}
-              className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-50"
+              className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-100"
             >
               <td className="px-4 py-3">
                 <div className="flex items-center gap-3">

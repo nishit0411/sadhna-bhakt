@@ -2,8 +2,8 @@ export default function Logo({ compact = false }) {
   return (
     <div className="flex items-center gap-2.5">
       <svg viewBox="0 0 64 64" className={compact ? "h-7 w-7" : "h-10 w-10"} aria-hidden="true">
-        <circle cx="32" cy="32" r="32" fill="#B83F6D" />
-        <g fill="#FBDCE7">
+        <circle cx="32" cy="32" r="32" fill="#7A2E3A" />
+        <g fill="#E9C98A">
           <path d="M32 14c2.5 4 2.5 9 0 13-2.5-4-2.5-9 0-13z" />
           <path d="M32 50c-2.5-4-2.5-9 0-13 2.5 4 2.5 9 0 13z" />
           <path d="M14 32c4-2.5 9-2.5 13 0-4 2.5-9 2.5-13 0z" />

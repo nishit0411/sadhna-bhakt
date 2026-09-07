@@ -32,17 +32,24 @@ import {
 import * as devoteeService from "../../services/devoteeService";
 import { formatShortDate } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { useToast } from "../../context/ToastContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 
-// Shared with Landing.jsx's royal palette so this reads as the same brand,
-// just in its "control room" register rather than the public-facing one.
-const CHARCOAL = "#211b16";
-const CARD = "#2e2620";
-const CARD_BORDER = "#4a3d2f";
-const GOLD = "#c9a44d";
-const GOLD_SOFT = "#e3cd9a";
-const ROSE = "#c98a8a";
-const CREAM = "#f7f2e7";
-const MUTED = "#a89b87";
+// Same warm ivory/burgundy palette as the rest of the app (src/index.css)
+// — this page used to run a standalone dark "control room" theme; these
+// constants now map every role it needs onto the shared light palette so
+// it reads as the same app, not a different product.
+const PAGE_BG = "#faf6ee"; // cream-50
+const CARD = "#fffdf8"; // beige-100
+const CARD_BORDER = "rgba(42, 33, 26, 0.08)"; // brown-900/8, matches Card.jsx
+const TRACK_BG = "#f5eede"; // cream-100 — recessed pill-track / table-header / tooltip backgrounds
+const CHARCOAL = TRACK_BG; // kept for call sites still named after the old dark background
+const GOLD = "#b6924f"; // saffron-500 — accent fills, chart lines/bars
+const GOLD_SOFT = "#642432"; // maroon-600 — section headings & highlighted values
+const TEXT_ON_GOLD = "#4a1b26"; // maroon-700 — readable text set directly on a gold-filled pill
+const ROSE = "#995557"; // maroon-400 — secondary chart series
+const CREAM = "#2a211a"; // brown-900 — primary text (kept the name; role is now "ink", not background)
+const MUTED = "#8a7b6c"; // brown-500 — secondary/meta text
 
 const MEDAL_STYLE = [
   { icon: Trophy, color: "#f0cf6b", ring: "#f0cf6b55" },
@@ -64,10 +71,10 @@ function statusOf(devotee) {
 }
 
 const STATUS_STYLE = {
-  new: { label: "New", classes: "text-sky-300 bg-sky-400/10" },
-  consistent: { label: "Consistent", classes: "text-emerald-300 bg-emerald-400/10" },
-  active: { label: "Active", classes: "text-amber-300 bg-amber-400/10" },
-  inactive: { label: "Inactive", classes: "text-rose-300 bg-rose-400/10" },
+  new: { label: "New", classes: "text-brown-600 bg-beige-300" },
+  consistent: { label: "Consistent", classes: "text-sage-600 bg-sage-100" },
+  active: { label: "Active", classes: "text-saffron-600 bg-saffron-100" },
+  inactive: { label: "Inactive", classes: "text-clay-600 bg-clay-100" },
 };
 
 /* ---------- small building blocks ---------- */
@@ -98,7 +105,7 @@ function FilterGroup({ options, value, onChange }) {
           className="rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors"
           style={
             value === opt.value
-              ? { background: `linear-gradient(135deg, ${GOLD}, #8a6a2c)`, color: CHARCOAL }
+              ? { background: `linear-gradient(135deg, ${GOLD}, #8a6a2c)`, color: TEXT_ON_GOLD }
               : { color: MUTED }
           }
         >
@@ -122,7 +129,7 @@ function MetricCard({ icon: Icon, label, value, suffix, trend }) {
         {trend != null && (
           <span
             className="flex items-center gap-0.5 text-xs font-medium"
-            style={{ color: trend >= 0 ? "#7fd99a" : "#e08a8a" }}
+            style={{ color: trend >= 0 ? "#6b8f53" : "#c97a6c" }}
           >
             {trend >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
             {Math.abs(trend)}%
@@ -143,7 +150,7 @@ function MetricCard({ icon: Icon, label, value, suffix, trend }) {
 function DailyGauge({ percent, current, total }) {
   const clamped = Math.max(0, Math.min(100, percent));
   const angle = (clamped / 100) * 360;
-  const color = clamped >= 70 ? "#7fd99a" : clamped >= 40 ? "#e0c15c" : "#e08a8a";
+  const color = clamped >= 70 ? "#6b8f53" : clamped >= 40 ? "#b6924f" : "#c97a6c";
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-5">
@@ -196,7 +203,7 @@ function TopMalaBarChart({ data }) {
           tickLine={false}
         />
         <Tooltip
-          cursor={{ fill: "rgba(201,164,77,0.08)" }}
+          cursor={{ fill: "rgba(182,146,79,0.08)" }}
           contentStyle={{ backgroundColor: CHARCOAL, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, color: CREAM }}
           labelStyle={{ color: GOLD_SOFT }}
         />
@@ -413,6 +420,7 @@ function DetailedTable({ devotees, malaType, onRowClick }) {
 export default function Analytics() {
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const [period, setPeriod] = useState("30");
   const [malaType, setMalaType] = useState("total");
   const [sortBy, setSortBy] = useState("top");
@@ -431,16 +439,23 @@ export default function Analytics() {
       devoteeService.getDevoteeDirectory(undefined, windowDays),
       devoteeService.getAdminOverview(),
       devoteeService.getSubmissionTrend(7),
-    ]).then(([list, ov, trendData]) => {
-      if (!active) return;
-      setDevotees(list);
-      setOverview(ov);
-      setTrend(trendData);
-      setIsLoading(false);
-    });
+    ])
+      .then(([list, ov, trendData]) => {
+        if (!active) return;
+        setDevotees(list);
+        setOverview(ov);
+        setTrend(trendData);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [windowDays]);
 
   const sortedForLists = useMemo(() => {
@@ -477,7 +492,7 @@ export default function Analytics() {
   }
 
   return (
-    <div className="-mx-4 -mt-5 min-h-screen px-4 pb-16 pt-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" style={{ backgroundColor: CHARCOAL }}>
+    <div className="-mx-4 -mt-5 min-h-screen px-4 pb-16 pt-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8" style={{ backgroundColor: PAGE_BG }}>
       <div className="mx-auto max-w-6xl">
         <div className="mb-6">
           <p className="text-xs font-medium uppercase tracking-[0.25em]" style={{ color: GOLD }}>

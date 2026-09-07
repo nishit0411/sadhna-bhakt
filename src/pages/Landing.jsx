@@ -24,8 +24,9 @@ import guruPhotoGarlanded from "../assets/guru-photo-2-garlanded.jpeg";
 import deityPhoto from "../assets/deities-radha-krishna-balaram.jpeg";
 import vrindavanAltarPhoto from "../assets/deities-vrindavan-altar.jpeg";
 
-// Antique-gold / royal-burgundy palette, scoped to this page only — the
-// rest of the app keeps its existing rose/maroon theme untouched.
+// Antique-gold / royal-burgundy palette, scoped to this page's dark
+// hero/footer sections — matches the shared maroon/saffron design tokens
+// used across the rest of the app (see src/index.css).
 const GOLD = "#b6924f";
 const GOLD_SOFT = "#e3cd9a";
 const GOLD_DEEP = "#8a6a2c";
@@ -232,7 +233,8 @@ export default function Landing() {
             {t("landing.hareKrishnaGreeting")}
           </p>
           <h1
-            className="animate-fade-up delay-1 mt-6 text-balance font-display text-4xl font-semibold leading-[1.15] text-[#f7f2e7] sm:text-6xl"
+            className="animate-fade-up delay-1 mt-6 text-balance font-display font-semibold leading-[1.15] text-[#f7f2e7]"
+            style={{ fontSize: "clamp(2.25rem, 1.25rem + 5vw, 3.75rem)" }}
           >
             {t("landing.heroHeadline")}
           </h1>

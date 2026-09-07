@@ -2,9 +2,9 @@ import { Loader2 } from "lucide-react";
 
 const VARIANTS = {
   primary:
-    "bg-maroon-500 text-cream-50 hover:bg-maroon-600 shadow-soft disabled:bg-maroon-300",
+    "bg-maroon-500 text-cream-50 hover:bg-maroon-600 hover:shadow-card hover:-translate-y-px shadow-soft disabled:bg-maroon-300 disabled:translate-y-0 disabled:shadow-soft",
   secondary:
-    "bg-saffron-400 text-maroon-700 hover:bg-saffron-500 shadow-soft disabled:bg-saffron-100",
+    "bg-saffron-400 text-maroon-700 hover:bg-saffron-500 hover:shadow-card hover:-translate-y-px shadow-soft disabled:bg-saffron-100 disabled:translate-y-0 disabled:shadow-soft",
   outline:
     "border border-maroon-300/50 text-maroon-600 bg-transparent hover:bg-maroon-50 disabled:text-maroon-200",
   ghost: "text-brown-700 hover:bg-beige-200 disabled:text-brown-300",
@@ -32,7 +32,7 @@ export default function Button({
     <button
       type={type}
       disabled={disabled || isLoading}
-      className={`inline-flex items-center justify-center rounded-xl font-medium transition-colors duration-150 ease-out disabled:cursor-not-allowed disabled:opacity-70 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
+      className={`inline-flex items-center justify-center rounded-xl font-medium transition-[color,background-color,border-color,box-shadow,transform] duration-200 ease-out motion-reduce:transition-none disabled:cursor-not-allowed disabled:opacity-70 ${VARIANTS[variant]} ${SIZES[size]} ${className}`}
       {...props}
     >
       {isLoading ? (
