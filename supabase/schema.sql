@@ -241,11 +241,17 @@ create policy "profiles_insert_own"
   on public.profiles for insert
   with check (id = auth.uid());
 
+-- Lets a devotee update their own profile, or an admin update any
+-- profile (needed for the Admin Dashboard's User Management → Edit
+-- Profile action). `prevent_role_self_escalation` below still stops a
+-- non-admin from changing their own `role` even though this check
+-- otherwise allows it — the two work together, not instead of each other.
 drop policy if exists "profiles_update_own" on public.profiles;
-create policy "profiles_update_own"
+drop policy if exists "profiles_update_own_or_admin" on public.profiles;
+create policy "profiles_update_own_or_admin"
   on public.profiles for update
-  using (id = auth.uid())
-  with check (id = auth.uid());
+  using (id = auth.uid() or public.is_admin())
+  with check (id = auth.uid() or public.is_admin());
 
 drop policy if exists "sadhana_select_own_or_admin" on public.sadhana_records;
 create policy "sadhana_select_own_or_admin"
@@ -288,11 +294,12 @@ create policy "autofill_update_own"
 
 -- ----------------------------------------------------------------------------
 -- 9. Prevent self-promotion to admin.
--- "profiles_update_own" above (section 7) lets any signed-in user update
--- their OWN row — which is required for the app's normal profile-edit
--- feature — but it does not restrict which COLUMNS can change. Without
--- this trigger, a signed-in devotee could call the Supabase client
--- directly (bypassing the app's UI entirely) and set their own `role` to
+-- "profiles_update_own_or_admin" above (section 7) lets any signed-in
+-- user update their OWN row — which is required for the app's normal
+-- profile-edit feature — but it does not restrict which COLUMNS can
+-- change. Without this trigger, a signed-in devotee could call the
+-- Supabase client directly (bypassing the app's UI entirely) and set
+-- their own `role` to
 -- 'admin'. This trigger closes that gap: any attempted role change made
 -- by a non-admin is silently reverted back to its previous value, while
 -- every other column (name, phone, centre, mentor, etc.) is unaffected —

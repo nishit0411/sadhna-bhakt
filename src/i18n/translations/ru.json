@@ -39,7 +39,8 @@
     "adminDashboard": "Главная",
     "adminDevotees": "Преданные",
     "adminAnalytics": "Аналитика",
-    "adminReports": "Отчёты"
+    "adminReports": "Отчёты",
+    "adminUserManagement": "Управление пользователями"
   },
   "landing": {
     "hareKrishnaGreeting": "Харе Кришна 🙏",

@@ -39,7 +39,8 @@
     "adminDashboard": "Dashboard",
     "adminDevotees": "Devotees",
     "adminAnalytics": "Analytics",
-    "adminReports": "Reports"
+    "adminReports": "Reports",
+    "adminUserManagement": "User Management"
   },
   "landing": {
     "hareKrishnaGreeting": "Hare Krishna 🙏",

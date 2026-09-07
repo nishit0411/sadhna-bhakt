@@ -21,6 +21,8 @@ import Analytics from "./pages/admin/Analytics";
 import Devotees from "./pages/admin/Devotees";
 import DevoteeDetail from "./pages/admin/DevoteeDetail";
 import Reports from "./pages/admin/Reports";
+import UserManagement from "./pages/admin/UserManagement";
+import UserDetail from "./pages/admin/UserDetail";
 
 export default function App() {
   return (
@@ -50,6 +52,8 @@ export default function App() {
           <Route path="/admin/devotees" element={<Devotees />} />
           <Route path="/admin/devotees/:id" element={<DevoteeDetail />} />
           <Route path="/admin/reports" element={<Reports />} />
+          <Route path="/admin/users" element={<UserManagement />} />
+          <Route path="/admin/users/:id" element={<UserDetail />} />
         </Route>
       </Route>
 
