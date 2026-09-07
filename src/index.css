@@ -5,61 +5,61 @@
   --font-accent: "Marcellus", serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
-  /* Warm ivory backgrounds */
-  --color-cream-50: #faf6ee;
-  --color-cream-100: #f5eede;
-  --color-cream-200: #ede1c8;
-  --color-cream-300: #e2cea3;
+  /* Blush / light cream backgrounds */
+  --color-cream-50: #fffaf9;
+  --color-cream-100: #fdf1f4;
+  --color-cream-200: #fbe4ea;
+  --color-cream-300: #f6d1db;
 
-  /* Near-white cards with a whisper of warmth */
-  --color-beige-100: #fffdf8;
-  --color-beige-200: #faf3e6;
-  --color-beige-300: #f0e4cb;
+  /* White cards with a whisper of pink */
+  --color-beige-100: #ffffff;
+  --color-beige-200: #fdf2f5;
+  --color-beige-300: #f9e2e9;
 
-  /* Deep antique burgundy — the brand's primary accent, used with restraint */
-  --color-maroon-50: #f7eeec;
-  --color-maroon-100: #ecd8d3;
-  --color-maroon-200: #d2aaa3;
-  --color-maroon-300: #b97d74;
-  --color-maroon-400: #995557;
-  --color-maroon-500: #7a2e3a;
-  --color-maroon-600: #642432;
-  --color-maroon-700: #4a1b26;
-  --color-maroon-900: #2e0d17;
+  /* Deep rose / devotional maroon-pink */
+  --color-maroon-50: #fdf1f5;
+  --color-maroon-100: #fbdce7;
+  --color-maroon-200: #eeb3c9;
+  --color-maroon-300: #e18aac;
+  --color-maroon-400: #cc648c;
+  --color-maroon-500: #b83f6d;
+  --color-maroon-600: #9c3159;
+  --color-maroon-700: #7d2647;
+  --color-maroon-900: #4a1730;
 
-  /* Muted saffron / antique gold — secondary accent only */
-  --color-saffron-50: #fbf3e3;
-  --color-saffron-100: #f3e3c0;
-  --color-saffron-200: #e8ce9c;
-  --color-saffron-300: #ddb979;
-  --color-saffron-400: #c9a44d;
-  --color-saffron-500: #b6924f;
-  --color-saffron-600: #8a6a2c;
+  /* Soft rose / secondary pink accents */
+  --color-saffron-50: #fef6f9;
+  --color-saffron-100: #fce3ec;
+  --color-saffron-200: #f6c5d8;
+  --color-saffron-300: #f0a8c4;
+  --color-saffron-400: #e37ea6;
+  --color-saffron-500: #d1618f;
+  --color-saffron-600: #b14a76;
 
-  /* Deep charcoal / warm brown text */
-  --color-brown-300: #aa9b8a;
-  --color-brown-400: #9a8b7b;
-  --color-brown-500: #8a7b6c;
-  --color-brown-600: #6a5b4d;
-  --color-brown-700: #4a3b2e;
-  --color-brown-800: #3a2e24;
-  --color-brown-900: #2a211a;
+  /* Dark rose-charcoal text */
+  --color-brown-300: #8b6a74;
+  --color-brown-400: #82626c;
+  --color-brown-500: #7a5b64;
+  --color-brown-600: #6a4b54;
+  --color-brown-700: #573c44;
+  --color-brown-800: #452e37;
+  --color-brown-900: #33212a;
 
-  /* Soft sage for positive activities */
-  --color-sage-50: #f1f4ec;
-  --color-sage-100: #dee7d1;
-  --color-sage-300: #a8c093;
-  --color-sage-500: #6b8f53;
-  --color-sage-600: #55723f;
+  /* Soft green for positive activities */
+  --color-sage-50: #f0f5ee;
+  --color-sage-100: #dfebda;
+  --color-sage-300: #a9c79c;
+  --color-sage-500: #6f9459;
+  --color-sage-600: #567842;
 
-  /* Muted terracotta for validation / negative states */
-  --color-clay-100: #f5deda;
-  --color-clay-400: #c97a6c;
-  --color-clay-600: #a8402f;
+  /* Clear warm red for validation / negative states */
+  --color-clay-100: #fce4e1;
+  --color-clay-400: #e37e73;
+  --color-clay-600: #cc4a3d;
 
-  --shadow-soft: 0 2px 10px rgba(42, 33, 26, 0.08), 0 1px 2px rgba(42, 33, 26, 0.05);
-  --shadow-card: 0 4px 24px rgba(42, 33, 26, 0.1);
-  --shadow-lifted: 0 14px 44px rgba(42, 33, 26, 0.16);
+  --shadow-soft: 0 2px 10px rgba(120, 40, 75, 0.08), 0 1px 2px rgba(120, 40, 75, 0.05);
+  --shadow-card: 0 4px 20px rgba(120, 40, 75, 0.1);
+  --shadow-lifted: 0 10px 40px rgba(120, 40, 75, 0.16);
 }
 
 @layer base {
@@ -168,7 +168,7 @@
   }
 
   .devotional-pattern {
-    background-image: radial-gradient(circle at 1px 1px, rgba(122, 46, 58, 0.08) 1px, transparent 0);
+    background-image: radial-gradient(circle at 1px 1px, rgba(184, 63, 109, 0.08) 1px, transparent 0);
     background-size: 22px 22px;
   }
 

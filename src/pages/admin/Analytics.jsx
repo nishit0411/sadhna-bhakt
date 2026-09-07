@@ -35,21 +35,21 @@ import { useTranslation } from "../../i18n/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 
-// Same warm ivory/burgundy palette as the rest of the app (src/index.css)
-// — this page used to run a standalone dark "control room" theme; these
+// Same blush/rose palette as the rest of the app (src/index.css) — this
+// page used to run a standalone dark "control room" theme; these
 // constants now map every role it needs onto the shared light palette so
 // it reads as the same app, not a different product.
-const PAGE_BG = "#faf6ee"; // cream-50
-const CARD = "#fffdf8"; // beige-100
-const CARD_BORDER = "rgba(42, 33, 26, 0.08)"; // brown-900/8, matches Card.jsx
-const TRACK_BG = "#f5eede"; // cream-100 — recessed pill-track / table-header / tooltip backgrounds
+const PAGE_BG = "#fffaf9"; // cream-50
+const CARD = "#ffffff"; // beige-100
+const CARD_BORDER = "rgba(51, 33, 42, 0.08)"; // brown-900/8, matches Card.jsx
+const TRACK_BG = "#fdf1f4"; // cream-100 — recessed pill-track / table-header / tooltip backgrounds
 const CHARCOAL = TRACK_BG; // kept for call sites still named after the old dark background
-const GOLD = "#b6924f"; // saffron-500 — accent fills, chart lines/bars
-const GOLD_SOFT = "#642432"; // maroon-600 — section headings & highlighted values
-const TEXT_ON_GOLD = "#4a1b26"; // maroon-700 — readable text set directly on a gold-filled pill
-const ROSE = "#995557"; // maroon-400 — secondary chart series
-const CREAM = "#2a211a"; // brown-900 — primary text (kept the name; role is now "ink", not background)
-const MUTED = "#8a7b6c"; // brown-500 — secondary/meta text
+const GOLD = "#d1618f"; // saffron-500 — accent fills, chart lines/bars
+const GOLD_SOFT = "#9c3159"; // maroon-600 — section headings & highlighted values
+const TEXT_ON_GOLD = "#7d2647"; // maroon-700 — readable text set directly on a gold-filled pill
+const ROSE = "#cc648c"; // maroon-400 — secondary chart series
+const CREAM = "#33212a"; // brown-900 — primary text (kept the name; role is now "ink", not background)
+const MUTED = "#7a5b64"; // brown-500 — secondary/meta text
 
 const MEDAL_STYLE = [
   { icon: Trophy, color: "#f0cf6b", ring: "#f0cf6b55" },
@@ -105,7 +105,7 @@ function FilterGroup({ options, value, onChange }) {
           className="rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors"
           style={
             value === opt.value
-              ? { background: `linear-gradient(135deg, ${GOLD}, #8a6a2c)`, color: TEXT_ON_GOLD }
+              ? { background: `linear-gradient(135deg, ${GOLD}, #b14a76)`, color: TEXT_ON_GOLD }
               : { color: MUTED }
           }
         >
@@ -129,7 +129,7 @@ function MetricCard({ icon: Icon, label, value, suffix, trend }) {
         {trend != null && (
           <span
             className="flex items-center gap-0.5 text-xs font-medium"
-            style={{ color: trend >= 0 ? "#6b8f53" : "#c97a6c" }}
+            style={{ color: trend >= 0 ? "#6f9459" : "#e37e73" }}
           >
             {trend >= 0 ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
             {Math.abs(trend)}%
@@ -150,7 +150,7 @@ function MetricCard({ icon: Icon, label, value, suffix, trend }) {
 function DailyGauge({ percent, current, total }) {
   const clamped = Math.max(0, Math.min(100, percent));
   const angle = (clamped / 100) * 360;
-  const color = clamped >= 70 ? "#6b8f53" : clamped >= 40 ? "#b6924f" : "#c97a6c";
+  const color = clamped >= 70 ? "#6f9459" : clamped >= 40 ? "#d1618f" : "#e37e73";
 
   return (
     <div className="flex flex-col items-center justify-center gap-3 p-5">
@@ -203,7 +203,7 @@ function TopMalaBarChart({ data }) {
           tickLine={false}
         />
         <Tooltip
-          cursor={{ fill: "rgba(182,146,79,0.08)" }}
+          cursor={{ fill: "rgba(209,97,143,0.08)" }}
           contentStyle={{ backgroundColor: CHARCOAL, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, color: CREAM }}
           labelStyle={{ color: GOLD_SOFT }}
         />
