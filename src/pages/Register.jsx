@@ -19,9 +19,9 @@ import GenderSelector from "../components/GenderSelector";
 import CheckboxGroup from "../components/sadhana/CheckboxGroup";
 import { MENTOR_OPTIONS } from "../data/mentorList";
 
-const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
+export const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
-const GURUDEV_OPTIONS = [
+export const GURUDEV_OPTIONS = [
   "Srila Bhaktivedanta Narayana Gosvami Maharaja",
   "Srila Bhaktivedanta Sridhar Goswami Maharaja",
   "Other",
@@ -49,10 +49,10 @@ const INITIAL_FORM = {
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
-const YEAR_PATTERN = /^(19|20)\d{2}$/;
+export const YEAR_PATTERN = /^(19|20)\d{2}$/;
 
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PHONE_PATTERN = /^\d{7,12}$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const PHONE_PATTERN = /^\d{7,12}$/;
 
 export default function Register() {
   const navigate = useNavigate();

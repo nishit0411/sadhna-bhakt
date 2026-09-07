@@ -272,15 +272,46 @@ export async function changePassword({ email, currentPassword, newPassword }) {
   if (error) throw error;
 }
 
+/**
+ * Requests an email change via Supabase's own Auth flow — never writes
+ * profiles.email directly (that would be a parallel, unverified path).
+ * Supabase requires confirming the new address (and, if "Secure email
+ * change" is on, the old one too) before auth.users.email actually
+ * changes; a database trigger (see supabase/schema.sql,
+ * "Keep profiles.email in sync") mirrors that change into profiles.email
+ * once it really happens, so there is exactly one source of truth.
+ */
+export async function requestEmailChange(newEmail) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Changing your email requires a live backend connection.");
+  }
+  const { error } = await supabase.auth.updateUser({ email: newEmail });
+  if (error) throw error;
+}
+
+/**
+ * Updates every editable registration/profile field — Profile.jsx passes
+ * the same camelCase shape for all of them. Deliberately excludes email:
+ * that only ever changes via requestEmailChange's real Supabase Auth flow
+ * (see above), never a direct write here.
+ */
 export async function updateProfile(userId, updates) {
   if (isSupabaseConfigured) {
     const { error } = await supabase
       .from("profiles")
       .update({
-        first_name: updates.name?.split(" ")[0],
-        last_name: updates.name?.split(" ").slice(1).join(" "),
-        mobile_number: updates.phone,
+        first_name: updates.firstName,
+        last_name: updates.lastName,
+        date_of_birth: updates.dob || null,
+        spiritual_name: updates.spiritualName || null,
+        gurudev_name: updates.gurudevName || null,
+        diksha_stage: updates.dikshaStage || null,
+        initiation_date: updates.initiationDate || null,
+        initiation_year: updates.initiationYear || null,
+        sex: updates.sex || null,
+        city: updates.city,
         centre: updates.centre,
+        mobile_number: updates.phone,
         mentor_names: updates.mentor,
         mentor_other: updates.mentorOther || null,
       })

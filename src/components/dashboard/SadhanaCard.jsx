@@ -1,13 +1,15 @@
 import { Link } from "react-router-dom";
 import { Sparkles, Pencil, Repeat } from "lucide-react";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { formatDateTime } from "../../utils/dateHelpers";
 import Card from "../ui/Card";
 import Button from "../ui/Button";
 import StatusBadge from "../ui/StatusBadge";
 
 export default function SadhanaCard({ todayEntry, formattedDate }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const isSubmitted = Boolean(todayEntry);
+  const submittedAtDisplay = formatDateTime(todayEntry?.submittedAt, locale);
 
   return (
     <Card className="relative overflow-hidden">
@@ -33,6 +35,11 @@ export default function SadhanaCard({ todayEntry, formattedDate }) {
                 {t("dashboard.malaRoundsToday")} 🙏
               </span>
             </div>
+            {submittedAtDisplay && (
+              <p className="text-xs text-brown-400">
+                {t("dashboard.submittedAt")} {submittedAtDisplay}
+              </p>
+            )}
             <div className="flex flex-col gap-2 sm:flex-row">
               <Link to="/devotee/sadhana" className="w-full sm:w-auto">
                 <Button variant="outline" size="md" icon={Pencil} className="w-full">

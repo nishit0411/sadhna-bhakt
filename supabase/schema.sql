@@ -376,3 +376,31 @@ drop trigger if exists auth_users_prevent_duplicate_email on auth.users;
 create trigger auth_users_prevent_duplicate_email
   before insert or update of email on auth.users
   for each row execute function public.prevent_duplicate_email();
+
+-- ----------------------------------------------------------------------------
+-- 13. Keep profiles.email in sync with auth.users.email.
+-- The frontend never writes profiles.email directly for an email change —
+-- Profile.jsx always goes through supabase.auth.updateUser({ email }),
+-- which (with Supabase's default "Confirm email change" setting) leaves
+-- auth.users.email untouched until the user clicks the confirmation
+-- link(s) in their inbox. This trigger fires only once that real change
+-- actually lands, mirroring it into profiles.email — so there is exactly
+-- one source of truth and no separate, unverified write path for email.
+-- ----------------------------------------------------------------------------
+create or replace function public.sync_profile_email()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.email is distinct from old.email then
+    update public.profiles set email = new.email where id = new.id;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_email_changed on auth.users;
+create trigger on_auth_user_email_changed
+  after update of email on auth.users
+  for each row execute function public.sync_profile_email();

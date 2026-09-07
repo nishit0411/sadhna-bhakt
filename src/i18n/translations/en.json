@@ -249,6 +249,7 @@
     "subtitle": "May today's Sadhana bring you closer to Krishna.",
     "todaysSadhana": "Today's Sadhana",
     "malaRoundsToday": "Mala rounds offered today",
+    "submittedAt": "Submitted",
     "reviewEdit": "Review / Edit Today's Sadhana",
     "viewProgress": "View My Progress",
     "notSubmittedBody": "You haven't offered today's Sadhana report yet. Take a few quiet moments to reflect and submit.",
@@ -340,6 +341,7 @@
     "noRecordsBody": "Days you submit will appear here.",
     "submitted": "Submitted",
     "notSubmitted": "Not submitted",
+    "submittedAt": "Submitted at",
     "wakeUpTime": "Wake-up Time",
     "gurudevRemembrance": "Gurudev Remembrance / Jai Dhwani",
     "mangalaArati": "Mangala Arati",
@@ -410,7 +412,9 @@
     "errNewPassword": "Please enter a new password.",
     "errNewPasswordInvalid": "Password must be at least 6 characters.",
     "errConfirmMismatch": "Passwords do not match.",
-    "passwordChanged": "Password changed successfully."
+    "passwordChanged": "Password changed successfully.",
+    "emailChangePending": "A confirmation link has been sent to your new email address. Your email will update once you confirm it.",
+    "emailChangeHelper": "Changing this requires confirming a link sent to the new address."
   },
   "adminLogin": {
     "eyebrow": "Restricted Access",

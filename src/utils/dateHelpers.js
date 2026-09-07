@@ -25,6 +25,18 @@ export function formatWeekday(dateStr) {
   return d.toLocaleDateString("en-IN", { weekday: "short" });
 }
 
+/** Formats a full timestamptz (e.g. sadhana_records.submitted_at) as a local date + time string. */
+export function formatDateTime(isoTimestamp, locale = "en-IN") {
+  if (!isoTimestamp) return null;
+  return new Date(isoTimestamp).toLocaleString(locale, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 export function to12Hour(time24) {
   if (!time24) return "—";
   const [h, m] = time24.split(":").map(Number);

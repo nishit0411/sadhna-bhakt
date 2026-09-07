@@ -1,5 +1,5 @@
 import Modal from "../ui/Modal";
-import { formatLongDate, to12Hour } from "../../utils/dateHelpers";
+import { formatLongDate, formatDateTime, to12Hour } from "../../utils/dateHelpers";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -34,9 +34,12 @@ export default function DayDetailModal({ record, onClose }) {
 
   const yn = (v) => (v ? t("common.yes") : t("common.no"));
 
+  const submittedAtDisplay = formatDateTime(record.submittedAt, locale);
+
   return (
     <Modal isOpen={Boolean(record)} onClose={onClose} title={formatLongDate(record.date, locale)} size="md">
       <div className="flex flex-col gap-1">
+        {submittedAtDisplay && <DetailRow label={t("history.submittedAt")} value={submittedAtDisplay} />}
         <DetailRow label={t("history.wakeUpTime")} value={to12Hour(record.wakeUpTime)} />
         <DetailRow label={t("history.gurudevRemembrance")} value={yn(record.gurudevRemembrance)} />
         <DetailRow label={t("history.mangalaArati")} value={yn(record.mangalaAratiDone)} />

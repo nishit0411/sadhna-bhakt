@@ -14,7 +14,7 @@ export default function FormSelect({ label, required, error, options, placeholde
       <div className="relative">
         <select
           id={selectId}
-          className={`w-full appearance-none rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 pr-10 text-base focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm ${
+          className={`w-full appearance-none rounded-xl border border-brown-900/10 bg-cream-50 px-4 py-2.5 pr-10 text-base focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 disabled:cursor-not-allowed disabled:bg-beige-100 disabled:text-brown-500 sm:text-sm ${
             props.value ? "text-brown-900" : "text-brown-500/60"
           } ${error ? "border-clay-400" : ""} ${className}`}
           aria-invalid={Boolean(error)}

@@ -19,7 +19,7 @@ export default function FormInput({ label, required, error, helperText, icon: Ic
         )}
         <input
           id={inputId}
-          className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 py-2.5 pr-4 text-base text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm ${leftPad} ${error ? "border-clay-400" : ""} ${className}`}
+          className={`w-full rounded-xl border border-brown-900/10 bg-cream-50 py-2.5 pr-4 text-base text-brown-900 placeholder:text-brown-500/50 focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 disabled:cursor-not-allowed disabled:bg-beige-100 disabled:text-brown-500 sm:text-sm ${leftPad} ${error ? "border-clay-400" : ""} ${className}`}
           aria-invalid={Boolean(error)}
           aria-describedby={error ? `${inputId}-error` : helperText ? `${inputId}-helper` : undefined}
           {...props}
