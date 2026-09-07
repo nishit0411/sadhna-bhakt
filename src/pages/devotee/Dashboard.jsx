@@ -13,11 +13,13 @@ import {
   CalendarX,
 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import * as sadhanaService from "../../services/sadhanaService";
 import { formatLongDate, formatMonthYear, toISODate } from "../../utils/dateHelpers";
 import { getActivityBreakdown } from "../../utils/activityBreakdown";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import StatCard from "../../components/dashboard/StatCard";
 import ActivityCard from "../../components/dashboard/ActivityCard";
 import ProgressCard from "../../components/dashboard/ProgressCard";
@@ -41,6 +43,7 @@ const ACTIVITY_ICONS = {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const { t, locale } = useTranslation();
   const displayName = user.spiritualName || user.name.split(" ")[0];
   const [isLoading, setIsLoading] = useState(true);
@@ -68,7 +71,11 @@ export default function Dashboard() {
       setStreak(currentStreak);
       setIsLoading(false);
     }
-    load();
+    load().catch((err) => {
+      if (!active) return;
+      addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+      setIsLoading(false);
+    });
     return () => {
       active = false;
     };

@@ -3,7 +3,10 @@ import { Download } from "lucide-react";
 import { formatMonthYear } from "../../utils/dateHelpers";
 import { ACTIVITY_LABEL_KEYS } from "../../utils/activityBreakdown";
 import { downloadCSV } from "../../utils/csvExport";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import * as devoteeService from "../../services/devoteeService";
 import ProgressCard from "../../components/dashboard/ProgressCard";
@@ -15,15 +18,29 @@ import Button from "../../components/ui/Button";
 
 export default function Reports() {
   const { t, locale } = useTranslation();
+  const { user } = useAuth();
+  const { addToast } = useToast();
   const now = new Date();
   const [overview, setOverview] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    devoteeService.getSanghaMonthlyOverview(now.getFullYear(), now.getMonth()).then((data) => {
-      setOverview(data);
-      setIsLoading(false);
-    });
+    let active = true;
+    devoteeService
+      .getSanghaMonthlyOverview(now.getFullYear(), now.getMonth())
+      .then((data) => {
+        if (!active) return;
+        setOverview(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -45,7 +62,7 @@ export default function Reports() {
         { key: "date", label: "Date" },
         { key: "japaRounds", label: "Average Mala" },
       ],
-      "Exported by: Nishit Singla"
+      `Exported by: ${user?.name ?? user?.email ?? "Admin"}`
     );
   }
 

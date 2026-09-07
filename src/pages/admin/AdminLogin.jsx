@@ -4,6 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import Logo from "../../components/layout/Logo";
 import DeveloperCredit from "../../components/layout/DeveloperCredit";
 import Button from "../../components/ui/Button";
@@ -59,7 +60,7 @@ export default function AdminLogin() {
       addToast(`${t("common.hareKrishna")}, ${user.name.split(" ")[0]} 🙏`);
       navigate("/admin/dashboard");
     } catch (err) {
-      setErrors({ form: err.message });
+      setErrors({ form: friendlyErrorMessage(err, t) });
     } finally {
       setIsSubmitting(false);
     }

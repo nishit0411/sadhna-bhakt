@@ -119,7 +119,7 @@
     "passwordPlaceholder": "Enter password",
     "loginButton": "Login",
     "or": "OR",
-    "continueWithOtp": "Continue with Email OTP",
+    "continueWithEmail": "Continue with This Email",
     "demoLogin": "Demo Login",
     "asDevotee": "As Devotee",
     "asAdmin": "As Admin",
@@ -210,6 +210,8 @@
     "locationContactDesc": "So your mentor and community can reach you.",
     "city": "City",
     "cityPlaceholder": "Enter your city",
+    "centre": "Centre / Temple",
+    "centrePlaceholder": "Enter your centre or temple",
     "mobileNumber": "Mobile Number",
     "mobileNumberPlaceholder": "Enter your mobile number",
     "emailAddress": "Email Address",
@@ -225,7 +227,9 @@
     "errInitiationYear": "Please enter a valid year.",
     "errSex": "Please select your sex.",
     "errMentorOther": "Please specify your mentor's name.",
+    "errGurudevOther": "Please specify Srila Gurudev's name.",
     "errCity": "Please enter your city.",
+    "errCentre": "Please enter your centre or temple.",
     "errMobile": "Please enter your mobile number.",
     "errMobileInvalid": "Please enter a valid mobile number.",
     "errEmail": "Please enter your email address.",
@@ -394,8 +398,19 @@
     "exportData": "Download my Sadhana data",
     "export": "Export",
     "profileUpdated": "Profile updated successfully.",
-    "passwordComingSoon": "Password changes will be available once accounts go live.",
-    "exportComingSoon": "Export will be available soon."
+    "exportComingSoon": "Export will be available soon.",
+    "changePasswordModalTitle": "Change Password",
+    "currentPasswordLabel": "Current Password",
+    "currentPasswordPlaceholder": "Enter your current password",
+    "newPasswordLabel": "New Password",
+    "newPasswordPlaceholder": "Enter a new password",
+    "confirmNewPasswordLabel": "Confirm New Password",
+    "confirmNewPasswordPlaceholder": "Re-enter your new password",
+    "errCurrentPassword": "Please enter your current password.",
+    "errNewPassword": "Please enter a new password.",
+    "errNewPasswordInvalid": "Password must be at least 6 characters.",
+    "errConfirmMismatch": "Passwords do not match.",
+    "passwordChanged": "Password changed successfully."
   },
   "adminLogin": {
     "eyebrow": "Restricted Access",
@@ -484,5 +499,18 @@
       "onAsan": "On Asan",
       "withoutAsan": "Without Asan"
     }
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "emailAlreadyRegistered": "An account with this email already exists. Try logging in instead.",
+    "invalidCredentials": "That email and password don't match our records.",
+    "emailNotConfirmed": "Please confirm your email before logging in.",
+    "rateLimited": "Too many attempts. Please wait a moment and try again.",
+    "network": "Couldn't reach the server. Check your connection and try again.",
+    "passwordTooWeak": "Please choose a password with at least 6 characters.",
+    "invalidOtp": "That code is invalid or has expired. Please request a new one.",
+    "sessionExpired": "Your session has expired. Please start again.",
+    "currentPasswordIncorrect": "Your current password is incorrect.",
+    "loadFailed": "Couldn't load this page. Please try again."
   }
 }

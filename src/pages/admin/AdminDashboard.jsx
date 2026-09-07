@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Users, CheckCircle2, Clock3, Repeat, Armchair, PersonStanding } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { useToast } from "../../context/ToastContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import StatCard from "../../components/dashboard/StatCard";
 import DevoteeTable from "../../components/admin/DevoteeTable";
@@ -12,17 +14,30 @@ import Card from "../../components/ui/Card";
 
 export default function AdminDashboard() {
   const { t } = useTranslation();
+  const { addToast } = useToast();
   const navigate = useNavigate();
   const [overview, setOverview] = useState(null);
   const [devotees, setDevotees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([devoteeService.getAdminOverview(), devoteeService.getDevoteeDirectory()]).then(([ov, list]) => {
-      setOverview(ov);
-      setDevotees(list);
-      setIsLoading(false);
-    });
+    let active = true;
+    Promise.all([devoteeService.getAdminOverview(), devoteeService.getDevoteeDirectory()])
+      .then(([ov, list]) => {
+        if (!active) return;
+        setOverview(ov);
+        setDevotees(list);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (isLoading) return <LoadingState fullHeight />;

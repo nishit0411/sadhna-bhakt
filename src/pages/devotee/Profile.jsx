@@ -3,13 +3,17 @@ import { Bell, Pencil, Save, Shield, User as UserIcon, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { isSupabaseConfigured } from "../../lib/supabaseClient";
+import { changePassword } from "../../services/authService";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
+import Modal from "../../components/ui/Modal";
 import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
 import { MENTOR_OPTIONS, formatMentorNames } from "../../data/mentorList";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 
 const TONES = {
   maroon: "bg-maroon-500",
@@ -39,6 +43,94 @@ function ToggleRow({ label, description, checked, onChange }) {
   );
 }
 
+const PASSWORD_MODAL_INITIAL = { currentPassword: "", newPassword: "", confirmPassword: "" };
+
+function ChangePasswordModal({ isOpen, onClose, email, t, addToast }) {
+  const [form, setForm] = useState(PASSWORD_MODAL_INITIAL);
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  function handleChange(e) {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [e.target.name]: undefined }));
+  }
+
+  function handleClose() {
+    setForm(PASSWORD_MODAL_INITIAL);
+    setErrors({});
+    onClose();
+  }
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const next = {};
+    if (!form.currentPassword) next.currentPassword = t("profile.errCurrentPassword");
+    if (!form.newPassword) next.newPassword = t("profile.errNewPassword");
+    else if (form.newPassword.length < 6) next.newPassword = t("profile.errNewPasswordInvalid");
+    if (form.confirmPassword !== form.newPassword) next.confirmPassword = t("profile.errConfirmMismatch");
+    setErrors(next);
+    if (Object.keys(next).length) return;
+
+    setIsSubmitting(true);
+    try {
+      await changePassword({ email, currentPassword: form.currentPassword, newPassword: form.newPassword });
+      addToast(t("profile.passwordChanged"));
+      handleClose();
+    } catch (err) {
+      if (err.message === "current_password_incorrect") {
+        setErrors({ currentPassword: friendlyErrorMessage(err, t) });
+      } else {
+        setErrors({ newPassword: friendlyErrorMessage(err, t) });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  return (
+    <Modal isOpen={isOpen} onClose={handleClose} title={t("profile.changePasswordModalTitle")}>
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
+        <Input
+          label={t("profile.currentPasswordLabel")}
+          name="currentPassword"
+          type="password"
+          autoComplete="current-password"
+          placeholder={t("profile.currentPasswordPlaceholder")}
+          value={form.currentPassword}
+          onChange={handleChange}
+          error={errors.currentPassword}
+          required
+        />
+        <Input
+          label={t("profile.newPasswordLabel")}
+          name="newPassword"
+          type="password"
+          autoComplete="new-password"
+          placeholder={t("profile.newPasswordPlaceholder")}
+          value={form.newPassword}
+          onChange={handleChange}
+          error={errors.newPassword}
+          required
+        />
+        <Input
+          label={t("profile.confirmNewPasswordLabel")}
+          name="confirmPassword"
+          type="password"
+          autoComplete="new-password"
+          placeholder={t("profile.confirmNewPasswordPlaceholder")}
+          value={form.confirmPassword}
+          onChange={handleChange}
+          error={errors.confirmPassword}
+          required
+        />
+        <Button type="submit" size="lg" isLoading={isSubmitting} className="mt-2 w-full">
+          {t("profile.update")}
+        </Button>
+      </form>
+    </Modal>
+  );
+}
+
 export default function Profile() {
   const { user, updateProfile } = useAuth();
   const { addToast } = useToast();
@@ -53,6 +145,7 @@ export default function Profile() {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [prefs, setPrefs] = useState({ dailyReminder: true, weeklySummary: true, mentorUpdates: false });
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
 
   const localeMap = { en: "en-IN", hi: "hi-IN", ru: "ru-RU" };
 
@@ -70,6 +163,8 @@ export default function Profile() {
       await updateProfile(form);
       addToast(t("profile.profileUpdated"));
       setIsEditing(false);
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsSaving(false);
     }
@@ -204,7 +299,12 @@ export default function Profile() {
         <div className="flex flex-col divide-y divide-brown-900/5">
           <div className="flex items-center justify-between py-3.5">
             <p className="text-sm text-brown-700">{t("profile.changePassword")}</p>
-            <Button variant="outline" size="sm" onClick={() => addToast(t("profile.passwordComingSoon"), "info")}>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!isSupabaseConfigured}
+              onClick={() => setIsPasswordModalOpen(true)}
+            >
               {t("profile.update")}
             </Button>
           </div>
@@ -216,6 +316,14 @@ export default function Profile() {
           </div>
         </div>
       </Card>
+
+      <ChangePasswordModal
+        isOpen={isPasswordModalOpen}
+        onClose={() => setIsPasswordModalOpen(false)}
+        email={user.email}
+        t={t}
+        addToast={addToast}
+      />
     </div>
   );
 }

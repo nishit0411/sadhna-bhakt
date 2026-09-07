@@ -7,6 +7,7 @@ import * as sadhanaService from "../../services/sadhanaService";
 import * as autofillService from "../../services/autofillService";
 import { formatLongDate, toISODate } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import SadhanaFormFields from "../../components/sadhana/SadhanaFormFields";
 import Button from "../../components/ui/Button";
 import Card from "../../components/ui/Card";
@@ -47,18 +48,25 @@ export default function DailySadhana() {
 
   useEffect(() => {
     let active = true;
-    Promise.all([sadhanaService.getTodayEntry(user.id), autofillService.getAutofillTemplate(user.id)]).then(([entry, template]) => {
-      if (!active) return;
-      if (entry) {
-        setForm(buildFormFromEntry(entry));
-        setIsEditingExisting(true);
-      }
-      setHasAutofillTemplate(Boolean(template));
-      setIsLoading(false);
-    });
+    Promise.all([sadhanaService.getTodayEntry(user.id), autofillService.getAutofillTemplate(user.id)])
+      .then(([entry, template]) => {
+        if (!active) return;
+        if (entry) {
+          setForm(buildFormFromEntry(entry));
+          setIsEditingExisting(true);
+        }
+        setHasAutofillTemplate(Boolean(template));
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   function setField(field, value) {
@@ -72,13 +80,17 @@ export default function DailySadhana() {
   }
 
   async function handleUseAutofill() {
-    const template = await autofillService.getAutofillTemplate(user.id);
-    if (!template) return;
-    const { updatedAt, ...values } = template;
-    // Only fills the fields — never submits, and today's date is untouched.
-    setForm((prev) => ({ ...prev, ...values }));
-    setErrors({});
-    addToast(t("autofill.appliedToast"));
+    try {
+      const template = await autofillService.getAutofillTemplate(user.id);
+      if (!template) return;
+      const { updatedAt, ...values } = template;
+      // Only fills the fields — never submits, and today's date is untouched.
+      setForm((prev) => ({ ...prev, ...values }));
+      setErrors({});
+      addToast(t("autofill.appliedToast"));
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t), "error");
+    }
   }
 
   function validate() {
@@ -138,7 +150,7 @@ export default function DailySadhana() {
       });
       setSubmitted(true);
     } catch (err) {
-      addToast(err.message, "error");
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsSubmitting(false);
     }

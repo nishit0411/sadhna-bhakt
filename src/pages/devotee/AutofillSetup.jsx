@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import * as autofillService from "../../services/autofillService";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import SadhanaFormFields from "../../components/sadhana/SadhanaFormFields";
 import Button from "../../components/ui/Button";
 import LoadingState from "../../components/ui/LoadingState";
@@ -39,17 +40,25 @@ export default function AutofillSetup() {
 
   useEffect(() => {
     let active = true;
-    autofillService.getAutofillTemplate(user.id).then((template) => {
-      if (!active) return;
-      if (template) {
-        const { updatedAt, ...values } = template;
-        setForm({ ...blankTemplate(), ...values });
-      }
-      setIsLoading(false);
-    });
+    autofillService
+      .getAutofillTemplate(user.id)
+      .then((template) => {
+        if (!active) return;
+        if (template) {
+          const { updatedAt, ...values } = template;
+          setForm({ ...blankTemplate(), ...values });
+        }
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
 
   function setField(field, value) {
@@ -66,6 +75,8 @@ export default function AutofillSetup() {
       await autofillService.saveAutofillTemplate(user.id, form);
       addToast(t("autofill.savedToast"));
       navigate("/devotee/sadhana");
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsSaving(false);
     }

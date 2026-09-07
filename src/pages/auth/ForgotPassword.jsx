@@ -4,6 +4,7 @@ import { MailCheck, ServerOff, ArrowLeft, KeyRound } from "lucide-react";
 import { requestPasswordReset, verifyPasswordResetOtp, confirmPasswordReset } from "../../services/authService";
 import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import Logo from "../../components/layout/Logo";
 import LanguageSwitcher from "../../components/layout/LanguageSwitcher";
 import DeveloperCredit from "../../components/layout/DeveloperCredit";
@@ -64,7 +65,7 @@ export default function ForgotPassword() {
       setCooldown(RESEND_COOLDOWN_SECONDS);
       setStep("otp");
     } catch (err) {
-      setErrors({ email: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : err.message });
+      setErrors({ email: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : friendlyErrorMessage(err, t) });
     } finally {
       setIsSubmitting(false);
     }
@@ -78,7 +79,7 @@ export default function ForgotPassword() {
       setCooldown(RESEND_COOLDOWN_SECONDS);
       setErrors({});
     } catch (err) {
-      setErrors({ otp: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : err.message });
+      setErrors({ otp: isEmailSendFailure(err) ? t("forgotPassword.errSendFailed") : friendlyErrorMessage(err, t) });
     } finally {
       setIsSubmitting(false);
     }
@@ -121,7 +122,7 @@ export default function ForgotPassword() {
       await confirmPasswordReset(form.password);
       navigate("/login", { state: { passwordResetSuccess: true } });
     } catch (err) {
-      setErrors({ password: err.message });
+      setErrors({ password: friendlyErrorMessage(err, t) });
     } finally {
       setIsSubmitting(false);
     }

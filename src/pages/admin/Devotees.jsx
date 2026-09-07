@@ -4,7 +4,10 @@ import { Search, Download } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import { toISODate } from "../../utils/dateHelpers";
 import { downloadCSV } from "../../utils/csvExport";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
@@ -20,12 +23,12 @@ const EXPORT_COLUMNS = [
   { key: "status", label: "Status Today" },
 ];
 
-const EXPORTED_BY = "Nishit Singla";
-
 const VALID_STATUS_FILTERS = ["Completed", "Pending"];
 
 export default function Devotees() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { addToast } = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
   const [devotees, setDevotees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -69,14 +72,22 @@ export default function Devotees() {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    devoteeService.getDevoteeDirectory(date).then((list) => {
-      if (!active) return;
-      setDevotees(list);
-      setIsLoading(false);
-    });
+    devoteeService
+      .getDevoteeDirectory(date)
+      .then((list) => {
+        if (!active) return;
+        setDevotees(list);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [date]);
 
   const filtered = useMemo(() => {
@@ -94,7 +105,7 @@ export default function Devotees() {
   }, [devotees, search, malaFilter, statusFilter]);
 
   function handleExport() {
-    downloadCSV(`devotees-${date}`, filtered, EXPORT_COLUMNS, `Exported by: ${EXPORTED_BY} · ${date}`);
+    downloadCSV(`devotees-${date}`, filtered, EXPORT_COLUMNS, `Exported by: ${user?.name ?? user?.email ?? "Admin"} · ${date}`);
   }
 
   return (

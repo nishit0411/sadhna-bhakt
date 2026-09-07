@@ -78,6 +78,16 @@ function summarize(devotee, records, forDate, windowDays = 30) {
   const windowTotalMala = windowRecords.reduce((sum, r) => sum + r.totalMala, 0);
   const avgMala = windowRecords.length ? Math.round((windowTotalMala / windowRecords.length) * 10) / 10 : 0;
 
+  // A devotee who joined more recently than the window is long can't have
+  // submitted for the full window — cap the completion-rate denominator at
+  // how many days they've actually been a member, so someone who joined 3
+  // days ago and submitted every day reads as 100%, not ~10% of a 30-day window.
+  const joinedISODate = devotee.joinedOn ? toISODate(new Date(devotee.joinedOn)) : null;
+  const daysSinceJoined = joinedISODate
+    ? Math.round((new Date(`${targetDate}T00:00:00`) - new Date(`${joinedISODate}T00:00:00`)) / 86400000) + 1
+    : windowSize;
+  const completionWindowSize = Math.max(1, Math.min(windowSize, daysSinceJoined));
+
   return {
     ...devotee,
     todayEntry: targetEntry,
@@ -92,7 +102,7 @@ function summarize(devotee, records, forDate, windowDays = 30) {
     windowTotalMala,
     windowMalaOnAsan: windowRecords.reduce((sum, r) => sum + r.malaOnAsan, 0),
     windowMalaWithoutAsan: windowRecords.reduce((sum, r) => sum + r.malaWithoutAsan, 0),
-    completionRate: windowSize ? Math.round((windowRecords.length / windowSize) * 100) : 0,
+    completionRate: Math.min(100, Math.round((windowRecords.length / completionWindowSize) * 100)),
     currentStreak: calculateCurrentStreak(records),
     daysSubmitted: records.length,
     lastSubmittedDate: records.length ? records[records.length - 1].date : null,

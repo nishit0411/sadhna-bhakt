@@ -7,7 +7,7 @@
  * behavior. No other file needs to know which mode is active — the
  * exported function names and return shapes are identical either way.
  */
-import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
+import { supabase, isSupabaseConfigured, PASSWORD_RECOVERY_FLAG_KEY } from "../lib/supabaseClient";
 import { MOCK_DEVOTEES, CURRENT_DEVOTEE_ID, CURRENT_ADMIN_ID } from "../data/mockDevotees";
 
 const SESSION_KEY = "sadhana_bhakti_session";
@@ -113,6 +113,7 @@ export async function register(form) {
           initiation_year: form.initiationDateMode === "year" ? form.initiationYear || null : null,
           sex: form.sex || null,
           city: form.city || null,
+          centre: form.centre || null,
           mentor_names: form.mentorNames ?? [],
           mentor_other: form.mentorOther || null,
           mobile_number: form.mobileNumber || null,
@@ -243,6 +244,32 @@ export async function confirmPasswordReset(newPassword) {
   const { error } = await supabase.auth.updateUser({ password: newPassword });
   if (error) throw error;
   await supabase.auth.signOut();
+  // Both the OTP flow (ForgotPassword.jsx) and the magic-link flow
+  // (ResetPassword.jsx) call this — clearing the flag here, once, means
+  // neither caller can forget it and leave a stale "recovery in progress"
+  // flag around for the rest of the browser tab's life.
+  sessionStorage.removeItem(PASSWORD_RECOVERY_FLAG_KEY);
+}
+
+/**
+ * Voluntary password change from a signed-in session (Profile page) — not
+ * the forgot-password/recovery flow above. Re-authenticates with the
+ * current password first (supabase-js has no dedicated "confirm current
+ * password" call) so a device left logged in can't have its password
+ * changed by someone who doesn't actually know it; only then applies the
+ * new one. Unlike confirmPasswordReset, this does NOT sign the user out —
+ * they're already legitimately in their own session.
+ */
+export async function changePassword({ email, currentPassword, newPassword }) {
+  if (!isSupabaseConfigured) {
+    throw new Error("Password changes require a live backend connection.");
+  }
+  const { error: verifyError } = await supabase.auth.signInWithPassword({ email, password: currentPassword });
+  if (verifyError) {
+    throw new Error("current_password_incorrect");
+  }
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
 }
 
 export async function updateProfile(userId, updates) {

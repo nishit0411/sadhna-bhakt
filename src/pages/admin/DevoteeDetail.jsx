@@ -5,7 +5,10 @@ import * as devoteeService from "../../services/devoteeService";
 import * as sadhanaService from "../../services/sadhanaService";
 import { getActivityBreakdown } from "../../utils/activityBreakdown";
 import { downloadCSV } from "../../utils/csvExport";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
 import StatCard from "../../components/dashboard/StatCard";
@@ -36,6 +39,8 @@ export default function DevoteeDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const { addToast } = useToast();
   const now = new Date();
   const [devotee, setDevotee] = useState(null);
   const [records, setRecords] = useState([]);
@@ -44,14 +49,18 @@ export default function DevoteeDetail() {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    Promise.all([devoteeService.getDevoteeSummary(id), sadhanaService.getMonthlyRecords(id, now.getFullYear(), now.getMonth())]).then(
-      ([summary, month]) => {
+    Promise.all([devoteeService.getDevoteeSummary(id), sadhanaService.getMonthlyRecords(id, now.getFullYear(), now.getMonth())])
+      .then(([summary, month]) => {
         if (!active) return;
         setDevotee(summary);
         setRecords([...month].sort((a, b) => a.date.localeCompare(b.date)));
         setIsLoading(false);
-      }
-    );
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
@@ -102,7 +111,7 @@ export default function DevoteeDetail() {
         { key: "harikatha", label: "Harikatha" },
         { key: "gaudiyaKirtan", label: "Gaudiya Kirtan" },
       ],
-      "Exported by: Nishit Singla"
+      `Exported by: ${user?.name ?? user?.email ?? "Admin"}`
     );
   }
 

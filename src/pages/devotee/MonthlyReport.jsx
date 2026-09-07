@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Sparkles, Sprout } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import * as sadhanaService from "../../services/sadhanaService";
 import { daysInMonth, formatMonthYear } from "../../utils/dateHelpers";
 import { getActivityBreakdown } from "../../utils/activityBreakdown";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import DatePicker from "../../components/ui/DatePicker";
 import Card from "../../components/ui/Card";
@@ -21,6 +23,7 @@ import { CalendarX } from "lucide-react";
 
 export default function MonthlyReport() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const { t, locale } = useTranslation();
   const now = new Date();
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
@@ -30,14 +33,22 @@ export default function MonthlyReport() {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    sadhanaService.getMonthlyRecords(user.id, cursor.year, cursor.month).then((data) => {
-      if (!active) return;
-      setRecords([...data].sort((a, b) => a.date.localeCompare(b.date)));
-      setIsLoading(false);
-    });
+    sadhanaService
+      .getMonthlyRecords(user.id, cursor.year, cursor.month)
+      .then((data) => {
+        if (!active) return;
+        setRecords([...data].sort((a, b) => a.date.localeCompare(b.date)));
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id, cursor]);
 
   const isCurrentMonth = cursor.year === now.getFullYear() && cursor.month === now.getMonth();

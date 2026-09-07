@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Sparkles, Heart, MapPin, Phone, Mail, ArrowRight, Cake } from "lucide-react";
+import { User, Sparkles, Heart, MapPin, Landmark, Phone, Mail, ArrowRight, Cake } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useTranslation } from "../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../utils/friendlyError";
 import Logo from "../components/layout/Logo";
 import LanguageSwitcher from "../components/layout/LanguageSwitcher";
 import DeveloperCredit from "../components/layout/DeveloperCredit";
@@ -38,6 +39,7 @@ const INITIAL_FORM = {
   initiationYear: "",
   sex: "",
   city: "",
+  centre: "",
   gurudevOther: "",
   mentorNames: [],
   mentorOther: "",
@@ -80,8 +82,10 @@ export default function Register() {
       next.initiationYear = t("register.errInitiationYear");
     }
     if (!form.sex) next.sex = t("register.errSex");
+    if (form.gurudevName === "Other" && !form.gurudevOther.trim()) next.gurudevOther = t("register.errGurudevOther");
     if (form.mentorNames.includes("Other") && !form.mentorOther.trim()) next.mentorOther = t("register.errMentorOther");
     if (!form.city.trim()) next.city = t("register.errCity");
+    if (!form.centre.trim()) next.centre = t("register.errCentre");
     if (!form.mobileNumber.trim()) next.mobileNumber = t("register.errMobile");
     else if (!PHONE_PATTERN.test(form.mobileNumber.trim())) next.mobileNumber = t("register.errMobileInvalid");
     if (!form.email.trim()) next.email = t("register.errEmail");
@@ -118,7 +122,7 @@ export default function Register() {
         navigate("/login", { state: { registrationSuccess: true } });
       }
     } catch (err) {
-      addToast(err.message, "error");
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -233,13 +237,17 @@ export default function Register() {
               onChange={handleChange}
             />
             {form.gurudevName === "Other" && (
-              <FormInput
-                label={t("register.gurudevOtherLabel")}
-                name="gurudevOther"
-                placeholder={t("register.gurudevOtherPlaceholder")}
-                value={form.gurudevOther}
-                onChange={handleChange}
-              />
+              <div data-error={Boolean(errors.gurudevOther)}>
+                <FormInput
+                  label={t("register.gurudevOtherLabel")}
+                  required
+                  name="gurudevOther"
+                  placeholder={t("register.gurudevOtherPlaceholder")}
+                  value={form.gurudevOther}
+                  onChange={handleChange}
+                  error={errors.gurudevOther}
+                />
+              </div>
             )}
             <div className="sm:col-span-2">
               <label className="mb-2 block text-sm font-medium text-brown-700">{t("register.mentorName")}</label>
@@ -328,6 +336,18 @@ export default function Register() {
                 value={form.city}
                 onChange={handleChange}
                 error={errors.city}
+              />
+            </div>
+            <div data-error={Boolean(errors.centre)}>
+              <FormInput
+                label={t("register.centre")}
+                required
+                name="centre"
+                icon={Landmark}
+                placeholder={t("register.centrePlaceholder")}
+                value={form.centre}
+                onChange={handleChange}
+                error={errors.centre}
               />
             </div>
             <div data-error={Boolean(errors.mobileNumber)}>

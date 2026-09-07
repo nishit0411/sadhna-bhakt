@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { CalendarX } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 import * as sadhanaService from "../../services/sadhanaService";
 import { formatMonthYear, getMonthGrid } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import DatePicker from "../../components/ui/DatePicker";
 import Card from "../../components/ui/Card";
@@ -14,6 +16,7 @@ import DayDetailModal from "../../components/history/DayDetailModal";
 
 export default function History() {
   const { user } = useAuth();
+  const { addToast } = useToast();
   const { t, locale } = useTranslation();
   const now = new Date();
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
@@ -24,14 +27,22 @@ export default function History() {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    sadhanaService.getMonthlyRecords(user.id, cursor.year, cursor.month).then((data) => {
-      if (!active) return;
-      setRecords(data);
-      setIsLoading(false);
-    });
+    sadhanaService
+      .getMonthlyRecords(user.id, cursor.year, cursor.month)
+      .then((data) => {
+        if (!active) return;
+        setRecords(data);
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+        setIsLoading(false);
+      });
     return () => {
       active = false;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id, cursor]);
 
   const recordsByDate = useMemo(() => {

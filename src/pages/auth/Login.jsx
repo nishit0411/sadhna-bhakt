@@ -6,6 +6,7 @@ import { useToast } from "../../context/ToastContext";
 import { quickLoginIds, resendVerificationEmail } from "../../services/authService";
 import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { friendlyErrorMessage } from "../../utils/friendlyError";
 import Logo from "../../components/layout/Logo";
 import LanguageSwitcher from "../../components/layout/LanguageSwitcher";
 import DeveloperCredit from "../../components/layout/DeveloperCredit";
@@ -60,7 +61,7 @@ export default function Login() {
       if (isUnconfirmedEmailError(err)) {
         setUnverifiedEmail(form.email);
       } else {
-        addToast(err.message, "error");
+        addToast(friendlyErrorMessage(err, t), "error");
       }
     } finally {
       setIsSubmitting(false);
@@ -73,12 +74,13 @@ export default function Login() {
       await resendVerificationEmail(unverifiedEmail);
       addToast(t("auth.resendSuccess"));
     } catch (err) {
-      addToast(err.message, "error");
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsResending(false);
     }
   }
 
+  /** Mock-mode-only convenience login by typed email — no real OTP step, hence the plain "continue with email" label. */
   async function handleOtpContinue() {
     if (!form.email) {
       setErrors((prev) => ({ ...prev, email: t("auth.emailRequired") }));
@@ -89,6 +91,8 @@ export default function Login() {
       const user = await login({ email: form.email, password: "otp-continue" });
       addToast(`${t("common.hareKrishna")}, ${user.name.split(" ")[0]} 🙏`);
       goToDashboard(user);
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t), "error");
     } finally {
       setIsOtpSubmitting(false);
     }
@@ -189,7 +193,7 @@ export default function Login() {
                 isLoading={isOtpSubmitting}
                 onClick={handleOtpContinue}
               >
-                {t("auth.continueWithOtp")}
+                {t("auth.continueWithEmail")}
               </Button>
 
               <div className="mt-6 rounded-xl bg-beige-100 p-4 text-center">
