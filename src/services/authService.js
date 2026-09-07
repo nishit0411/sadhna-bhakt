@@ -82,6 +82,24 @@ export async function login({ email, password }) {
   if (isSupabaseConfigured) {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) throw error;
+
+    // Enforced explicitly here rather than trusted to the project's
+    // "Confirm email" dashboard setting alone — email_confirmed_at on the
+    // real Supabase Auth user is the source of truth, checked every time,
+    // regardless of how that setting is configured.
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      const err = new Error("email_not_confirmed");
+      err.code = "email_not_confirmed";
+      throw err;
+    }
+
+    // A fresh, successful password-based sign-in supersedes any recovery
+    // flow that was left dangling in this tab (e.g. the user abandoned a
+    // password-reset link without finishing it) — clear it so it can't
+    // wrongly block this legitimate session later (see getSession below).
+    sessionStorage.removeItem(PASSWORD_RECOVERY_FLAG_KEY);
+
     return fetchProfile(data.user.id);
   }
 
@@ -122,6 +140,20 @@ export async function register(form) {
     });
     if (error) throw error;
 
+    // If a Supabase project has "Prevent email enumeration" on, signUp()
+    // for an email that already has an account doesn't error at all — it
+    // returns a fake-success response shaped just like a real new signup,
+    // so attackers can't use signup to probe which emails are registered.
+    // The one reliable tell: no new identity was actually created for an
+    // existing user, so `identities` comes back empty (a genuinely new
+    // user always has at least one). Treat that as the duplicate-email
+    // error it actually is, on top of the database-level safeguard
+    // (see supabase/schema.sql, prevent_duplicate_email) that rejects a
+    // real duplicate insert whenever Supabase does attempt one.
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+      throw new Error("email_already_registered");
+    }
+
     // If the Supabase project has "Confirm email" turned on, there is no
     // session yet — the caller (Register.jsx) checks for this and shows a
     // "check your email" state instead of continuing straight to the app.
@@ -144,6 +176,7 @@ export async function register(form) {
 export async function logout() {
   if (isSupabaseConfigured) {
     const { error } = await supabase.auth.signOut();
+    sessionStorage.removeItem(PASSWORD_RECOVERY_FLAG_KEY);
     if (error) throw error;
     return;
   }
@@ -156,6 +189,27 @@ export async function getSession() {
   if (isSupabaseConfigured) {
     const { data } = await supabase.auth.getSession();
     if (!data.session) return null;
+
+    // A password-recovery link establishes a real, valid Supabase session
+    // — indistinguishable from a normal login at the session-object level
+    // — purely so ResetPassword.jsx/ForgotPassword.jsx can call
+    // updateUser({ password }). It must never double as "signed in" for
+    // the rest of the app: treating it as no session here is what keeps
+    // ProtectedRoute (which only checks "is there a user") from letting a
+    // recovery-in-progress visitor straight into the Dashboard without
+    // ever setting a new password. The flag is set by the PASSWORD_RECOVERY
+    // listener in supabaseClient.js — registered at module load, so it has
+    // already run by the time this fires from AuthContext's own listener.
+    if (sessionStorage.getItem(PASSWORD_RECOVERY_FLAG_KEY) === "1") return null;
+
+    // Same explicit check as login() — a session that predates email
+    // confirmation (or one from before "Confirm email" was ever enabled)
+    // must not silently keep granting access on every page load/refresh.
+    if (!data.session.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+      return null;
+    }
+
     try {
       return await fetchProfile(data.session.user.id);
     } catch {

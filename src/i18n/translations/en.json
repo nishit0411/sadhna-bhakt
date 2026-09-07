@@ -131,7 +131,7 @@
     "unverifiedEmailMessage": "Please verify your email before logging in. Check your inbox for the confirmation link.",
     "resendVerificationButton": "Resend verification email",
     "resendSuccess": "Verification email sent — please check your inbox.",
-    "passwordResetSuccess": "Your password has been reset. Please sign in with your new password.",
+    "passwordResetSuccess": "Password reset successfully. Please login with your new password.",
     "registrationSuccess": "Your account has been created. Please sign in to begin your Sadhana."
   },
   "forgotPassword": {
@@ -506,7 +506,7 @@
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",
-    "emailAlreadyRegistered": "An account with this email already exists. Try logging in instead.",
+    "emailAlreadyRegistered": "An account with this email already exists. Please login or reset your password.",
     "invalidCredentials": "That email and password don't match our records.",
     "emailNotConfirmed": "Please confirm your email before logging in.",
     "rateLimited": "Too many attempts. Please wait a moment and try again.",

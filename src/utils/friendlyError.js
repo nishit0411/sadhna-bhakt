@@ -1,6 +1,6 @@
 const PATTERNS = [
   { test: /current_password_incorrect/i, key: "errors.currentPasswordIncorrect" },
-  { test: /already registered|already exists/i, key: "errors.emailAlreadyRegistered" },
+  { test: /already.*registered|already exists/i, key: "errors.emailAlreadyRegistered" },
   { test: /invalid login credentials/i, key: "errors.invalidCredentials" },
   { test: /email.*not.*confirm/i, key: "errors.emailNotConfirmed" },
   { test: /rate limit|too many requests/i, key: "errors.rateLimited" },
