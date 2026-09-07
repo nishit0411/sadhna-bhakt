@@ -68,9 +68,60 @@ export function mapProfileRow(row) {
   };
 }
 
+/**
+ * Rebuilds a missing profiles row for an already-authenticated auth.users
+ * account, from that same account's own signup metadata — the exact data
+ * handle_new_user() would have used originally. This is the recovery path
+ * for an orphaned account (auth.users exists, profiles doesn't): never
+ * created by this app auto-creating a second Auth account, and never
+ * requiring service-role/admin access — RLS's "profiles_insert_own" policy
+ * (id = auth.uid()) allows a user to create only their own row, using
+ * only the anon key and their own session, exactly like every other
+ * client-side call in this file.
+ */
+async function recoverMissingProfile(userId) {
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError) throw authError;
+  const meta = authData.user?.user_metadata ?? {};
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .insert({
+      id: userId,
+      email: authData.user.email,
+      first_name: meta.first_name ?? "",
+      last_name: meta.last_name ?? "",
+      date_of_birth: meta.date_of_birth || null,
+      spiritual_name: meta.spiritual_name || null,
+      gurudev_name: meta.gurudev_name || null,
+      diksha_stage: meta.diksha_stage || null,
+      initiation_date: meta.initiation_date || null,
+      initiation_year: meta.initiation_year || null,
+      sex: meta.sex || null,
+      city: meta.city || null,
+      centre: meta.centre || null,
+      mentor_names: meta.mentor_names ?? [],
+      mentor_other: meta.mentor_other || null,
+      mobile_number: meta.mobile_number || null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return mapProfileRow(data);
+}
+
 async function fetchProfile(userId) {
   const { data, error } = await supabase.from("profiles").select("*").eq("id", userId).single();
-  if (error) throw error;
+  if (error) {
+    // PGRST116 = PostgREST's "no row found" for .single() — a real
+    // auth.users account with no matching profiles row. Recover it
+    // instead of leaving the user stuck; any other error (RLS denial,
+    // network failure, etc.) still propagates normally.
+    if (error.code === "PGRST116") {
+      return recoverMissingProfile(userId);
+    }
+    throw error;
+  }
   return mapProfileRow(data);
 }
 
@@ -140,19 +191,17 @@ export async function register(form) {
     });
     if (error) throw error;
 
-    // If a Supabase project has "Prevent email enumeration" on, signUp()
-    // for an email that already has an account doesn't error at all — it
-    // returns a fake-success response shaped just like a real new signup,
-    // so attackers can't use signup to probe which emails are registered.
-    // The one reliable tell: no new identity was actually created for an
-    // existing user, so `identities` comes back empty (a genuinely new
-    // user always has at least one). Treat that as the duplicate-email
-    // error it actually is, on top of the database-level safeguard
-    // (see supabase/schema.sql, prevent_duplicate_email) that rejects a
-    // real duplicate insert whenever Supabase does attempt one.
-    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-      throw new Error("email_already_registered");
-    }
+    // Whether an email is "already registered" is decided at the database
+    // level (see supabase/schema.sql's prevent_duplicate_email trigger on
+    // auth.users, which raises a real error here whenever Supabase does
+    // attempt a duplicate insert) — not by inspecting signUp()'s response
+    // shape client-side. An earlier version of this function tried to
+    // additionally detect Supabase's "Prevent email enumeration" fake-success
+    // response via `data.user.identities.length === 0`, but that signal
+    // isn't reliably distinguishable from a normal pending-confirmation
+    // response across Supabase versions/configs, and a false positive
+    // there would incorrectly reject a genuinely new registration — worse
+    // than the enumeration-protection case it was trying to catch. Removed.
 
     // If the Supabase project has "Confirm email" turned on, there is no
     // session yet — the caller (Register.jsx) checks for this and shows a

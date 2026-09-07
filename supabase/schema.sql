@@ -179,6 +179,18 @@ begin
   )
   on conflict (id) do nothing;
   return new;
+exception
+  when others then
+    -- Never let a problem with one optional field (an unexpected enum
+    -- value, a malformed date, etc.) roll back the whole auth.users
+    -- insert within this same transaction — that would otherwise produce
+    -- a confusing "database error saving new user" for the signup itself.
+    -- The visible symptom of NOT having this handler is worse than a
+    -- temporarily missing profile: authService.fetchProfile() recovers
+    -- one automatically, from this same metadata, the first time this
+    -- user successfully logs in (see "Self-heal a missing profile" below).
+    raise warning 'handle_new_user failed for auth.users id %: %', new.id, sqlerrm;
+    return new;
 end;
 $$;
 
@@ -217,6 +229,17 @@ drop policy if exists "profiles_select_own_or_admin" on public.profiles;
 create policy "profiles_select_own_or_admin"
   on public.profiles for select
   using (id = auth.uid() or public.is_admin());
+
+-- Lets a signed-in user create ONLY their own profile row — needed for
+-- authService.js's self-heal path (an authenticated auth.users account
+-- whose profile is missing, e.g. handle_new_user failed or the row was
+-- deleted independently, rebuilds it from their own metadata on next
+-- login). `id = auth.uid()` makes it impossible to create — or overwrite,
+-- since profiles.id is the primary key — anyone else's row.
+drop policy if exists "profiles_insert_own" on public.profiles;
+create policy "profiles_insert_own"
+  on public.profiles for insert
+  with check (id = auth.uid());
 
 drop policy if exists "profiles_update_own" on public.profiles;
 create policy "profiles_update_own"
