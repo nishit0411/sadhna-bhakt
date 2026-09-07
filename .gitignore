@@ -1,4 +1,9 @@
 node_modules/
 .env
+.env.local
+.env.admin
+.env.admin.save
+*.save
 dist/
 .DS_Store
+scripts/admin/reports/

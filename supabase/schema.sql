@@ -153,7 +153,7 @@ as $$
 begin
   insert into public.profiles (
     id, email, first_name, last_name, date_of_birth, spiritual_name, gurudev_name,
-    diksha_stage, initiation_date, initiation_year, sex, city,
+    diksha_stage, initiation_date, initiation_year, sex, city, centre,
     mentor_names, mentor_other, mobile_number
   )
   values (
@@ -169,6 +169,7 @@ begin
     new.raw_user_meta_data ->> 'initiation_year',
     new.raw_user_meta_data ->> 'sex',
     new.raw_user_meta_data ->> 'city',
+    new.raw_user_meta_data ->> 'centre',
     coalesce(
       array(select jsonb_array_elements_text(coalesce(new.raw_user_meta_data -> 'mentor_names', '[]'::jsonb))),
       '{}'
@@ -326,3 +327,52 @@ begin
     alter table public.profiles drop column mentor_name;
   end if;
 end $$;
+
+-- ----------------------------------------------------------------------------
+-- 12. Case-insensitive email uniqueness (prevents duplicate accounts).
+-- `profiles.email` already has a plain `unique` constraint, but Postgres
+-- text uniqueness is case-sensitive — "user@gmail.com" and
+-- "User@Gmail.com" were both allowed through as distinct rows. This index
+-- closes that gap for `profiles`.
+--
+-- Run this only after existing duplicate accounts have been cleaned up
+-- (see scripts/admin/find-duplicate-emails.mjs) — otherwise it will fail
+-- with a "could not create unique index" error naming the conflicting rows.
+-- ----------------------------------------------------------------------------
+create unique index if not exists profiles_email_lower_idx on public.profiles (lower(email));
+
+-- ----------------------------------------------------------------------------
+-- 12b. Same protection for auth.users itself — via trigger, not an index.
+-- Supabase's `auth.users` table is owned by the `supabase_auth_admin` role;
+-- the SQL Editor's role can create a TRIGGER on it (proof: the
+-- `on_auth_user_created` trigger in section 5 already does this and works)
+-- but cannot run CREATE INDEX / ALTER TABLE on it ("must be owner of table
+-- users"). So instead of an index, this trigger manually rejects any
+-- insert/email-change that collides case-insensitively with an existing
+-- row, raising the same unique_violation error code (23505) a real
+-- constraint would — GoTrue surfaces it to the client exactly like any
+-- other "email already registered" error. Fires before profiles' own
+-- constraint would ever be reached, and before on_auth_user_created runs.
+-- ----------------------------------------------------------------------------
+create or replace function public.prevent_duplicate_email()
+returns trigger
+language plpgsql
+security definer set search_path = public, auth
+as $$
+begin
+  if exists (
+    select 1 from auth.users
+    where lower(email) = lower(new.email)
+      and id <> new.id
+  ) then
+    raise exception 'A user with this email address has already been registered.'
+      using errcode = '23505';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists auth_users_prevent_duplicate_email on auth.users;
+create trigger auth_users_prevent_duplicate_email
+  before insert or update of email on auth.users
+  for each row execute function public.prevent_duplicate_email();
