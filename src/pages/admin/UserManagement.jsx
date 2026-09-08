@@ -86,7 +86,11 @@ export default function UserManagement() {
       })
       .catch((err) => {
         if (!active) return;
-        setLoadError(friendlyErrorMessage(err, t, "errors.loadFailed"));
+        // This is an admin-only diagnostic tool, not a devotee-facing page —
+        // showing the real error (rather than routing it through
+        // friendlyErrorMessage's sanitizing) is the right tradeoff here so
+        // an admin can actually see *why* the server rejected the request.
+        setLoadError(err.message || friendlyErrorMessage(err, t, "errors.loadFailed"));
         setIsLoading(false);
       });
     return () => {
