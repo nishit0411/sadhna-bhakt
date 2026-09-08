@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Bell, Cake, Heart, MapPin, Pencil, Phone, Save, Shield, Sparkles, User as UserIcon, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { isSupabaseConfigured } from "../../lib/supabaseClient";
 import { changePassword, requestEmailChange } from "../../services/authService";
+import { getActiveMentors } from "../../services/mentorService";
 import { GURUDEV_OPTIONS, INITIATION_STAGES, YEAR_PATTERN, EMAIL_PATTERN, PHONE_PATTERN } from "../Register";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
@@ -14,8 +15,6 @@ import Modal from "../../components/ui/Modal";
 import FormInput from "../../components/FormInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
-import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
-import { MENTOR_OPTIONS, formatMentorNames } from "../../data/mentorList";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 
 const TONES = {
@@ -50,8 +49,7 @@ function buildFormFromUser(user) {
     sex: user.sex ?? "",
     city: user.city ?? "",
     centre: user.centre ?? "",
-    mentor: user.mentor ?? [],
-    mentorOther: user.mentorOther ?? "",
+    mentorId: user.mentorId ?? "",
     mobileNumber: user.phone ?? "",
     email: user.email ?? "",
   };
@@ -177,6 +175,13 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [prefs, setPrefs] = useState({ dailyReminder: true, weeklySummary: true, mentorUpdates: false });
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [mentors, setMentors] = useState([]);
+
+  useEffect(() => {
+    getActiveMentors()
+      .then(setMentors)
+      .catch(() => setMentors([]));
+  }, []);
 
   const localeMap = { en: "en-IN", hi: "hi-IN", ru: "ru-RU" };
 
@@ -199,7 +204,6 @@ export default function Profile() {
     }
     if (!form.sex) next.sex = t("register.errSex");
     if (form.gurudevName === "Other" && !form.gurudevOther.trim()) next.gurudevOther = t("register.errGurudevOther");
-    if (form.mentor.includes("Other") && !form.mentorOther.trim()) next.mentorOther = t("register.errMentorOther");
     if (!form.city.trim()) next.city = t("register.errCity");
     if (!form.centre.trim()) next.centre = t("register.errCentre");
     if (!form.mobileNumber.trim()) next.mobileNumber = t("register.errMobile");
@@ -236,8 +240,7 @@ export default function Profile() {
         sex: form.sex || null,
         city: form.city.trim(),
         centre: form.centre.trim(),
-        mentor: form.mentor,
-        mentorOther: form.mentor.includes("Other") ? form.mentorOther.trim() : "",
+        mentorId: form.mentorId || null,
         phone: form.mobileNumber.trim(),
       });
       addToast(emailChanged ? t("profile.emailChangePending") : t("profile.profileUpdated"), emailChanged ? "info" : "success");
@@ -382,25 +385,18 @@ export default function Profile() {
             </div>
           )}
           <div className="sm:col-span-2">
-            {isEditing ? (
-              <>
-                <label className="mb-2 block text-sm font-medium text-brown-700">{t("register.mentorName")}</label>
-                <CheckboxGroup
-                  name="mentor"
-                  options={MENTOR_OPTIONS}
-                  values={form.mentor}
-                  onChange={(v) => setField("mentor", v)}
-                  otherValue="Other"
-                  otherText={form.mentorOther}
-                  onOtherTextChange={(v) => setField("mentorOther", v)}
-                  otherLabel={t("register.mentorOtherLabel")}
-                  otherPlaceholder={t("register.mentorOtherPlaceholder")}
-                />
-                {errors.mentorOther && <p className="mt-2 text-xs text-clay-600">{errors.mentorOther}</p>}
-              </>
-            ) : (
-              <Input label={t("register.mentorName")} value={formatMentorNames(form.mentor, form.mentorOther)} disabled />
-            )}
+            <FormSelect
+              label={t("register.mentorName")}
+              name="mentorId"
+              placeholder={mentors.length ? t("register.mentorPlaceholder") : t("register.mentorNoneAvailable")}
+              options={mentors.map((m) => m.name)}
+              value={mentors.find((m) => m.id === form.mentorId)?.name ?? ""}
+              onChange={(e) => {
+                const selected = mentors.find((m) => m.name === e.target.value);
+                setField("mentorId", selected?.id ?? "");
+              }}
+              disabled={!isEditing || !mentors.length}
+            />
           </div>
           <div data-error={Boolean(errors.dikshaStage)}>
             <FormSelect

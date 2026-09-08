@@ -65,6 +65,8 @@ export function mapProfileRow(row) {
     gurudevName: row.gurudev_name ?? "",
     city: row.city ?? "",
     sex: row.sex ?? null,
+    mentorId: row.mentor_id ?? null,
+    active: row.active ?? true,
   };
 }
 
@@ -186,6 +188,7 @@ export async function register(form) {
           mentor_names: form.mentorNames ?? [],
           mentor_other: form.mentorOther || null,
           mobile_number: form.mobileNumber || null,
+          mentor_id: form.mentorId || null,
         },
       },
     });
@@ -417,6 +420,7 @@ export async function updateProfile(userId, updates) {
         mobile_number: updates.phone,
         mentor_names: updates.mentor,
         mentor_other: updates.mentorOther || null,
+        mentor_id: updates.mentorId || null,
       })
       .eq("id", userId);
     if (error) throw error;

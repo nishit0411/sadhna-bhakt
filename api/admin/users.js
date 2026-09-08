@@ -56,6 +56,8 @@ async function handleList(res) {
           mentorOther: p.mentor_other,
           avatarColor: p.avatar_color,
           createdAt: p.created_at,
+          mentorId: p.mentor_id,
+          active: p.active,
         },
       };
     });
