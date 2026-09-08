@@ -39,7 +39,13 @@ export async function requireAdmin(req) {
 
   const { data: userData, error: userError } = await supabaseAdmin.auth.getUser(token);
   if (userError || !userData?.user) {
-    return { error: { status: 401, message: "Invalid or expired session." } };
+    // Surfaces Supabase's own specific rejection reason (e.g. "invalid JWT
+    // signature", which points at SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY
+    // not actually matching the project that issued this token) instead of
+    // a single generic message — this endpoint is only ever called by an
+    // already-authenticated admin, so there's no user-facing UX reason to
+    // hide the real cause here.
+    return { error: { status: 401, message: `Invalid or expired session: ${userError?.message ?? "no user returned"}` } };
   }
 
   const { data: profile, error: profileError } = await supabaseAdmin
@@ -48,7 +54,12 @@ export async function requireAdmin(req) {
     .eq("id", userData.user.id)
     .single();
   if (profileError || profile?.role !== "admin") {
-    return { error: { status: 403, message: "Admin access required." } };
+    return {
+      error: {
+        status: 403,
+        message: profileError ? `Admin check failed: ${profileError.message}` : `Admin access required (role is "${profile?.role}").`,
+      },
+    };
   }
 
   return { adminUser: userData.user };
