@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Sparkles, Heart, MapPin, Landmark, Phone, Mail, ArrowRight, Cake } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -16,7 +16,8 @@ import FormSection from "../components/FormSection";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import GenderSelector from "../components/GenderSelector";
-import { getActiveMentors } from "../services/mentorService";
+import CheckboxGroup from "../components/sadhana/CheckboxGroup";
+import { MENTOR_OPTIONS } from "../data/mentorList";
 
 export const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
@@ -40,7 +41,8 @@ const INITIAL_FORM = {
   city: "",
   centre: "",
   gurudevOther: "",
-  mentorId: "",
+  mentorNames: [],
+  mentorOther: "",
   mobileNumber: "",
   email: "",
   password: "",
@@ -61,13 +63,6 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingEmail, setPendingEmail] = useState(null);
-  const [mentors, setMentors] = useState([]);
-
-  useEffect(() => {
-    getActiveMentors()
-      .then(setMentors)
-      .catch(() => setMentors([]));
-  }, []);
 
   function setField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -88,9 +83,7 @@ export default function Register() {
     }
     if (!form.sex) next.sex = t("register.errSex");
     if (form.gurudevName === "Other" && !form.gurudevOther.trim()) next.gurudevOther = t("register.errGurudevOther");
-    // Mentor assignment is optional — "registered without a mentor" is an
-    // expected, valid state (an admin can assign one later via User
-    // Management), not a validation error.
+    if (form.mentorNames.includes("Other") && !form.mentorOther.trim()) next.mentorOther = t("register.errMentorOther");
     if (!form.city.trim()) next.city = t("register.errCity");
     if (!form.centre.trim()) next.centre = t("register.errCentre");
     if (!form.mobileNumber.trim()) next.mobileNumber = t("register.errMobile");
@@ -119,6 +112,7 @@ export default function Register() {
       const submission = {
         ...form,
         gurudevName: form.gurudevName === "Other" ? form.gurudevOther.trim() : form.gurudevName,
+        mentorOther: form.mentorNames.includes("Other") ? form.mentorOther.trim() : "",
       };
       const result = await register(submission);
       if (result?.pendingEmailConfirmation) {
@@ -256,18 +250,19 @@ export default function Register() {
               </div>
             )}
             <div className="sm:col-span-2">
-              <FormSelect
-                label={t("register.mentorName")}
-                name="mentorId"
-                placeholder={mentors.length ? t("register.mentorPlaceholder") : t("register.mentorNoneAvailable")}
-                options={mentors.map((m) => m.name)}
-                value={mentors.find((m) => m.id === form.mentorId)?.name ?? ""}
-                onChange={(e) => {
-                  const selected = mentors.find((m) => m.name === e.target.value);
-                  setField("mentorId", selected?.id ?? "");
-                }}
-                disabled={!mentors.length}
+              <label className="mb-2 block text-sm font-medium text-brown-700">{t("register.mentorName")}</label>
+              <CheckboxGroup
+                name="mentorNames"
+                options={MENTOR_OPTIONS}
+                values={form.mentorNames}
+                onChange={(v) => setField("mentorNames", v)}
+                otherValue="Other"
+                otherText={form.mentorOther}
+                onOtherTextChange={(v) => setField("mentorOther", v)}
+                otherLabel={t("register.mentorOtherLabel")}
+                otherPlaceholder={t("register.mentorOtherPlaceholder")}
               />
+              {errors.mentorOther && <p className="mt-2 text-xs text-clay-600">{errors.mentorOther}</p>}
             </div>
             <div data-error={Boolean(errors.dikshaStage)}>
               <FormSelect

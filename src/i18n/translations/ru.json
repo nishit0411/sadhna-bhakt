@@ -40,9 +40,7 @@
     "adminDevotees": "Преданные",
     "adminAnalytics": "Аналитика",
     "adminReports": "Отчёты",
-    "adminUserManagement": "Управление пользователями",
-    "adminMentors": "Управление наставниками",
-    "mentorDashboard": "Панель управления"
+    "adminUserManagement": "Управление пользователями"
   },
   "landing": {
     "hareKrishnaGreeting": "Харе Кришна 🙏",
@@ -201,9 +199,7 @@
     "gurudevNamePlaceholder": "Выберите имя Шрилы Гурудева",
     "gurudevOtherLabel": "Пожалуйста, укажите имя Шрилы Гурудева",
     "gurudevOtherPlaceholder": "Введите имя",
-    "mentorName": "Назначенный наставник",
-    "mentorPlaceholder": "Выберите вашего наставника",
-    "mentorNoneAvailable": "Пока нет доступных наставников",
+    "mentorName": "Выберите ваших наставников",
     "mentorOtherLabel": "Пожалуйста, укажите имя вашего наставника",
     "mentorOtherPlaceholder": "Введите имя",
     "dikshaStage": "Ступень дикши",

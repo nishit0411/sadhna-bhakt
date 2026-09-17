@@ -40,9 +40,7 @@
     "adminDevotees": "Devotees",
     "adminAnalytics": "Analytics",
     "adminReports": "Reports",
-    "adminUserManagement": "User Management",
-    "adminMentors": "Mentor Management",
-    "mentorDashboard": "Dashboard"
+    "adminUserManagement": "User Management"
   },
   "landing": {
     "hareKrishnaGreeting": "Hare Krishna 🙏",
@@ -201,9 +199,7 @@
     "gurudevNamePlaceholder": "Select Srila Gurudev's name",
     "gurudevOtherLabel": "Please specify Srila Gurudev's name",
     "gurudevOtherPlaceholder": "Write the name",
-    "mentorName": "Assigned Mentor",
-    "mentorPlaceholder": "Select your mentor",
-    "mentorNoneAvailable": "No mentors available yet",
+    "mentorName": "Select your mentor(s)",
     "mentorOtherLabel": "Please specify your mentor's name",
     "mentorOtherPlaceholder": "Write the name",
     "dikshaStage": "Diksha Stage",

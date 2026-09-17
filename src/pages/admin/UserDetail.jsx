@@ -14,17 +14,18 @@ import {
 } from "lucide-react";
 import { listAllUsers, deleteUserAccount } from "../../services/adminUserService";
 import { updateProfile, requestPasswordReset } from "../../services/authService";
-import { getActiveMentors } from "../../services/mentorService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import { GURUDEV_OPTIONS, INITIATION_STAGES, PHONE_PATTERN } from "../Register";
+import { formatMentorNames, MENTOR_OPTIONS } from "../../data/mentorList";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import FormInput from "../../components/FormInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
+import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import LoadingState from "../../components/ui/LoadingState";
@@ -53,7 +54,8 @@ function buildFormFromProfile(p) {
     sex: p?.sex ?? "",
     city: p?.city ?? "",
     centre: p?.centre ?? "",
-    mentorId: p?.mentorId ?? "",
+    mentor: p?.mentorNames ?? [],
+    mentorOther: p?.mentorOther ?? "",
     mobileNumber: p?.mobileNumber ?? "",
   };
 }
@@ -80,13 +82,6 @@ export default function UserDetail() {
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [mentors, setMentors] = useState([]);
-
-  useEffect(() => {
-    getActiveMentors()
-      .then(setMentors)
-      .catch(() => setMentors([]));
-  }, []);
 
   function load() {
     setIsLoading(true);
@@ -125,6 +120,7 @@ export default function UserDetail() {
     if (!form.firstName.trim()) next.firstName = "Please enter a first name.";
     if (!form.lastName.trim()) next.lastName = "Please enter a last name.";
     if (form.gurudevName === "Other" && !form.gurudevOther.trim()) next.gurudevOther = "Please specify the Gurudev name.";
+    if (form.mentor.includes("Other") && !form.mentorOther.trim()) next.mentorOther = "Please specify the mentor name.";
     if (form.mobileNumber && !PHONE_PATTERN.test(form.mobileNumber.trim())) next.mobileNumber = "Please enter a valid mobile number.";
     return next;
   }
@@ -148,7 +144,8 @@ export default function UserDetail() {
         sex: form.sex || null,
         city: form.city.trim(),
         centre: form.centre.trim(),
-        mentorId: form.mentorId || null,
+        mentor: form.mentor,
+        mentorOther: form.mentor.includes("Other") ? form.mentorOther.trim() : "",
         phone: form.mobileNumber.trim(),
       });
       addToast("Profile updated successfully.");
@@ -350,18 +347,25 @@ export default function UserDetail() {
               />
             </div>
             <div className="sm:col-span-2">
-              <FormSelect
-                label="Assigned Mentor"
-                name="mentorId"
-                placeholder={mentors.length ? "Select a mentor" : "No active mentors yet"}
-                options={mentors.map((m) => m.name)}
-                value={mentors.find((m) => m.id === form.mentorId)?.name ?? ""}
-                onChange={(e) => {
-                  const selected = mentors.find((m) => m.name === e.target.value);
-                  setField("mentorId", selected?.id ?? "");
-                }}
-                disabled={!isEditing || !mentors.length}
-              />
+              {isEditing ? (
+                <>
+                  <label className="mb-2 block text-sm font-medium text-brown-700">Mentor(s)</label>
+                  <CheckboxGroup
+                    name="mentor"
+                    options={MENTOR_OPTIONS}
+                    values={form.mentor}
+                    onChange={(v) => setField("mentor", v)}
+                    otherValue="Other"
+                    otherText={form.mentorOther}
+                    onOtherTextChange={(v) => setField("mentorOther", v)}
+                    otherLabel="Please specify the mentor's name"
+                    otherPlaceholder="Write the name"
+                  />
+                  {errors.mentorOther && <p className="mt-2 text-xs text-clay-600">{errors.mentorOther}</p>}
+                </>
+              ) : (
+                <Input label="Mentor(s)" value={formatMentorNames(form.mentor, form.mentorOther)} disabled />
+              )}
             </div>
           </div>
         )}

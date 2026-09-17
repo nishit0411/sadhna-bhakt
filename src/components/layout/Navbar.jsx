@@ -12,7 +12,7 @@ export default function Navbar({ onMenuClick }) {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
-  const profileHref = user?.role === "admin" ? "/admin/dashboard" : user?.role === "mentor" ? "/mentor-dashboard" : "/devotee/profile";
+  const profileHref = user?.role === "admin" ? "/admin/dashboard" : "/devotee/profile";
 
   async function handleLogout() {
     await logout();

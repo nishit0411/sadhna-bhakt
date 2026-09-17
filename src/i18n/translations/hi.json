@@ -40,9 +40,7 @@
     "adminDevotees": "भक्तगण",
     "adminAnalytics": "विश्लेषण",
     "adminReports": "रिपोर्ट्स",
-    "adminUserManagement": "उपयोगकर्ता प्रबंधन",
-    "adminMentors": "मेंटर प्रबंधन",
-    "mentorDashboard": "डैशबोर्ड"
+    "adminUserManagement": "उपयोगकर्ता प्रबंधन"
   },
   "landing": {
     "hareKrishnaGreeting": "हरे कृष्ण 🙏",
@@ -201,9 +199,7 @@
     "gurudevNamePlaceholder": "श्रील गुरुदेव का नाम चुनें",
     "gurudevOtherLabel": "कृपया श्रील गुरुदेव का नाम बताएं",
     "gurudevOtherPlaceholder": "नाम लिखें",
-    "mentorName": "नियुक्त मेंटर",
-    "mentorPlaceholder": "अपना मेंटर चुनें",
-    "mentorNoneAvailable": "अभी तक कोई मेंटर उपलब्ध नहीं है",
+    "mentorName": "अपने मेंटर चुनें",
     "mentorOtherLabel": "कृपया अपने मेंटर का नाम बताएं",
     "mentorOtherPlaceholder": "नाम लिखें",
     "dikshaStage": "दीक्षा स्तर",
