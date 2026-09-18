@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "admin:find-duplicates": "node scripts/admin/find-duplicate-emails.mjs",
-    "admin:merge-duplicates": "node scripts/admin/merge-duplicate-emails.mjs"
+    "admin:merge-duplicates": "node scripts/admin/merge-duplicate-emails.mjs",
+    "admin:backup": "node scripts/admin/backup.mjs",
+    "admin:restore": "node scripts/admin/restore.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.113.0",
