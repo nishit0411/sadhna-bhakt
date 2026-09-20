@@ -43,6 +43,11 @@ export default function NumberField({ label, required, error, helperText, value,
         autoComplete="off"
         value={value}
         onChange={handleChange}
+        // Without this, tapping into a field that already holds a saved
+        // value and typing appends rather than replaces (e.g. "16" -> "168"
+        // on a stray keystroke), which then silently clamps to `max` above
+        // — the reported "mala shows 100 after updating" bug.
+        onFocus={(e) => e.target.select()}
         onKeyDown={(e) => {
           if (e.key === "-" || e.key === "." || e.key === "e" || e.key === "+") e.preventDefault();
         }}

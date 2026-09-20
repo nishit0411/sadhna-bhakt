@@ -434,3 +434,25 @@ drop trigger if exists on_auth_user_email_changed on auth.users;
 create trigger on_auth_user_email_changed
   after update of email on auth.users
   for each row execute function public.sync_profile_email();
+
+-- ----------------------------------------------------------------------------
+-- 14. Require the same fields at the database level that the Daily Sadhana
+-- form already requires client-side (DailySadhana.jsx's validate()) — closes
+-- the gap where a signed-in devotee could bypass that validation entirely by
+-- calling the Supabase client directly from DevTools. Mirrors the UI exactly:
+-- mala_on_asan/mala_without_asan stay optional (default 0), granth_other/
+-- harikatha_other stay optional (their "required if Other is selected" rule
+-- is a UI-only concern). Verified against production before adding this: 0 of
+-- the 4 existing rows violate it, so no backfill was needed.
+-- ----------------------------------------------------------------------------
+alter table public.sadhana_records drop constraint if exists sadhana_records_required_fields;
+alter table public.sadhana_records add constraint sadhana_records_required_fields check (
+  wake_up_time is not null
+  and gurudev_remembrance is not null
+  and mangala_arati_done is not null
+  and bhog_offered is not null
+  and gaudiya_kirtan is not null
+  and tulsi_seva is not null
+  and cardinality(granth_read) > 0
+  and cardinality(harikatha_sources) > 0
+);
