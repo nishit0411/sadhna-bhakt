@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { User, Sparkles, Heart, MapPin, Landmark, Phone, Mail, ArrowRight, Cake } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import { isSupabaseConfigured } from "../lib/supabaseClient";
 import { useTranslation } from "../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../utils/friendlyError";
 import Logo from "../components/layout/Logo";
@@ -45,7 +44,6 @@ const INITIAL_FORM = {
   mentorOther: "",
   mobileNumber: "",
   email: "",
-  password: "",
 };
 
 const CURRENT_YEAR = new Date().getFullYear();
@@ -77,6 +75,7 @@ export default function Register() {
     const next = {};
     if (!form.firstName.trim()) next.firstName = t("register.errFirstName");
     if (!form.lastName.trim()) next.lastName = t("register.errLastName");
+    if (!form.dob) next.dob = t("register.errDob");
     if (!form.dikshaStage) next.dikshaStage = t("register.errDikshaStage");
     if (form.initiationDateMode === "year" && form.initiationYear && !YEAR_PATTERN.test(form.initiationYear)) {
       next.initiationYear = t("register.errInitiationYear");
@@ -90,10 +89,6 @@ export default function Register() {
     else if (!PHONE_PATTERN.test(form.mobileNumber.trim())) next.mobileNumber = t("register.errMobileInvalid");
     if (!form.email.trim()) next.email = t("register.errEmail");
     else if (!EMAIL_PATTERN.test(form.email.trim())) next.email = t("register.errEmailInvalid");
-    if (isSupabaseConfigured) {
-      if (!form.password) next.password = t("register.errPassword");
-      else if (form.password.length < 6) next.password = t("register.errPasswordInvalid");
-    }
     return next;
   }
 
@@ -198,14 +193,19 @@ export default function Register() {
                 error={errors.lastName}
               />
             </div>
-            <FormInput
-              label={t("register.dob")}
-              type="date"
-              name="dob"
-              icon={Cake}
-              value={form.dob}
-              onChange={handleChange}
-            />
+            <div data-error={Boolean(errors.dob)}>
+              <FormInput
+                label={t("register.dob")}
+                required
+                type="date"
+                name="dob"
+                icon={Cake}
+                value={form.dob}
+                onChange={handleChange}
+                error={errors.dob}
+                helperText={t("register.dobHelper")}
+              />
+            </div>
             <FormInput
               label={t("register.spiritualName")}
               name="spiritualName"
@@ -378,22 +378,6 @@ export default function Register() {
                 error={errors.email}
               />
             </div>
-            {isSupabaseConfigured && (
-              <div className="sm:col-span-2" data-error={Boolean(errors.password)}>
-                <FormInput
-                  label={t("register.password")}
-                  required
-                  type="password"
-                  name="password"
-                  autoComplete="new-password"
-                  placeholder={t("register.passwordPlaceholder")}
-                  helperText={t("register.passwordManagerHelper")}
-                  value={form.password}
-                  onChange={handleChange}
-                  error={errors.password}
-                />
-              </div>
-            )}
           </FormSection>
 
           <div className="flex flex-col items-center gap-2 pb-4">

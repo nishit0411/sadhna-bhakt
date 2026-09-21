@@ -9,6 +9,7 @@
  */
 import { supabase, isSupabaseConfigured, PASSWORD_RECOVERY_FLAG_KEY } from "../lib/supabaseClient";
 import { MOCK_DEVOTEES, CURRENT_DEVOTEE_ID, CURRENT_ADMIN_ID } from "../data/mockDevotees";
+import { dobToPassword } from "../utils/dateHelpers";
 
 const SESSION_KEY = "sadhana_bhakti_session";
 const PROFILE_OVERRIDES_KEY = "sadhana_bhakti_profile_overrides";
@@ -167,9 +168,13 @@ export async function login({ email, password }) {
  */
 export async function register(form) {
   if (isSupabaseConfigured) {
+    // Self-registration has no password field — the account's initial
+    // password is always the devotee's own date of birth (DDMMYYYY),
+    // changeable afterward from Profile. dob is required client-side
+    // (Register.jsx's validate()) whenever Supabase is configured.
     const { data, error } = await supabase.auth.signUp({
       email: form.email,
-      password: form.password,
+      password: dobToPassword(form.dob),
       options: {
         data: {
           first_name: form.firstName,
@@ -213,11 +218,7 @@ export async function register(form) {
   }
 
   await delay(500);
-  // `password` never has a real value in mock mode (the field isn't shown
-  // when Supabase isn't configured) but is stripped before persisting
-  // regardless — nothing resembling a password belongs in localStorage.
-  const { password: _password, ...formWithoutPassword } = form;
-  const completedProfile = { ...formWithoutPassword, mobileNumber: `+91 ${form.mobileNumber.trim()}` };
+  const completedProfile = { ...form, mobileNumber: `+91 ${form.mobileNumber.trim()}` };
   localStorage.setItem("devoteeProfile", JSON.stringify(completedProfile));
   return completedProfile;
 }

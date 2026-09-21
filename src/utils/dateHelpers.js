@@ -76,3 +76,9 @@ export function isToday(dateStr) {
 export function isFuture(dateStr) {
   return new Date(`${dateStr}T00:00:00`) > new Date(toISODate(new Date()) + "T00:00:00");
 }
+
+/** "YYYY-MM-DD" (date input value) -> "DDMMYYYY", used as the default account password. */
+export function dobToPassword(dobISO) {
+  const [year, month, day] = dobISO.split("-");
+  return `${day}${month}${year}`;
+}
