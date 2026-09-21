@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { CalendarDays, Sparkles, Wand2 } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import * as sadhanaService from "../../services/sadhanaService";
 import * as autofillService from "../../services/autofillService";
-import { formatLongDate, toISODate } from "../../utils/dateHelpers";
+import { formatLongDate, toISODate, addDays } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import SadhanaFormFields from "../../components/sadhana/SadhanaFormFields";
@@ -37,37 +37,67 @@ export default function DailySadhana() {
   const navigate = useNavigate();
   const { t, locale } = useTranslation();
   const today = toISODate(new Date());
+  // Devotees can only submit/edit these 3 days — mirrors the DB-enforced
+  // window in schema.sql §15 (Asia/Kolkata-anchored), so the UI never even
+  // offers a date the database would reject.
+  const dayOptions = [
+    { key: "today", date: today, label: t("sadhana.dayToday") },
+    { key: "yesterday", date: addDays(today, -1), label: t("sadhana.dayYesterday") },
+    { key: "dayBefore", date: addDays(today, -2), label: t("sadhana.dayBeforeYesterday") },
+  ];
 
+  const [selectedDate, setSelectedDate] = useState(today);
   const [isLoading, setIsLoading] = useState(true);
+  const [isEntryLoading, setIsEntryLoading] = useState(false);
   const [isEditingExisting, setIsEditingExisting] = useState(false);
   const [form, setForm] = useState(() => buildFormFromEntry(null));
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [hasAutofillTemplate, setHasAutofillTemplate] = useState(false);
+  const hasLoadedOnceRef = useRef(false);
 
   useEffect(() => {
     let active = true;
-    Promise.all([sadhanaService.getTodayEntry(user.id), autofillService.getAutofillTemplate(user.id)])
-      .then(([entry, template]) => {
-        if (!active) return;
-        if (entry) {
-          setForm(buildFormFromEntry(entry));
-          setIsEditingExisting(true);
-        }
-        setHasAutofillTemplate(Boolean(template));
-        setIsLoading(false);
+    autofillService
+      .getAutofillTemplate(user.id)
+      .then((template) => {
+        if (active) setHasAutofillTemplate(Boolean(template));
       })
-      .catch((err) => {
-        if (!active) return;
-        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
-        setIsLoading(false);
-      });
+      .catch(() => {});
     return () => {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (hasLoadedOnceRef.current) setIsEntryLoading(true);
+    sadhanaService
+      .getEntryByDate(user.id, selectedDate)
+      .then((entry) => {
+        if (!active) return;
+        setForm(buildFormFromEntry(entry));
+        setIsEditingExisting(Boolean(entry));
+        setSubmitted(false);
+        setErrors({});
+      })
+      .catch((err) => {
+        if (!active) return;
+        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+      })
+      .finally(() => {
+        if (!active) return;
+        setIsLoading(false);
+        setIsEntryLoading(false);
+        hasLoadedOnceRef.current = true;
+      });
+    return () => {
+      active = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user.id, selectedDate]);
 
   function setField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -132,7 +162,7 @@ export default function DailySadhana() {
 
     setIsSubmitting(true);
     try {
-      await sadhanaService.submitSadhana(user.id, today, {
+      await sadhanaService.submitSadhana(user.id, selectedDate, {
         name: user.name,
         wakeUpTime: form.wakeUpTime,
         gurudevRemembrance: form.gurudevRemembrance,
@@ -185,9 +215,24 @@ export default function DailySadhana() {
         <p className="mt-1 text-xs italic text-saffron-600">{t("sadhana.blessings")}</p>
         <span className="mt-4 inline-flex items-center gap-2 rounded-full bg-beige-100 px-4 py-1.5 text-sm font-medium text-brown-700">
           <CalendarDays className="h-4 w-4 text-maroon-500" />
-          {formatLongDate(today, locale)}
+          {formatLongDate(selectedDate, locale)}
           {isEditingExisting && <span className="text-xs font-normal text-saffron-600">· {t("sadhana.editingToday")}</span>}
         </span>
+        <div className="mt-3 inline-flex items-center gap-1 rounded-full bg-cream-100 p-1 text-xs font-medium">
+          {dayOptions.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              disabled={isEntryLoading}
+              onClick={() => setSelectedDate(opt.date)}
+              className={`rounded-full px-3 py-1.5 transition-colors disabled:opacity-60 ${
+                selectedDate === opt.date ? "bg-maroon-500 text-cream-50" : "text-brown-600"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <Card className="mb-5 flex flex-col gap-3 border-2 border-dashed border-saffron-300 bg-saffron-50 sm:flex-row sm:items-center sm:justify-between">

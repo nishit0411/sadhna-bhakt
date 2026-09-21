@@ -456,3 +456,36 @@ alter table public.sadhana_records add constraint sadhana_records_required_field
   and cardinality(granth_read) > 0
   and cardinality(harikatha_sources) > 0
 );
+
+-- ----------------------------------------------------------------------------
+-- 15. Restrict Sadhana submit/edit to today + the previous 2 days (IST),
+-- enforced here rather than only in the UI — previously
+-- sadhana_insert_own/sadhana_update_own had no date restriction at all, so a
+-- devotee could write any date via DevTools even though the UI only ever
+-- offered "today". Anchored to Asia/Kolkata, not bare `current_date`
+-- (Postgres sessions run UTC) — devotees are in India, and during
+-- 00:00-05:29 IST every day, UTC's current_date is still the previous day,
+-- which would otherwise reject a legitimate "today" submission and shift the
+-- whole window by a day for that ~5.5 hour stretch. The app's upsert on
+-- (devotee_id, date) still hits whichever of these two policies applies
+-- (insert on first save, update on re-save of the same date), so same-day
+-- edit-in-place is unaffected — it's just no longer hardcoded to only today.
+-- ----------------------------------------------------------------------------
+drop policy if exists "sadhana_insert_own" on public.sadhana_records;
+create policy "sadhana_insert_own"
+  on public.sadhana_records for insert
+  with check (
+    devotee_id = auth.uid()
+    and date >= (now() at time zone 'Asia/Kolkata')::date - 2
+    and date <= (now() at time zone 'Asia/Kolkata')::date
+  );
+
+drop policy if exists "sadhana_update_own" on public.sadhana_records;
+create policy "sadhana_update_own"
+  on public.sadhana_records for update
+  using (devotee_id = auth.uid())
+  with check (
+    devotee_id = auth.uid()
+    and date >= (now() at time zone 'Asia/Kolkata')::date - 2
+    and date <= (now() at time zone 'Asia/Kolkata')::date
+  );
