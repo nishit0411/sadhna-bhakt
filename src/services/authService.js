@@ -56,6 +56,7 @@ export function mapProfileRow(row) {
     mentorOther: row.mentor_other ?? "",
     mentorId: row.mentor_id ?? null,
     active: row.active ?? true,
+    displayOrder: row.display_order ?? null,
     role: row.role,
     avatarColor: row.avatar_color ?? "maroon",
     initials,

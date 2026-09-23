@@ -21,9 +21,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed." });
   }
 
-  const { email, firstName, lastName, dob } = req.body ?? {};
+  const { email, firstName, lastName, dob, displayOrder } = req.body ?? {};
   if (!email || !firstName || !lastName || !dob) {
     return res.status(400).json({ error: "email, firstName, lastName and dob are all required." });
+  }
+  const parsedOrder = displayOrder === "" || displayOrder === undefined || displayOrder === null ? null : Number(displayOrder);
+  if (parsedOrder !== null && !Number.isInteger(parsedOrder)) {
+    return res.status(400).json({ error: "displayOrder must be a whole number." });
   }
 
   const password = dobToPassword(dob);
@@ -39,7 +43,7 @@ export default async function handler(req, res) {
 
     const { data: updated, error: profileError } = await supabaseAdmin
       .from("profiles")
-      .update({ role: "mentor", active: true })
+      .update({ role: "mentor", active: true, display_order: parsedOrder })
       .eq("id", data.user.id)
       .select("role")
       .single();

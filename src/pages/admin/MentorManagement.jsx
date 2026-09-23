@@ -17,7 +17,7 @@ import FormInput from "../../components/FormInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
 
-const EMPTY_FORM = { firstName: "", lastName: "", email: "", dob: "" };
+const EMPTY_FORM = { firstName: "", lastName: "", email: "", dob: "", displayOrder: "" };
 
 // Mirrors authService.mapProfileRow's shape -> profiles' snake_case columns,
 // same mapping authService.updateProfile uses for a devotee's own edits.
@@ -34,6 +34,7 @@ const EDIT_EMPTY_FORM = {
   city: "",
   centre: "",
   mobileNumber: "",
+  displayOrder: "",
 };
 
 function buildEditForm(mentor) {
@@ -50,6 +51,7 @@ function buildEditForm(mentor) {
     city: mentor.city ?? "",
     centre: mentor.centre ?? "",
     mobileNumber: mentor.phone ?? "",
+    displayOrder: mentor.displayOrder ?? "",
   };
 }
 
@@ -105,6 +107,9 @@ export default function MentorManagement() {
     if (!addForm.lastName.trim()) next.lastName = t("mentor.errLastName");
     if (!addForm.email.trim()) next.email = t("mentor.errEmail");
     if (!addForm.dob) next.dob = t("mentor.errDob");
+    if (addForm.displayOrder !== "" && !Number.isInteger(Number(addForm.displayOrder))) {
+      next.displayOrder = t("mentor.errDisplayOrder");
+    }
     setAddErrors(next);
     if (Object.keys(next).length) return;
 
@@ -132,6 +137,9 @@ export default function MentorManagement() {
     const next = {};
     if (!editForm.firstName.trim()) next.firstName = t("mentor.errFirstName");
     if (!editForm.lastName.trim()) next.lastName = t("mentor.errLastName");
+    if (editForm.displayOrder !== "" && !Number.isInteger(Number(editForm.displayOrder))) {
+      next.displayOrder = t("mentor.errDisplayOrder");
+    }
     setEditErrors(next);
     if (Object.keys(next).length) return;
 
@@ -153,6 +161,7 @@ export default function MentorManagement() {
         city: editForm.city.trim() || null,
         centre: editForm.centre.trim() || null,
         mobile_number: editForm.mobileNumber.trim() || null,
+        display_order: editForm.displayOrder === "" ? null : Number(editForm.displayOrder),
       });
       setEditingMentor(null);
       loadMentors();
@@ -215,6 +224,7 @@ export default function MentorManagement() {
             <table className="w-full min-w-[640px] border-collapse text-sm">
               <thead>
                 <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
+                  <th className="px-4 py-3">{t("mentor.displayOrder")}</th>
                   <th className="px-4 py-3">{t("common.name")}</th>
                   <th className="px-4 py-3">{t("common.email")}</th>
                   <th className="px-4 py-3">{t("mentor.table.mentees")}</th>
@@ -225,6 +235,7 @@ export default function MentorManagement() {
               <tbody>
                 {mentors.map((m) => (
                   <tr key={m.id} className="border-b border-brown-900/5 bg-cream-50 last:border-0">
+                    <td className="px-4 py-3 text-brown-500">{m.displayOrder ?? "—"}</td>
                     <td className="px-4 py-3 font-medium text-brown-900">{m.name}</td>
                     <td className="px-4 py-3 text-brown-700">{m.email}</td>
                     <td className="px-4 py-3 text-brown-700">{m.menteeCount}</td>
@@ -290,6 +301,15 @@ export default function MentorManagement() {
             value={addForm.dob}
             onChange={(e) => setAddForm((f) => ({ ...f, dob: e.target.value }))}
             error={addErrors.dob}
+          />
+          <Input
+            label={t("mentor.displayOrder")}
+            type="text"
+            inputMode="numeric"
+            helperText={t("mentor.displayOrderHelper")}
+            value={addForm.displayOrder}
+            onChange={(e) => setAddForm((f) => ({ ...f, displayOrder: e.target.value }))}
+            error={addErrors.displayOrder}
           />
           <Button type="submit" isLoading={isCreating} className="mt-1">
             {t("mentor.createButton")}
@@ -401,6 +421,17 @@ export default function MentorManagement() {
               value={editForm.mobileNumber}
               onChange={(e) => setEditForm((f) => ({ ...f, mobileNumber: e.target.value }))}
             />
+            <div data-error={Boolean(editErrors.displayOrder)}>
+              <FormInput
+                label={t("mentor.displayOrder")}
+                type="text"
+                inputMode="numeric"
+                helperText={t("mentor.displayOrderHelper")}
+                value={editForm.displayOrder}
+                onChange={(e) => setEditForm((f) => ({ ...f, displayOrder: e.target.value }))}
+                error={editErrors.displayOrder}
+              />
+            </div>
           </div>
           <Button type="submit" isLoading={isSaving} className="mt-1">
             {t("common.save")}

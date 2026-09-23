@@ -26,15 +26,21 @@ export async function getAllMentors() {
   const menteeCounts = new Map();
   (mentees ?? []).forEach((m) => menteeCounts.set(m.mentor_id, (menteeCounts.get(m.mentor_id) ?? 0) + 1));
 
-  return (mentors ?? []).map((row) => ({ ...mapProfileRow(row), active: row.active, menteeCount: menteeCounts.get(row.id) ?? 0 }));
+  const withCounts = (mentors ?? []).map((row) => ({ ...mapProfileRow(row), active: row.active, menteeCount: menteeCounts.get(row.id) ?? 0 }));
+  // Same ordering as get_active_mentors(): explicit order first, unset last, alphabetical among ties.
+  return withCounts.sort((a, b) => {
+    const orderA = a.displayOrder ?? Infinity;
+    const orderB = b.displayOrder ?? Infinity;
+    return orderA !== orderB ? orderA - orderB : a.name.localeCompare(b.name);
+  });
 }
 
 /** Creates a mentor account server-side. Returns the one-time initial password (DOB-derived) to show the admin. */
-export async function createMentor({ firstName, lastName, email, dob }) {
+export async function createMentor({ firstName, lastName, email, dob, displayOrder }) {
   return authorizedRequest("/api/admin/mentors", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ firstName, lastName, email, dob }),
+    body: JSON.stringify({ firstName, lastName, email, dob, displayOrder }),
   });
 }
 

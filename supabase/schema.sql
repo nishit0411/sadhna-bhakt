@@ -704,3 +704,27 @@ begin
   return new;
 end;
 $$;
+
+-- ----------------------------------------------------------------------------
+-- 18. Explicit, admin-controlled display order for mentors — the
+-- registration dropdown (get_active_mentors()) previously sorted
+-- alphabetically, which doesn't match the order mentors were historically
+-- presented in (the old hardcoded MENTOR_OPTIONS list in
+-- src/data/mentorList.js). Nullable — a mentor with no order set sorts
+-- after every mentor that has one, then alphabetically among ties, so
+-- this is safe to add without requiring every existing mentor to be
+-- updated first.
+-- ----------------------------------------------------------------------------
+alter table public.profiles add column if not exists display_order integer;
+
+create or replace function public.get_active_mentors()
+returns table (id uuid, name text)
+language sql
+security definer set search_path = public
+stable
+as $$
+  select id, trim(concat_ws(' ', first_name, last_name)) as name
+  from public.profiles
+  where role = 'mentor' and active = true
+  order by coalesce(display_order, 2147483647), name;
+$$;
