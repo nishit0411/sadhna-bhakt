@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, NotebookPen } from "lucide-react";
+import { LayoutDashboard, NotebookPen, UserRound } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
@@ -14,6 +14,7 @@ export default function MentorLayout() {
   const NAV_ITEMS = [
     { label: t("nav.mentorDashboard"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },
     { label: t("nav.dailySadhana"), to: "/mentor/sadhana", icon: NotebookPen },
+    { label: t("nav.myProfile"), to: "/mentor/profile", icon: UserRound },
   ];
 
   return (

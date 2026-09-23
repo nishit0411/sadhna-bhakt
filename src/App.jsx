@@ -66,6 +66,7 @@ export default function App() {
         <Route element={<MentorLayout />}>
           <Route path="/mentor/dashboard" element={<MentorDashboard />} />
           <Route path="/mentor/sadhana" element={<DailySadhana />} />
+          <Route path="/mentor/profile" element={<Profile />} />
           <Route path="/mentor/devotees/:id" element={<DevoteeDetail backPath="/mentor/dashboard" />} />
         </Route>
       </Route>
