@@ -112,7 +112,7 @@ export default function MentorManagement() {
     try {
       const result = await mentorService.createMentor(addForm);
       setIsAddOpen(false);
-      setCreatedCredentials({ email: result.email, password: result.password });
+      setCreatedCredentials({ email: result.email, password: result.password, autoLinkedCount: result.autoLinkedCount ?? 0 });
       loadMentors();
     } catch (err) {
       addToast(friendlyErrorMessage(err, t), "error");
@@ -311,6 +311,11 @@ export default function MentorManagement() {
               </p>
             </div>
             <p className="text-xs text-brown-500">{t("mentor.createdWarning")}</p>
+            {createdCredentials.autoLinkedCount > 0 && (
+              <p className="rounded-xl bg-sage-50 px-3 py-2 text-xs font-medium text-sage-700">
+                {t("mentor.autoLinkedNote", { count: createdCredentials.autoLinkedCount })}
+              </p>
+            )}
             <Button onClick={() => setCreatedCredentials(null)}>{t("common.done")}</Button>
           </div>
         )}

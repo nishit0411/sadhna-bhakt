@@ -56,7 +56,40 @@ export default async function handler(req, res) {
       );
     }
 
-    return res.status(200).json({ id: data.user.id, email, password });
+    // Auto-link legacy devotees whose old mentor_names free-select exactly
+    // matches this mentor's name — same matching rule as
+    // scripts/admin/mentor-backfill-report.mjs (exactly one value, not
+    // "Other"), now applied automatically at creation time. Scoped to
+    // mentor_id.is.null only, so an already-assigned devotee (however that
+    // happened) is never touched or reassigned. A failure here doesn't fail
+    // the mentor creation itself, which already fully succeeded above.
+    let autoLinkedCount = 0;
+    try {
+      const fullName = `${firstName} ${lastName}`.trim().toLowerCase();
+      const { data: candidates, error: candidatesError } = await supabaseAdmin
+        .from("profiles")
+        .select("id, mentor_names")
+        .eq("role", "devotee")
+        .is("mentor_id", null);
+      if (candidatesError) throw candidatesError;
+
+      const matchedIds = (candidates ?? [])
+        .filter((p) => {
+          const names = p.mentor_names ?? [];
+          return names.length === 1 && !names.includes("Other") && names[0].trim().toLowerCase() === fullName;
+        })
+        .map((p) => p.id);
+
+      if (matchedIds.length) {
+        const { error: linkError } = await supabaseAdmin.from("profiles").update({ mentor_id: data.user.id }).in("id", matchedIds);
+        if (linkError) throw linkError;
+        autoLinkedCount = matchedIds.length;
+      }
+    } catch (linkErr) {
+      console.error("Mentor created but auto-link step failed:", linkErr);
+    }
+
+    return res.status(200).json({ id: data.user.id, email, password, autoLinkedCount });
   } catch (err) {
     return res.status(500).json({ error: err.message ?? "Failed to create mentor." });
   }
