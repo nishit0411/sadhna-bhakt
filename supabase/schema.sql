@@ -646,3 +646,61 @@ exception
     return new;
 end;
 $$;
+
+-- ----------------------------------------------------------------------------
+-- 17. Let the service-role mentor-creation endpoint (api/admin/mentors.js)
+-- actually set role='mentor'.
+--
+-- Root cause: section 9's prevent_role_self_escalation() reverts any role
+-- change where `not is_admin()`. is_admin() depends on auth.uid(), which
+-- reads the request's JWT `sub` claim — but a service-role request (the
+-- service-role key bypasses RLS *policies*, not table *triggers*, so this
+-- trigger still runs) has no real end-user session behind it, so auth.uid()
+-- is null and is_admin() is false. The trigger was therefore silently
+-- reverting api/admin/mentors.js's `role: 'mentor'` update back to
+-- 'devotee' — the account got created, active=true went through (that
+-- column isn't guarded), but role never actually changed. No error was
+-- raised anywhere, which is what made this easy to miss.
+--
+-- Rejected fix: `auth.uid() is null` as the bypass condition. That's too
+-- broad — checked every other path that could make it true and rejected
+-- it once ruled out, rather than assuming it's safe:
+--   * An anonymous (anon-key, unauthenticated) request also has
+--     auth.uid() = null, but never reaches this trigger in the first
+--     place — profiles_update_own_or_admin's `using (id = auth.uid() or
+--     is_admin())` already evaluates false for anon (id = null matches
+--     nothing), so RLS filters the row out of the UPDATE before the
+--     trigger ever fires. Confirmed this is genuinely the case, not
+--     assumed.
+--   * A raw postgres/SQL Editor session also has auth.uid() = null (no
+--     JWT context at all) and does have BYPASSRLS — `auth.uid() is null`
+--     would have also (silently) trusted that path, which is a real,
+--     distinct credential from the service-role API key and not what
+--     this fix is meant to authorize.
+--
+-- Fix actually used: auth.role() = 'service_role' — a built-in Supabase
+-- helper reading the JWT's own `role` claim, which is exactly
+-- 'service_role' for (and only for) requests authenticated with the
+-- service-role key, and is-null (not 'service_role') for anon,
+-- authenticated, and raw postgres/SQL-editor sessions alike. This is the
+-- same narrowly-scoped, request-identity check Supabase's own docs use
+-- for service-role-only policies — not an inference from an absent value.
+-- is_admin() is untouched or restricted: this only WIDENS who may pass
+-- (adds `or auth.role() = 'service_role'`), so every existing case that
+-- was already allowed (a real admin session) or already blocked (a
+-- devotee or mentor's own session) behaves exactly as before.
+-- ----------------------------------------------------------------------------
+create or replace function public.prevent_role_self_escalation()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.role is distinct from old.role
+     and not public.is_admin()
+     and auth.role() is distinct from 'service_role' then
+    new.role := old.role;
+  end if;
+  return new;
+end;
+$$;

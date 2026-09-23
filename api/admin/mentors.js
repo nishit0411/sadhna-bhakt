@@ -37,11 +37,24 @@ export default async function handler(req, res) {
     });
     if (createError) throw createError;
 
-    const { error: profileError } = await supabaseAdmin
+    const { data: updated, error: profileError } = await supabaseAdmin
       .from("profiles")
       .update({ role: "mentor", active: true })
-      .eq("id", data.user.id);
+      .eq("id", data.user.id)
+      .select("role")
+      .single();
     if (profileError) throw profileError;
+
+    // Defense against the exact failure mode schema.sql §17 fixes:
+    // prevent_role_self_escalation() silently reverting this update
+    // instead of erroring. Confirming the write actually landed turns any
+    // regression of that trigger back into a loud, diagnosable failure
+    // instead of a half-created account nobody notices.
+    if (updated.role !== "mentor") {
+      throw new Error(
+        `Mentor account created but role is "${updated.role}", not "mentor" — the profiles_prevent_role_escalation trigger may be reverting this update again. Check schema.sql §17 is applied.`,
+      );
+    }
 
     return res.status(200).json({ id: data.user.id, email, password });
   } catch (err) {
