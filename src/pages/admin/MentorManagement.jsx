@@ -5,6 +5,7 @@ import { deleteUserAccount } from "../../services/adminUserService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
+import { INITIATION_STAGES } from "../Register";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -12,8 +13,45 @@ import Input from "../../components/ui/Input";
 import Modal from "../../components/ui/Modal";
 import LoadingState from "../../components/ui/LoadingState";
 import EmptyState from "../../components/ui/EmptyState";
+import FormInput from "../../components/FormInput";
+import FormSelect from "../../components/FormSelect";
+import GenderSelector from "../../components/GenderSelector";
 
 const EMPTY_FORM = { firstName: "", lastName: "", email: "", dob: "" };
+
+// Mirrors authService.mapProfileRow's shape -> profiles' snake_case columns,
+// same mapping authService.updateProfile uses for a devotee's own edits.
+const EDIT_EMPTY_FORM = {
+  firstName: "",
+  lastName: "",
+  dob: "",
+  spiritualName: "",
+  gurudevName: "",
+  dikshaStage: "",
+  initiationDate: "",
+  initiationYear: "",
+  sex: "",
+  city: "",
+  centre: "",
+  mobileNumber: "",
+};
+
+function buildEditForm(mentor) {
+  return {
+    firstName: mentor.firstName ?? "",
+    lastName: mentor.lastName ?? "",
+    dob: mentor.dob ?? "",
+    spiritualName: mentor.spiritualName ?? "",
+    gurudevName: mentor.gurudevName ?? "",
+    dikshaStage: mentor.dikshaStage ?? "",
+    initiationDate: mentor.initiationDate ?? "",
+    initiationYear: mentor.initiationYear ?? "",
+    sex: mentor.sex ?? "",
+    city: mentor.city ?? "",
+    centre: mentor.centre ?? "",
+    mobileNumber: mentor.phone ?? "",
+  };
+}
 
 export default function MentorManagement() {
   const { t } = useTranslation();
@@ -30,7 +68,8 @@ export default function MentorManagement() {
   const [createdCredentials, setCreatedCredentials] = useState(null);
 
   const [editingMentor, setEditingMentor] = useState(null);
-  const [editForm, setEditForm] = useState(EMPTY_FORM);
+  const [editForm, setEditForm] = useState(EDIT_EMPTY_FORM);
+  const [editErrors, setEditErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
 
   const [deletingMentor, setDeletingMentor] = useState(null);
@@ -84,14 +123,37 @@ export default function MentorManagement() {
 
   function openEdit(mentor) {
     setEditingMentor(mentor);
-    setEditForm({ firstName: mentor.firstName, lastName: mentor.lastName, email: mentor.email, dob: mentor.dob ?? "" });
+    setEditForm(buildEditForm(mentor));
+    setEditErrors({});
   }
 
   async function handleSaveEdit(e) {
     e.preventDefault();
+    const next = {};
+    if (!editForm.firstName.trim()) next.firstName = t("mentor.errFirstName");
+    if (!editForm.lastName.trim()) next.lastName = t("mentor.errLastName");
+    setEditErrors(next);
+    if (Object.keys(next).length) return;
+
     setIsSaving(true);
     try {
-      await mentorService.updateMentor(editingMentor.id, { first_name: editForm.firstName, last_name: editForm.lastName });
+      // Every field here comes from editForm, which openEdit() seeded from
+      // the mentor's existing row — an untouched field is resaved as its
+      // own current value, not blanked, since nothing here defaults to "".
+      await mentorService.updateMentor(editingMentor.id, {
+        first_name: editForm.firstName.trim(),
+        last_name: editForm.lastName.trim(),
+        date_of_birth: editForm.dob || null,
+        spiritual_name: editForm.spiritualName.trim() || null,
+        gurudev_name: editForm.gurudevName.trim() || null,
+        diksha_stage: editForm.dikshaStage || null,
+        initiation_date: editForm.initiationDate || null,
+        initiation_year: editForm.initiationYear.trim() || null,
+        sex: editForm.sex || null,
+        city: editForm.city.trim() || null,
+        centre: editForm.centre.trim() || null,
+        mobile_number: editForm.mobileNumber.trim() || null,
+      });
       setEditingMentor(null);
       loadMentors();
       addToast(t("mentor.updated"));
@@ -254,21 +316,88 @@ export default function MentorManagement() {
         )}
       </Modal>
 
-      <Modal isOpen={Boolean(editingMentor)} onClose={() => setEditingMentor(null)} title={t("mentor.editMentor")} size="sm">
+      <Modal isOpen={Boolean(editingMentor)} onClose={() => setEditingMentor(null)} title={t("mentor.editMentor")} size="lg">
         <form onSubmit={handleSaveEdit} className="flex flex-col gap-4">
-          <Input
-            label={t("mentor.firstName")}
-            required
-            value={editForm.firstName}
-            onChange={(e) => setEditForm((f) => ({ ...f, firstName: e.target.value }))}
-          />
-          <Input
-            label={t("mentor.lastName")}
-            required
-            value={editForm.lastName}
-            onChange={(e) => setEditForm((f) => ({ ...f, lastName: e.target.value }))}
-          />
-          <Button type="submit" isLoading={isSaving}>
+          <p className="text-xs text-brown-500">{t("mentor.editEmailNote")}</p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div data-error={Boolean(editErrors.firstName)}>
+              <FormInput
+                label={t("mentor.firstName")}
+                required
+                value={editForm.firstName}
+                onChange={(e) => setEditForm((f) => ({ ...f, firstName: e.target.value }))}
+                error={editErrors.firstName}
+              />
+            </div>
+            <div data-error={Boolean(editErrors.lastName)}>
+              <FormInput
+                label={t("mentor.lastName")}
+                required
+                value={editForm.lastName}
+                onChange={(e) => setEditForm((f) => ({ ...f, lastName: e.target.value }))}
+                error={editErrors.lastName}
+              />
+            </div>
+            <FormInput
+              label={t("register.dob")}
+              type="date"
+              value={editForm.dob}
+              onChange={(e) => setEditForm((f) => ({ ...f, dob: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.spiritualName")}
+              value={editForm.spiritualName}
+              onChange={(e) => setEditForm((f) => ({ ...f, spiritualName: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.gurudevName")}
+              value={editForm.gurudevName}
+              onChange={(e) => setEditForm((f) => ({ ...f, gurudevName: e.target.value }))}
+            />
+            <FormSelect
+              label={t("register.dikshaStage")}
+              placeholder={t("register.dikshaStagePlaceholder")}
+              options={INITIATION_STAGES}
+              value={editForm.dikshaStage}
+              onChange={(e) => setEditForm((f) => ({ ...f, dikshaStage: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.initiationDate")}
+              type="date"
+              value={editForm.initiationDate}
+              onChange={(e) => setEditForm((f) => ({ ...f, initiationDate: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.yearOnly")}
+              type="text"
+              inputMode="numeric"
+              value={editForm.initiationYear}
+              onChange={(e) => setEditForm((f) => ({ ...f, initiationYear: e.target.value }))}
+            />
+            <GenderSelector
+              label={t("register.sex")}
+              value={editForm.sex}
+              onChange={(v) => setEditForm((f) => ({ ...f, sex: v }))}
+              maleLabel={t("register.male")}
+              femaleLabel={t("register.female")}
+            />
+            <FormInput
+              label={t("register.city")}
+              value={editForm.city}
+              onChange={(e) => setEditForm((f) => ({ ...f, city: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.centre")}
+              value={editForm.centre}
+              onChange={(e) => setEditForm((f) => ({ ...f, centre: e.target.value }))}
+            />
+            <FormInput
+              label={t("register.mobileNumber")}
+              value={editForm.mobileNumber}
+              onChange={(e) => setEditForm((f) => ({ ...f, mobileNumber: e.target.value }))}
+            />
+          </div>
+          <Button type="submit" isLoading={isSaving} className="mt-1">
             {t("common.save")}
           </Button>
         </form>

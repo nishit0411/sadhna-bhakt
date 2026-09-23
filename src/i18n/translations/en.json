@@ -65,6 +65,7 @@
     "initialPassword": "Initial Password",
     "createdWarning": "This password is not stored anywhere and cannot be retrieved later. The mentor can change it after signing in.",
     "editMentor": "Edit Mentor",
+    "editEmailNote": "Email can't be changed here — the mentor can update it themselves from their own profile once signed in.",
     "updated": "Mentor updated.",
     "deleted": "Mentor deleted.",
     "table": { "mentees": "Mentees" },
