@@ -11,3 +11,5 @@ scripts/admin/reports/
 backups/
 supabase/.temp/
 backup.sql
+# Database backups
+backups/
