@@ -11,7 +11,8 @@
     "admin:find-duplicates": "node scripts/admin/find-duplicate-emails.mjs",
     "admin:merge-duplicates": "node scripts/admin/merge-duplicate-emails.mjs",
     "admin:backup": "node scripts/admin/backup.mjs",
-    "admin:restore": "node scripts/admin/restore.mjs"
+    "admin:restore": "node scripts/admin/restore.mjs",
+    "admin:mentor-backfill-report": "node scripts/admin/mentor-backfill-report.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.113.0",

@@ -54,6 +54,8 @@ export function mapProfileRow(row) {
     centre: row.centre ?? "",
     mentor: row.mentor_names ?? [],
     mentorOther: row.mentor_other ?? "",
+    mentorId: row.mentor_id ?? null,
+    active: row.active ?? true,
     role: row.role,
     avatarColor: row.avatar_color ?? "maroon",
     initials,
@@ -104,6 +106,7 @@ async function recoverMissingProfile(userId) {
       mentor_names: meta.mentor_names ?? [],
       mentor_other: meta.mentor_other || null,
       mobile_number: meta.mobile_number || null,
+      mentor_id: meta.mentor_id || null,
     })
     .select()
     .single();
@@ -188,8 +191,7 @@ export async function register(form) {
           sex: form.sex || null,
           city: form.city || null,
           centre: form.centre || null,
-          mentor_names: form.mentorNames ?? [],
-          mentor_other: form.mentorOther || null,
+          mentor_id: form.mentorId || null,
           mobile_number: form.mobileNumber || null,
         },
       },

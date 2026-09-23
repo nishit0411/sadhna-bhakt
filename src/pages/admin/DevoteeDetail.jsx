@@ -35,7 +35,7 @@ function initiationSummary(devotee) {
   return dateOrYear ? `${devotee.dikshaStage} · ${dateOrYear}` : devotee.dikshaStage;
 }
 
-export default function DevoteeDetail() {
+export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
@@ -80,7 +80,7 @@ export default function DevoteeDetail() {
         title={t("admin.devoteeNotFound")}
         description={t("admin.devoteeNotFoundDesc")}
         action={
-          <Link to="/admin/devotees">
+          <Link to={backPath}>
             <button className="text-sm font-medium text-maroon-600 hover:underline">{t("admin.backToDevotees")}</button>
           </Link>
         }
@@ -119,7 +119,7 @@ export default function DevoteeDetail() {
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between gap-3">
         <button
-          onClick={() => navigate("/admin/devotees")}
+          onClick={() => navigate(backPath)}
           className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brown-500 hover:text-maroon-600"
         >
           <ArrowLeft className="h-4 w-4" /> {t("admin.backToDevotees")}

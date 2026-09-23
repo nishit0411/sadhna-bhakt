@@ -197,7 +197,7 @@ export default function DailySadhana() {
             {isEditingExisting ? t("sadhana.successUpdated") : t("sadhana.successSubmitted")} 🙏
           </p>
         </div>
-        <Button size="lg" onClick={() => navigate("/devotee/dashboard")}>
+        <Button size="lg" onClick={() => navigate(user.role === "mentor" ? "/mentor/dashboard" : "/devotee/dashboard")}>
           {t("sadhana.hareKrishnaButton")} 🙏
         </Button>
       </div>

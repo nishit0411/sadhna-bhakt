@@ -40,7 +40,9 @@ export default function Login() {
   }
 
   function goToDashboard(user) {
-    navigate(user.role === "admin" ? "/admin/dashboard" : "/devotee/dashboard");
+    if (user.role === "admin") navigate("/admin/dashboard");
+    else if (user.role === "mentor") navigate("/mentor/dashboard");
+    else navigate("/devotee/dashboard");
   }
 
   async function handleSubmit(e) {

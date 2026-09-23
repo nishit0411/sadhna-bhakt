@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import DevoteeLayout from "./layouts/DevoteeLayout";
 import AdminLayout from "./layouts/AdminLayout";
+import MentorLayout from "./layouts/MentorLayout";
 
 import Dashboard from "./pages/devotee/Dashboard";
 import DailySadhana from "./pages/devotee/DailySadhana";
@@ -23,6 +24,9 @@ import DevoteeDetail from "./pages/admin/DevoteeDetail";
 import Reports from "./pages/admin/Reports";
 import UserManagement from "./pages/admin/UserManagement";
 import UserDetail from "./pages/admin/UserDetail";
+import MentorManagement from "./pages/admin/MentorManagement";
+
+import MentorDashboard from "./pages/mentor/MentorDashboard";
 
 export default function App() {
   return (
@@ -52,8 +56,17 @@ export default function App() {
           <Route path="/admin/devotees" element={<Devotees />} />
           <Route path="/admin/devotees/:id" element={<DevoteeDetail />} />
           <Route path="/admin/reports" element={<Reports />} />
+          <Route path="/admin/mentors" element={<MentorManagement />} />
           <Route path="/admin/users" element={<UserManagement />} />
           <Route path="/admin/users/:id" element={<UserDetail />} />
+        </Route>
+      </Route>
+
+      <Route element={<ProtectedRoute role="mentor" />}>
+        <Route element={<MentorLayout />}>
+          <Route path="/mentor/dashboard" element={<MentorDashboard />} />
+          <Route path="/mentor/sadhana" element={<DailySadhana />} />
+          <Route path="/mentor/devotees/:id" element={<DevoteeDetail backPath="/mentor/dashboard" />} />
         </Route>
       </Route>
 

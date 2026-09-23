@@ -24,11 +24,16 @@ export default function FormSelect({ label, required, error, options, placeholde
           <option value="" disabled>
             {placeholder}
           </option>
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
+          {options.map((opt) => {
+            const isObject = typeof opt === "object" && opt !== null;
+            const value = isObject ? opt.value : opt;
+            const label = isObject ? opt.label : opt;
+            return (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            );
+          })}
         </select>
         <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brown-500" />
       </div>

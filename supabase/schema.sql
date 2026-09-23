@@ -489,3 +489,160 @@ create policy "sadhana_update_own"
     and date >= (now() at time zone 'Asia/Kolkata')::date - 2
     and date <= (now() at time zone 'Asia/Kolkata')::date
   );
+
+-- ----------------------------------------------------------------------------
+-- 16. Mentor management. Mentors are ordinary `profiles` rows with
+-- role='mentor' — not a separate table. A mentor sees only their own
+-- mentees (profiles.mentor_id = mentor's own id), read-only: this section
+-- only ever ADDS an `or` clause to the existing select policies below, it
+-- never removes or loosens the devotee/admin clauses already there, and it
+-- grants mentors no insert/update access to any mentee's data.
+-- ----------------------------------------------------------------------------
+
+-- 16a. Widen the role check constraint to include 'mentor'. It was never
+-- given an explicit name (inline `check (...)` on the column), so its
+-- Postgres-generated name is found dynamically rather than assumed —
+-- safe to re-run: next run just finds/replaces the fixed name below.
+do $$
+declare
+  existing_name text;
+begin
+  select conname into existing_name
+  from pg_constraint
+  where conrelid = 'public.profiles'::regclass
+    and contype = 'c'
+    and pg_get_constraintdef(oid) like '%role%devotee%admin%';
+  if existing_name is not null then
+    execute format('alter table public.profiles drop constraint %I', existing_name);
+  end if;
+end $$;
+
+alter table public.profiles add constraint profiles_role_check
+  check (role in ('devotee', 'admin', 'mentor'));
+
+-- 16b. Active flag (deactivate without deleting) and the mentor link itself.
+alter table public.profiles add column if not exists active boolean not null default true;
+alter table public.profiles add column if not exists mentor_id uuid references public.profiles (id) on delete set null;
+create index if not exists profiles_mentor_id_idx on public.profiles (mentor_id);
+
+-- 16c. Blocks a devotee from pointing mentor_id at anyone who isn't an
+-- active mentor — without this, a devotee could set their own mentor_id
+-- (allowed by profiles_update_own_or_admin, since that policy only
+-- protects the `role` column via prevent_role_self_escalation) to an
+-- arbitrary user's id and that user's mentor-scoped RLS access would then
+-- read this devotee's data.
+create or replace function public.validate_mentor_id()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  if new.mentor_id is not null and not exists (
+    select 1 from public.profiles where id = new.mentor_id and role = 'mentor'
+  ) then
+    raise exception 'mentor_id must reference an existing mentor.';
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists profiles_validate_mentor_id on public.profiles;
+create trigger profiles_validate_mentor_id
+  before insert or update of mentor_id on public.profiles
+  for each row execute function public.validate_mentor_id();
+
+-- 16d. Mentor check helper, mirroring is_admin().
+create or replace function public.is_mentor()
+returns boolean
+language sql
+security definer set search_path = public
+stable
+as $$
+  select exists (
+    select 1 from public.profiles where id = auth.uid() and role = 'mentor'
+  );
+$$;
+
+-- 16e. Public-safe mentor lookup for the registration dropdown — anon
+-- can't read `profiles` directly (no RLS policy grants it), so this
+-- security-definer function returns only id+name for active mentors,
+-- nothing else from their profile row.
+create or replace function public.get_active_mentors()
+returns table (id uuid, name text)
+language sql
+security definer set search_path = public
+stable
+as $$
+  select id, trim(concat_ws(' ', first_name, last_name)) as name
+  from public.profiles
+  where role = 'mentor' and active = true
+  order by name;
+$$;
+
+grant execute on function public.get_active_mentors() to anon, authenticated;
+
+-- 16f. Mentor read access: a mentor sees their own mentees' profiles and
+-- Sadhana records (never autofill_templates — matches the existing
+-- admin-can't-write-mentee-data pattern). These replace the section 7
+-- policies of the same name, adding an `or` clause only.
+drop policy if exists "profiles_select_own_or_admin" on public.profiles;
+create policy "profiles_select_own_or_admin"
+  on public.profiles for select
+  using (id = auth.uid() or public.is_admin() or mentor_id = auth.uid());
+
+drop policy if exists "sadhana_select_own_or_admin" on public.sadhana_records;
+create policy "sadhana_select_own_or_admin"
+  on public.sadhana_records for select
+  using (
+    devotee_id = auth.uid()
+    or public.is_admin()
+    or exists (
+      select 1 from public.profiles p
+      where p.id = sadhana_records.devotee_id and p.mentor_id = auth.uid()
+    )
+  );
+
+-- 16g. handle_new_user() now also captures mentor_id, chosen at
+-- registration (Register.jsx), out of the same raw_user_meta_data every
+-- other field already comes from.
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+begin
+  insert into public.profiles (
+    id, email, first_name, last_name, date_of_birth, spiritual_name, gurudev_name,
+    diksha_stage, initiation_date, initiation_year, sex, city, centre,
+    mentor_names, mentor_other, mobile_number, mentor_id
+  )
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'first_name', ''),
+    coalesce(new.raw_user_meta_data ->> 'last_name', ''),
+    nullif(new.raw_user_meta_data ->> 'date_of_birth', '')::date,
+    new.raw_user_meta_data ->> 'spiritual_name',
+    new.raw_user_meta_data ->> 'gurudev_name',
+    new.raw_user_meta_data ->> 'diksha_stage',
+    nullif(new.raw_user_meta_data ->> 'initiation_date', '')::date,
+    new.raw_user_meta_data ->> 'initiation_year',
+    new.raw_user_meta_data ->> 'sex',
+    new.raw_user_meta_data ->> 'city',
+    new.raw_user_meta_data ->> 'centre',
+    coalesce(
+      array(select jsonb_array_elements_text(coalesce(new.raw_user_meta_data -> 'mentor_names', '[]'::jsonb))),
+      '{}'
+    ),
+    new.raw_user_meta_data ->> 'mentor_other',
+    new.raw_user_meta_data ->> 'mobile_number',
+    nullif(new.raw_user_meta_data ->> 'mentor_id', '')::uuid
+  )
+  on conflict (id) do nothing;
+  return new;
+exception
+  when others then
+    raise warning 'handle_new_user failed for auth.users id %: %', new.id, sqlerrm;
+    return new;
+end;
+$$;
