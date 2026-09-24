@@ -1,0 +1,213 @@
+<!doctype html>
+<!--
+  Standalone static page, deliberately NOT a React route.
+
+  The app uses HashRouter, so a route would live at /#/privacy — and a hash
+  fragment never reaches the server. Google fetches this URL when checking the
+  OAuth consent screen (Google Auth Platform -> Branding), and any crawler that
+  did so would be served the landing page instead of this policy.
+
+  Kept out of the SPA catch-all by the rewrite exclusion in vercel.json. If that
+  rule is ever edited, /privacy.html and /terms.html must stay excluded.
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Terms of Service · Sadhana Bhakti</title>
+<meta name="description" content="The terms under which devotees may use the Sadhana Bhakti journal." />
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+    :root {
+      --cream-50: #fffaf9;
+      --cream-100: #fdf1f4;
+      --maroon-500: #b83f6d;
+      --maroon-600: #9c3159;
+      --maroon-700: #7d2647;
+      --ink: #2e1c24;
+      --ink-soft: #6b5560;
+      --rule: #f6d1db;
+      --card: #ffffff;
+      --font-display: "Cormorant Garamond", "Marcellus", Georgia, serif;
+      --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --cream-50: #1a1013;
+        --cream-100: #221519;
+        --maroon-500: #e18aac;
+        --maroon-600: #eeb3c9;
+        --maroon-700: #f6d1db;
+        --ink: #f6e9ed;
+        --ink-soft: #c3a8b3;
+        --rule: #4a2c38;
+        --card: #241619;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0 16px 64px;
+      background: var(--cream-50);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      line-height: 1.65;
+      -webkit-text-size-adjust: 100%;
+    }
+    .wrap { max-width: 720px; margin: 0 auto; }
+    header {
+      padding: 40px 0 28px;
+      border-bottom: 1px solid var(--rule);
+      margin-bottom: 32px;
+    }
+    .eyebrow {
+      font-family: var(--font-display);
+      font-size: 15px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--maroon-500);
+      margin: 0 0 10px;
+    }
+    h1 {
+      font-family: var(--font-display);
+      font-size: clamp(30px, 7vw, 42px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin: 0 0 12px;
+      color: var(--maroon-700);
+    }
+    .updated { margin: 0; font-size: 14px; color: var(--ink-soft); }
+    h2 {
+      font-family: var(--font-display);
+      font-size: clamp(22px, 5vw, 27px);
+      font-weight: 600;
+      line-height: 1.25;
+      margin: 40px 0 12px;
+      color: var(--maroon-600);
+    }
+    h3 {
+      font-size: 16px;
+      font-weight: 600;
+      margin: 24px 0 6px;
+      color: var(--ink);
+    }
+    p, li { color: var(--ink); }
+    ul { padding-left: 22px; margin: 12px 0; }
+    li { margin-bottom: 8px; }
+    a { color: var(--maroon-500); text-underline-offset: 3px; }
+    strong { font-weight: 600; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--rule);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin: 20px 0;
+    }
+    .card p:first-child { margin-top: 0; }
+    .card p:last-child { margin-bottom: 0; }
+    footer {
+      margin-top: 52px;
+      padding-top: 24px;
+      border-top: 1px solid var(--rule);
+      font-size: 14px;
+      color: var(--ink-soft);
+    }
+    footer a { color: var(--maroon-500); }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <p class="eyebrow">Sadhana Bhakti</p>
+  <h1>Terms of Service</h1>
+  <p class="updated">Last updated 25 September 2026</p>
+</header>
+
+<p>These terms apply to everyone who uses Sadhana Bhakti, a private digital Sadhana
+journal for devotees following the guidance of Srila Bhakti Vedant Sridhar Goswami
+Maharaj. By creating an account or using the application, you agree to them.</p>
+
+<h2>What the service is</h2>
+<p>Sadhana Bhakti lets a devotee record their daily spiritual practice, review their
+own history, and share that record with their mentor and the sangha administrators
+for guidance and encouragement. It is offered free of charge as a service to the
+sangha. It is not a commercial product.</p>
+
+<h2>Your account</h2>
+<ul>
+  <li>Accounts are for devotees taking part in the sangha's practice.</li>
+  <li>Please give accurate information when you register, and keep your profile up
+  to date, so that your mentor can recognise and support you.</li>
+  <li>Your account is personal to you. Keep your password confidential and do not
+  let anyone else use your account.</li>
+  <li>If you believe someone else has gained access to your account, please tell us
+  at the address below so it can be secured.</li>
+</ul>
+
+<h2>Acceptable use</h2>
+<p>Please use Sadhana Bhakti only for its purpose: recording your own practice
+honestly. You agree not to:</p>
+<ul>
+  <li>attempt to access another devotee's profile or Sadhana records;</li>
+  <li>interfere with, probe, or attempt to disrupt the application or the systems
+  it runs on;</li>
+  <li>submit content that is unlawful, abusive, or offensive;</li>
+  <li>use the application to send unsolicited messages to other devotees.</li>
+</ul>
+
+<h2>Your records belong to you</h2>
+<p>The Sadhana entries and profile information you submit remain yours. We store
+them and show them to you, your mentor, and the sangha administrators as described
+in the <a href="/privacy.html">Privacy Policy</a>. We do not sell them, publish
+them, or use them for any purpose beyond running this service and supporting your
+practice.</p>
+
+<h2>Availability</h2>
+<div class="card">
+<p>Sadhana Bhakti is provided as it is, without any warranty. It is maintained by
+devotees as a seva, not by a company with a support desk. The service may be
+unavailable at times, whether for maintenance, or because of a fault in the
+application or in a service it depends on.</p>
+<p>We take daily backups and make a sincere effort to keep your records safe, but
+we cannot guarantee that data will never be lost. Your practice is yours; please do
+not treat this application as the only record of anything you would be sorry to
+lose.</p>
+</div>
+
+<h2>Limitation of liability</h2>
+<p>To the fullest extent permitted by law, the maintainers of Sadhana Bhakti are not
+liable for any indirect or consequential loss arising from your use of, or inability
+to use, the service, including loss of data.</p>
+
+<h2>Suspending or closing an account</h2>
+<p>You may ask for your account to be closed at any time by contacting us. We may
+suspend or close an account that breaches these terms, or that is being used in a
+way that puts other devotees' information at risk. Where it is reasonable to do so,
+we will explain why first.</p>
+
+<h2>Changes to these terms</h2>
+<p>These terms may be updated from time to time. The date at the top of this page
+will change when they do, and significant changes will be communicated to devotees
+directly. Continuing to use the application after a change means you accept the
+updated terms.</p>
+
+<h2>Governing law</h2>
+<p>These terms are governed by the laws of India, and the courts of India will have
+jurisdiction over any dispute arising from them.</p>
+
+<h2>Contact</h2>
+<div class="card">
+<p>For any question about these terms, or to close your account, write to:</p>
+<p><strong>CONTACT_EMAIL_HERE</strong></p>
+</div>
+
+<footer>
+<p><a href="/">Return to Sadhana Bhakti</a> &middot; <a href="/privacy.html">Privacy Policy</a></p>
+</footer>
+</div>
+</body>
+</html>
