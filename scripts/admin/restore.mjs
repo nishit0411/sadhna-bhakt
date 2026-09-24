@@ -10,8 +10,8 @@
  * convention used by merge-duplicate-emails.mjs in this folder.
  *
  * Usage:
- *   node scripts/admin/restore.mjs backups/2026-09-18                # dry run
- *   node scripts/admin/restore.mjs backups/2026-09-18 --confirm      # apply
+ *   node scripts/admin/restore.mjs backups/2026-09-24T18-27-57-867Z            # dry run
+ *   node scripts/admin/restore.mjs backups/2026-09-24T18-27-57-867Z --confirm  # apply
  *
  * Idempotent: safe to re-run after a partial failure. Anything already
  * present (an auth user with the same id or email, a profile with the same

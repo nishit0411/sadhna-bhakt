@@ -7,10 +7,11 @@
  * Usage:
  *   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... node scripts/admin/backup.mjs
  *
- * Output: backups/YYYY-MM-DD/{auth_users,profiles,sadhana_records,autofill_templates,manifest}.json
- * Re-running on the same day overwrites that day's folder — run once a day
- * at most, or copy the folder aside first if you want to keep more than
- * one snapshot per day.
+ * Output: backups/<utc-timestamp>/{auth_users,profiles,sadhana_records,autofill_templates,manifest}.json
+ * Every run gets its own folder, so a later backup can never overwrite an
+ * earlier one — including a bad backup (wrong project, half-empty export)
+ * landing on top of a good one. Folders are ~20 KB each; prune old ones by
+ * hand if they ever add up.
  *
  * JSON (not CSV) so array columns (mentor_names, granth_read,
  * harikatha_sources) and the nested user_metadata object survive intact —
@@ -62,8 +63,12 @@ async function main() {
     fetchAllRows("autofill_templates"),
   ]);
 
-  const dateStamp = new Date().toISOString().slice(0, 10); // YYYY-MM-DD, UTC
-  const outDir = path.join(__dirname, "..", "..", "backups", dateStamp);
+  // Full UTC timestamp with ':' and '.' swapped for '-', so it's a legal
+  // folder name everywhere — same convention as scripts/admin/reports/.
+  // Sorts chronologically as plain text, which is what the backup workflow
+  // relies on to find the folder this run just wrote.
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-"); // 2026-09-24T07-42-08-131Z
+  const outDir = path.join(__dirname, "..", "..", "backups", stamp);
   mkdirSync(outDir, { recursive: true });
 
   const manifest = {
@@ -90,10 +95,10 @@ async function main() {
   console.log(`\nBackup written to ${outDir}`);
   console.log(
     "\nReminder: this backup contains real user data (names, emails, Sadhana history).\n" +
-      "backups/ is gitignored — keep it that way, and store copies somewhere durable\n" +
-      "(off this machine) if you want protection against more than an accidental\n" +
-      "`git rm`. Passwords are never included — Supabase never exposes them, backed\n" +
-      "up or not.",
+      "backups/ is gitignored — keep it that way. Copies are pushed off this machine\n" +
+      "daily by .github/workflows/backup.yml; a local run like this one stays on this\n" +
+      "disk until you copy it somewhere yourself. Passwords are never included —\n" +
+      "Supabase never exposes them, backed up or not.",
   );
 }
 

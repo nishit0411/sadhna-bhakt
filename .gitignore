@@ -11,5 +11,8 @@ scripts/admin/reports/
 backups/
 supabase/.temp/
 backup.sql
-# Database backups
-backups/
+
+# Backup archives pulled down from Drive for a restore — same data as
+# backups/, just packed. Never belongs in git either.
+*.tar.gz
+*.tar.gz.gpg
