@@ -178,8 +178,15 @@ Answer the prompts:
 | `service_account_file>` | leave blank — see the warning below |
 | `Edit advanced config?` | `n` |
 | `Use web browser to automatically authenticate?` | `y`, then sign in and allow |
-| `Configure this as a Shared Drive (Team Drive)?` | `n` |
+| `Configure this as a Shared Drive (Team Drive)?` | `n` — **not `y`**, see below |
 | `Keep this remote?` | `y`, then `q` to quit |
+
+> **Answer `n` to the Shared Drive question.** Your 2 TB is ordinary personal
+> Drive storage, not a Shared Drive, and the `drive.file` scope is not allowed
+> to list Shared Drives anyway — answering `y` aborts the whole config with
+> `Error 403: ACCESS_TOKEN_SCOPE_INSUFFICIENT`, after the browser step has
+> already succeeded. If that happens, the token is fine; just re-edit the
+> remote (see "Re-editing a remote" below) and answer `n`.
 
 The workflow points at `sadhna-bhakt:sadhna-bhakt-backups` via the `DRIVE_PATH`
 env var at the top of `.github/workflows/backup.yml`. If you named the
@@ -207,6 +214,18 @@ rclone copy /tmp/rclone-test.txt sadhna-bhakt:sadhna-bhakt-backups/
 rclone lsf sadhna-bhakt:sadhna-bhakt-backups/    # should list rclone-test.txt
 rclone delete sadhna-bhakt:sadhna-bhakt-backups/rclone-test.txt
 ```
+
+**Re-editing a remote.** If you need to change something after the fact, run
+`rclone config`, choose `e`, pick the remote, then press Enter through any
+prompt whose default is already correct. One prompt is unique to editing:
+
+```
+Already have a valid token - refresh?
+y/n> n        <- n keeps the existing token, so you skip the browser step
+```
+
+Answer `n` there unless the token is actually broken, then continue to the
+Shared Drive question and answer `n`.
 
 **3. Turn the rclone config into one line of base64.**
 
