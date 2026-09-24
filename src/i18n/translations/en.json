@@ -150,7 +150,9 @@
     "quoteText": "Where remembrance becomes a habit, Sadhna becomes a way of life.",
     "footerTagline": "An eternal journey of Sadhna, Seva & Smaran.",
     "footerClosing": "All glories to Sri Guru and Gauranga.",
-    "adminLoginLink": "Admin"
+    "adminLoginLink": "Admin",
+    "privacyLink": "Privacy Policy",
+    "termsLink": "Terms of Service"
   },
   "auth": {
     "welcomeBack": "Welcome Back",

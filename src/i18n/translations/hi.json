@@ -150,7 +150,9 @@
     "quoteText": "जहां स्मरण एक आदत बन जाता है, वहां साधना जीवन शैली बन जाती है।",
     "footerTagline": "साधना, सेवा और स्मरण की एक शाश्वत यात्रा।",
     "footerClosing": "श्री गुरु और गौरांग की जय हो।",
-    "adminLoginLink": "एडमिन"
+    "adminLoginLink": "एडमिन",
+    "privacyLink": "गोपनीयता नीति",
+    "termsLink": "सेवा की शर्तें"
   },
   "auth": {
     "welcomeBack": "आपका स्वागत है",

@@ -436,6 +436,20 @@ export default function Landing() {
           <p className="text-[11px]" style={{ color: "#7d7264" }}>
             &copy; {new Date().getFullYear()} Sadhana Bhakti
           </p>
+          {/* Plain <a>, not <Link> — privacy.html and terms.html are static
+              files in public/, deliberately outside the React router (the app
+              uses HashRouter, so a /#/privacy route would be invisible to
+              Google and to any other crawler that fetches them). */}
+          <p className="text-[11px]" style={{ color: "#7d7264" }}>
+            <a href="/privacy.html" className="transition-colors hover:text-[#cfc4b3]" style={{ color: "#7d7264" }}>
+              {t("landing.privacyLink")}
+            </a>
+            <span className="mx-2 opacity-50">&middot;</span>
+            <a href="/terms.html" className="transition-colors hover:text-[#cfc4b3]" style={{ color: "#7d7264" }}>
+              {t("landing.termsLink")}
+            </a>
+          </p>
+
           <Link to="/admin/login" className="text-[11px] opacity-40 transition-opacity hover:opacity-80" style={{ color: "#7d7264" }}>
             {t("landing.adminLoginLink")}
           </Link>
