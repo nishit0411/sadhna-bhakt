@@ -34,7 +34,7 @@ jobs:
       # the part after is the folder. rclone creates that folder on first
       # run — don't pre-create it by hand (see BACKUP_RESTORE.md for why the
       # drive.file scope makes that matter).
-      DRIVE_PATH: "gdrive:sadhna-bhakt-backups"
+      DRIVE_PATH: "sadhna-bhakt:sadhna-bhakt-backups"
       # Archives older than this are pruned after a successful upload.
       RETENTION: "180d"
       # A backup reporting fewer profiles than this is treated as a failed

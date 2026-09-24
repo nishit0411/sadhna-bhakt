@@ -145,6 +145,14 @@ is not a backup job, so make your own. It's free and takes a few minutes.
    type: **Desktop app**. Create, then copy the **Client ID** and **Client
    secret**.
 
+> **It must be Desktop app, not Web application.** If the form asks you for
+> *Authorised JavaScript origins* or *Authorised redirect URIs*, you picked
+> Web application — go back and change it. rclone authenticates by opening a
+> temporary local server and having Google redirect to
+> `http://127.0.0.1:53682/`; Desktop clients allow that loopback redirect
+> automatically, web clients reject it with
+> `Error 400: redirect_uri_mismatch`.
+
 Because the app is published but unverified, the sign-in screen in step 2
 below will warn you that "Google hasn't verified this app". That's expected
 for an app you made for yourself — click **Advanced** → **Go to … (unsafe)**
@@ -162,7 +170,7 @@ Answer the prompts:
 | Prompt | Answer |
 | --- | --- |
 | `n/s/q>` | `n` (new remote) |
-| `name>` | `gdrive` — or any name, but it must match `DRIVE_PATH` in the workflow (see below) |
+| `name>` | `sadhna-bhakt` — or any name, but it must match `DRIVE_PATH` in the workflow (see below) |
 | `Storage>` | `drive` (the number varies between rclone versions — type `drive`, not a number) |
 | `client_id>` | the Client ID from step 1 |
 | `client_secret>` | the Client secret from step 1 |
@@ -173,7 +181,7 @@ Answer the prompts:
 | `Configure this as a Shared Drive (Team Drive)?` | `n` |
 | `Keep this remote?` | `y`, then `q` to quit |
 
-The workflow points at `gdrive:sadhna-bhakt-backups` via the `DRIVE_PATH`
+The workflow points at `sadhna-bhakt:sadhna-bhakt-backups` via the `DRIVE_PATH`
 env var at the top of `.github/workflows/backup.yml`. If you named the
 remote something else, edit that line to match — the part before the `:` is
 the remote name, the part after is the folder in Drive.
@@ -195,9 +203,9 @@ Test it before going further:
 
 ```bash
 echo hello > /tmp/rclone-test.txt
-rclone copy /tmp/rclone-test.txt gdrive:sadhna-bhakt-backups/
-rclone lsf gdrive:sadhna-bhakt-backups/          # should list rclone-test.txt
-rclone delete gdrive:sadhna-bhakt-backups/rclone-test.txt
+rclone copy /tmp/rclone-test.txt sadhna-bhakt:sadhna-bhakt-backups/
+rclone lsf sadhna-bhakt:sadhna-bhakt-backups/    # should list rclone-test.txt
+rclone delete sadhna-bhakt:sadhna-bhakt-backups/rclone-test.txt
 ```
 
 **3. Turn the rclone config into one line of base64.**
@@ -249,8 +257,8 @@ but only if you're confident about keeping the passphrase.
 
 ```bash
 # 1. Download the archive you want (list first to find its name)
-rclone lsf gdrive:sadhna-bhakt-backups/
-rclone copy gdrive:sadhna-bhakt-backups/2026-09-24T18-27-57-867Z.tar.gz.gpg .
+rclone lsf sadhna-bhakt:sadhna-bhakt-backups/
+rclone copy sadhna-bhakt:sadhna-bhakt-backups/2026-09-24T18-27-57-867Z.tar.gz.gpg .
 
 # 2. Decrypt, only if BACKUP_PASSPHRASE was set (needs `brew install gnupg`)
 gpg --decrypt --output 2026-09-24T18-27-57-867Z.tar.gz \
