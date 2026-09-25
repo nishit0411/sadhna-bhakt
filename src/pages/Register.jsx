@@ -6,6 +6,7 @@ import { useToast } from "../context/ToastContext";
 import { useTranslation } from "../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../utils/friendlyError";
 import { getActiveMentors } from "../services/mentorService";
+import { MENTOR_OPTIONS } from "../data/mentorList";
 import Logo from "../components/layout/Logo";
 import LanguageSwitcher from "../components/layout/LanguageSwitcher";
 import DeveloperCredit from "../components/layout/DeveloperCredit";
@@ -16,6 +17,7 @@ import FormSection from "../components/FormSection";
 import FormInput from "../components/FormInput";
 import FormSelect from "../components/FormSelect";
 import GenderSelector from "../components/GenderSelector";
+import CheckboxGroup from "../components/sadhana/CheckboxGroup";
 
 export const INITIATION_STAGES = ["Initial", "Harinaam", "Gopal Mantra", "Diksha"];
 
@@ -39,7 +41,8 @@ const INITIAL_FORM = {
   city: "",
   centre: "",
   gurudevOther: "",
-  mentorId: "",
+  mentor: [],
+  mentorOther: "",
   mobileNumber: "",
   email: "",
 };
@@ -64,8 +67,20 @@ export default function Register() {
   useEffect(() => {
     getActiveMentors()
       .then(setMentors)
-      .catch(() => {}); // Non-critical — the dropdown just shows empty if this fails.
+      .catch(() => {}); // Non-critical — the list falls back to MENTOR_OPTIONS alone.
   }, []);
+
+  // Every name a devotee may pick: the established list in mentorList.js (the
+  // same one Profile.jsx and the admin screen offer), plus any mentor an admin
+  // has since created who isn't already in it. Merging rather than replacing is
+  // what lets a name be offered here with no account behind it — only the names
+  // get_active_mentors() returns have one, and selecting any name here writes
+  // mentor_names text, never an account. "Other" stays last.
+  const mentorOptions = [
+    ...MENTOR_OPTIONS.filter((n) => n !== "Other"),
+    ...mentors.map((m) => m.name).filter((n) => n && !MENTOR_OPTIONS.includes(n)),
+    "Other",
+  ];
 
   function setField(field, value) {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -87,6 +102,7 @@ export default function Register() {
     }
     if (!form.sex) next.sex = t("register.errSex");
     if (form.gurudevName === "Other" && !form.gurudevOther.trim()) next.gurudevOther = t("register.errGurudevOther");
+    if (form.mentor.includes("Other") && !form.mentorOther.trim()) next.mentorOther = t("register.errMentorOther");
     if (!form.city.trim()) next.city = t("register.errCity");
     if (!form.centre.trim()) next.centre = t("register.errCentre");
     if (!form.mobileNumber.trim()) next.mobileNumber = t("register.errMobile");
@@ -252,15 +268,20 @@ export default function Register() {
                 />
               </div>
             )}
-            <div className="sm:col-span-2">
-              <FormSelect
-                label={t("register.mentorName")}
-                name="mentorId"
-                placeholder={t("register.mentorNamePlaceholder")}
-                options={mentors.map((m) => ({ value: m.id, label: m.name }))}
-                value={form.mentorId}
-                onChange={handleChange}
+            <div className="sm:col-span-2" data-error={Boolean(errors.mentorOther)}>
+              <label className="mb-2 block text-sm font-medium text-brown-700">{t("register.mentorName")}</label>
+              <CheckboxGroup
+                name="mentor"
+                options={mentorOptions}
+                values={form.mentor}
+                onChange={(v) => setField("mentor", v)}
+                otherValue="Other"
+                otherText={form.mentorOther}
+                onOtherTextChange={(v) => setField("mentorOther", v)}
+                otherLabel={t("register.mentorOtherLabel")}
+                otherPlaceholder={t("register.mentorOtherPlaceholder")}
               />
+              {errors.mentorOther && <p className="mt-2 text-xs text-clay-600">{errors.mentorOther}</p>}
             </div>
             <div data-error={Boolean(errors.dikshaStage)}>
               <FormSelect

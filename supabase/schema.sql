@@ -728,3 +728,84 @@ as $$
   where role = 'mentor' and active = true
   order by coalesce(display_order, 2147483647), name;
 $$;
+
+-- ----------------------------------------------------------------------------
+-- 19. Resolve mentor_id from the mentor name chosen at registration.
+--
+-- Registration deliberately offers mentor names that have no account behind
+-- them yet (src/data/mentorList.js), so the choice is stored as
+-- mentor_names text — not as a mentor_id foreign key, which would require
+-- an auth.users row to point at. This is what lets a name be selectable
+-- without creating an account for that person.
+--
+-- Before this section, handle_new_user() copied mentor_names across but
+-- never set mentor_id at all, so a devotee who picked a mentor who DOES
+-- have an account was still left unlinked, and never appeared on that
+-- mentor's dashboard. (authService.register() used to send a `mentor_id`
+-- in signup metadata, which this function never read — so that selection
+-- was silently discarded on every registration.)
+--
+-- The match is deliberately conservative and mirrors the auto-link in
+-- api/admin/mentors.js exactly: exactly one name, not the "Other"
+-- free-text escape, case-insensitively equal to an active mentor's full
+-- name. Anything less certain is left null rather than guessed, and is
+-- picked up later by that same auto-link when the mentor's account is
+-- created. Nothing here creates, modifies or deletes any account.
+-- ----------------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security definer set search_path = public
+as $$
+declare
+  v_mentor_names text[];
+  v_mentor_id uuid;
+begin
+  v_mentor_names := coalesce(
+    array(select jsonb_array_elements_text(coalesce(new.raw_user_meta_data -> 'mentor_names', '[]'::jsonb))),
+    '{}'
+  );
+
+  if array_length(v_mentor_names, 1) = 1 and v_mentor_names[1] <> 'Other' then
+    select id into v_mentor_id
+    from public.profiles
+    where role = 'mentor'
+      and active = true
+      and lower(trim(concat_ws(' ', first_name, last_name))) = lower(trim(v_mentor_names[1]))
+    limit 1;
+  end if;
+
+  insert into public.profiles (
+    id, email, first_name, last_name, date_of_birth, spiritual_name, gurudev_name,
+    diksha_stage, initiation_date, initiation_year, sex, city, centre,
+    mentor_names, mentor_other, mobile_number, mentor_id
+  )
+  values (
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data ->> 'first_name', ''),
+    coalesce(new.raw_user_meta_data ->> 'last_name', ''),
+    nullif(new.raw_user_meta_data ->> 'date_of_birth', '')::date,
+    new.raw_user_meta_data ->> 'spiritual_name',
+    new.raw_user_meta_data ->> 'gurudev_name',
+    new.raw_user_meta_data ->> 'diksha_stage',
+    nullif(new.raw_user_meta_data ->> 'initiation_date', '')::date,
+    new.raw_user_meta_data ->> 'initiation_year',
+    new.raw_user_meta_data ->> 'sex',
+    new.raw_user_meta_data ->> 'city',
+    new.raw_user_meta_data ->> 'centre',
+    v_mentor_names,
+    new.raw_user_meta_data ->> 'mentor_other',
+    new.raw_user_meta_data ->> 'mobile_number',
+    v_mentor_id
+  )
+  on conflict (id) do nothing;
+  return new;
+exception
+  when others then
+    -- Unchanged from section 5: never let one optional field roll back the
+    -- auth.users insert in this same transaction.
+    raise warning 'handle_new_user failed for auth.users id %: %', new.id, sqlerrm;
+    return new;
+end;
+$$;

@@ -192,7 +192,13 @@ export async function register(form) {
           sex: form.sex || null,
           city: form.city || null,
           centre: form.centre || null,
-          mentor_id: form.mentorId || null,
+          // Mentor is stored as names, not an account reference: the list
+          // Register.jsx offers deliberately includes people who have no
+          // account yet. handle_new_user() copies these two straight across,
+          // and resolves mentor_id itself when the single chosen name does
+          // match an active mentor (schema.sql §19).
+          mentor_names: form.mentor ?? [],
+          mentor_other: form.mentor?.includes("Other") ? form.mentorOther?.trim() || null : null,
           mobile_number: form.mobileNumber || null,
         },
       },
