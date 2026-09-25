@@ -274,6 +274,7 @@
     "errFirstName": "Please enter your first name.",
     "errLastName": "Please enter your last name.",
     "errDob": "Please enter your date of birth.",
+    "errDobFormat": "Please enter a valid date as DD/MM/YYYY.",
     "errDikshaStage": "Please select your Diksha stage.",
     "errInitiationYear": "Please enter a valid year.",
     "errSex": "Please select your sex.",

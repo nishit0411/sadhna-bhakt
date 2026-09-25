@@ -23,6 +23,7 @@ import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import FormInput from "../../components/FormInput";
+import DobInput from "../../components/DobInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
 import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
@@ -289,7 +290,7 @@ export default function UserDetail() {
             <div data-error={Boolean(errors.lastName)}>
               <FormInput label="Last Name" name="lastName" value={form.lastName} onChange={handleChange} error={errors.lastName} disabled={!isEditing} />
             </div>
-            <FormInput label="Date of Birth" type="date" name="dob" value={form.dob} onChange={handleChange} disabled={!isEditing} />
+            <DobInput label="Date of Birth" name="dob" value={form.dob} onChange={handleChange} disabled={!isEditing} invalidMessage="Please enter a valid date as DD/MM/YYYY." />
             <FormInput label="Spiritual Name" name="spiritualName" value={form.spiritualName} onChange={handleChange} disabled={!isEditing} />
             {isEditing ? (
               <GenderSelector label="Sex" value={form.sex} onChange={(v) => setField("sex", v)} />

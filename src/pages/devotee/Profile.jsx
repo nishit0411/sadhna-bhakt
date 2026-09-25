@@ -12,6 +12,7 @@ import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import FormInput from "../../components/FormInput";
+import DobInput from "../../components/DobInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
 import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
@@ -317,14 +318,14 @@ export default function Profile() {
               disabled={!isEditing}
             />
           </div>
-          <FormInput
+          <DobInput
             label={t("register.dob")}
-            type="date"
             name="dob"
             icon={Cake}
             value={form.dob}
             onChange={handleChange}
             disabled={!isEditing}
+            invalidMessage={t("register.errDobFormat")}
           />
           <FormInput
             label={t("register.spiritualName")}
