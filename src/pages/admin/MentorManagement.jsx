@@ -6,6 +6,7 @@ import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import { INITIATION_STAGES } from "../Register";
+import { MENTOR_OPTIONS } from "../../data/mentorList";
 import PageHeader from "../../components/layout/PageHeader";
 import Card from "../../components/ui/Card";
 import Button from "../../components/ui/Button";
@@ -93,6 +94,34 @@ export default function MentorManagement() {
   }
 
   useEffect(loadMentors, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Every name an admin should see: the real mentor accounts, plus the names
+  // from the shared list (src/data/mentorList.js — the same list Register.jsx
+  // and the devotee Profile offer) that no account exists for yet. A pending
+  // row is display-only: it is NOT a database record, and rendering it creates
+  // nothing. profiles.id is a foreign key to auth.users(id), so a mentor
+  // "record" without an account is impossible by design — which is exactly why
+  // these are derived here rather than stored.
+  const accountNames = new Set(mentors.map((m) => m.name.trim().toLowerCase()));
+  const pendingRows = MENTOR_OPTIONS.filter(
+    (n) => n !== "Other" && !accountNames.has(n.trim().toLowerCase()),
+  ).map((name) => ({ id: `pending:${name}`, name, pending: true }));
+  const rows = [...mentors, ...pendingRows];
+
+  // "Sripad Sanjay Prabhu" -> firstName "Sripad Sanjay", lastName "Prabhu",
+  // matching how the existing mentor rows were entered.
+  function splitName(full) {
+    const parts = full.trim().split(/\s+/);
+    return parts.length < 2
+      ? { firstName: full.trim(), lastName: "" }
+      : { firstName: parts.slice(0, -1).join(" "), lastName: parts[parts.length - 1] };
+  }
+
+  function openAddForPending(name) {
+    setAddForm({ ...EMPTY_FORM, ...splitName(name) });
+    setAddErrors({});
+    setIsAddOpen(true);
+  }
 
   function openAdd() {
     setAddForm(EMPTY_FORM);
@@ -216,7 +245,7 @@ export default function MentorManagement() {
         </Card>
       )}
 
-      {!mentors.length ? (
+      {!rows.length ? (
         <EmptyState icon={GraduationCap} title={t("mentor.noneTitle")} description={t("mentor.noneDesc")} />
       ) : (
         <Card padded={false} className="overflow-hidden">
@@ -233,32 +262,47 @@ export default function MentorManagement() {
                 </tr>
               </thead>
               <tbody>
-                {mentors.map((m) => (
+                {rows.map((m) => (
                   <tr key={m.id} className="border-b border-brown-900/5 bg-cream-50 last:border-0">
-                    <td className="px-4 py-3 text-brown-500">{m.displayOrder ?? "—"}</td>
-                    <td className="px-4 py-3 font-medium text-brown-900">{m.name}</td>
-                    <td className="px-4 py-3 text-brown-700">{m.email}</td>
-                    <td className="px-4 py-3 text-brown-700">{m.menteeCount}</td>
+                    <td className="px-4 py-3 text-brown-500">{m.pending ? "—" : m.displayOrder ?? "—"}</td>
+                    <td className={`px-4 py-3 font-medium ${m.pending ? "text-brown-500" : "text-brown-900"}`}>{m.name}</td>
+                    <td className="px-4 py-3 text-brown-700">{m.pending ? "—" : m.email}</td>
+                    <td className="px-4 py-3 text-brown-700">{m.pending ? "—" : m.menteeCount}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${
-                          m.active ? "bg-sage-100 text-sage-600" : "bg-beige-300 text-brown-700"
+                          m.pending
+                            ? "bg-beige-200 text-brown-500"
+                            : m.active
+                              ? "bg-sage-100 text-sage-600"
+                              : "bg-beige-300 text-brown-700"
                         }`}
+                        title={m.pending ? t("mentor.pendingHelper") : undefined}
                       >
-                        {m.active ? t("mentor.active") : t("mentor.inactive")}
+                        {m.pending ? t("mentor.pendingAccount") : m.active ? t("mentor.active") : t("mentor.inactive")}
                       </span>
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1.5">
-                        <Button variant="ghost" size="sm" icon={m.active ? EyeOff : Eye} onClick={() => toggleActive(m)}>
-                          {m.active ? t("mentor.deactivate") : t("mentor.activate")}
-                        </Button>
-                        <Button variant="ghost" size="sm" icon={Pencil} onClick={() => openEdit(m)}>
-                          {t("common.edit")}
-                        </Button>
-                        <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setDeletingMentor(m)}>
-                          {t("common.delete")}
-                        </Button>
+                        {m.pending ? (
+                          // Opens the same Add Mentor form, pre-filled with the name.
+                          // Nothing is created until the admin submits it.
+                          <Button variant="ghost" size="sm" icon={UserPlus} onClick={() => openAddForPending(m.name)}>
+                            {t("mentor.createAccount")}
+                          </Button>
+                        ) : (
+                          <>
+                            <Button variant="ghost" size="sm" icon={m.active ? EyeOff : Eye} onClick={() => toggleActive(m)}>
+                              {m.active ? t("mentor.deactivate") : t("mentor.activate")}
+                            </Button>
+                            <Button variant="ghost" size="sm" icon={Pencil} onClick={() => openEdit(m)}>
+                              {t("common.edit")}
+                            </Button>
+                            <Button variant="ghost" size="sm" icon={Trash2} onClick={() => setDeletingMentor(m)}>
+                              {t("common.delete")}
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
