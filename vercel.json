@@ -2,9 +2,9 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "redirects": [
     {
-      "source": "/:path*",
+      "source": "/(.*)",
       "has": [{ "type": "host", "value": "sadhna-bhakt.vercel.app" }],
-      "destination": "https://www.kanishthbhakta.in/:path*",
+      "destination": "https://www.kanishthbhakta.in/$1",
       "permanent": false
     }
   ],
