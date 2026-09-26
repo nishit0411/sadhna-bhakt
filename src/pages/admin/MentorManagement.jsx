@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { UserPlus, GraduationCap, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { UserPlus, GraduationCap, Pencil, Trash2, Eye, EyeOff, Users } from "lucide-react";
 import * as mentorService from "../../services/mentorService";
 import { deleteUserAccount } from "../../services/adminUserService";
 import { useToast } from "../../context/ToastContext";
@@ -74,6 +75,22 @@ export default function MentorManagement() {
   const [editForm, setEditForm] = useState(EDIT_EMPTY_FORM);
   const [editErrors, setEditErrors] = useState({});
   const [isSaving, setIsSaving] = useState(false);
+
+  const [menteesFor, setMenteesFor] = useState(null);
+  const [mentees, setMentees] = useState([]);
+  const [isLoadingMentees, setIsLoadingMentees] = useState(false);
+  const navigate = useNavigate();
+
+  function openMentees(mentor) {
+    setMenteesFor(mentor);
+    setMentees([]);
+    setIsLoadingMentees(true);
+    mentorService
+      .getMenteesForMentor(mentor)
+      .then(setMentees)
+      .catch((err) => addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error"))
+      .finally(() => setIsLoadingMentees(false));
+  }
 
   const [deletingMentor, setDeletingMentor] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -292,6 +309,9 @@ export default function MentorManagement() {
                           </Button>
                         ) : (
                           <>
+                            <Button variant="ghost" size="sm" icon={Users} onClick={() => openMentees(m)}>
+                              {t("mentor.viewMentees")}
+                            </Button>
                             <Button variant="ghost" size="sm" icon={m.active ? EyeOff : Eye} onClick={() => toggleActive(m)}>
                               {m.active ? t("mentor.deactivate") : t("mentor.activate")}
                             </Button>
@@ -482,6 +502,105 @@ export default function MentorManagement() {
           </Button>
         </form>
       </Modal>
+
+      {/* Admin-only mentee list. Matches on mentor_id OR mentor_names, so a devotee
+
+          who selected several mentors appears under each — the same rule the mentor's
+
+          own dashboard uses. Rows reuse the existing devotee detail route rather than
+
+          duplicating that screen. */}
+
+      <Modal
+
+        isOpen={Boolean(menteesFor)}
+
+        onClose={() => setMenteesFor(null)}
+
+        title={t("mentor.menteesTitle", { name: menteesFor?.name ?? "" })}
+
+        size="lg"
+
+      >
+
+        {isLoadingMentees ? (
+
+          <LoadingState label={t("mentor.loading")} />
+
+        ) : !mentees.length ? (
+
+          <p className="py-6 text-center text-sm text-brown-600">{t("mentor.menteesEmpty")}</p>
+
+        ) : (
+
+          <div>
+
+            <p className="mb-3 text-xs text-brown-500">
+
+              {t("mentor.menteesCount", { count: mentees.length })} · {t("mentor.menteesOpenHint")}
+
+            </p>
+
+            <div className="max-h-[60vh] overflow-y-auto rounded-xl border border-brown-900/5">
+
+              {mentees.map((d) => (
+
+                <button
+
+                  key={d.id}
+
+                  type="button"
+
+                  onClick={() => { setMenteesFor(null); navigate(`/admin/devotees/${d.id}`); }}
+
+                  className="flex w-full items-start justify-between gap-3 border-b border-brown-900/5 bg-cream-50 px-4 py-3 text-left last:border-0 hover:bg-beige-200"
+
+                >
+
+                  <span className="min-w-0">
+
+                    <span className="block truncate text-sm font-medium text-brown-900">{d.name}</span>
+
+                    <span className="block truncate text-xs text-brown-500">{d.email}</span>
+
+                    {d.mentor?.length > 1 && (
+
+                      <span className="mt-0.5 block truncate text-xs text-brown-500">
+
+                        {t("mentor.menteesAlsoSelected")}: {d.mentor.filter((n) => n !== menteesFor?.name).join(", ")}
+
+                      </span>
+
+                    )}
+
+                  </span>
+
+                  <span
+
+                    className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
+
+                      d.active ? "bg-sage-100 text-sage-600" : "bg-beige-300 text-brown-700"
+
+                    }`}
+
+                  >
+
+                    {d.active ? t("mentor.active") : t("mentor.inactive")}
+
+                  </span>
+
+                </button>
+
+              ))}
+
+            </div>
+
+          </div>
+
+        )}
+
+      </Modal>
+
 
       <Modal isOpen={Boolean(deletingMentor)} onClose={() => setDeletingMentor(null)} title={t("mentor.deleteTitle")} size="sm">
         {deletingMentor && (
