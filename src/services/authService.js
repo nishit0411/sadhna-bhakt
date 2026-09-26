@@ -170,6 +170,35 @@ export async function login({ email, password }) {
  * profile flow (mock mode, unchanged from before). `form` matches the
  * Register page's field names exactly.
  */
+/**
+ * Resolves the account-backed mentor a devotee picked, from the mentor NAMES
+ * the registration/profile forms store.
+ *
+ * The forms deliberately offer names that have no account behind them yet
+ * (src/data/mentorList.js), so the selection is stored as mentor_names text.
+ * profiles.mentor_id is the separate FK that drives the mentor dashboard and
+ * mentor-scoped RLS, and it can only ever point at a real mentor account.
+ *
+ * Resolution is deliberately conservative, matching the auto-link rule in
+ * api/admin/mentors.js: a link is made only when EXACTLY ONE of the selected
+ * names belongs to an active mentor account. Names without an account (e.g.
+ * "Srila Gurudev") are simply ignored, so picking Gurudev alongside one real
+ * mentor still links correctly. Two account-backed mentors at once is
+ * ambiguous and is reported as such rather than guessed — profiles.mentor_id
+ * holds one mentor, and picking the wrong one silently is worse than none.
+ *
+ * Returns { id, matchCount } so callers can tell "no link" apart from
+ * "ambiguous, leave whatever is already there".
+ */
+async function resolveMentorFromNames(names) {
+  const selected = (names ?? []).filter((n) => n && n !== "Other").map((n) => n.trim().toLowerCase());
+  if (!selected.length) return { id: null, matchCount: 0 };
+  const { data, error } = await supabase.rpc("get_active_mentors");
+  if (error) return { id: null, matchCount: 0 };
+  const matches = (data ?? []).filter((m) => selected.includes((m.name ?? "").trim().toLowerCase()));
+  return { id: matches.length === 1 ? matches[0].id : null, matchCount: matches.length };
+}
+
 export async function register(form) {
   if (isSupabaseConfigured) {
     // Self-registration has no password field — the account's initial
@@ -192,13 +221,15 @@ export async function register(form) {
           sex: form.sex || null,
           city: form.city || null,
           centre: form.centre || null,
-          // Mentor is stored as names, not an account reference: the list
-          // Register.jsx offers deliberately includes people who have no
-          // account yet. handle_new_user() copies these two straight across,
-          // and resolves mentor_id itself when the single chosen name does
-          // match an active mentor (schema.sql §19).
+          // Mentor is stored as names, because the list Register.jsx offers
+          // deliberately includes people who have no account yet.
+          // handle_new_user() copies these two straight across.
           mentor_names: form.mentor ?? [],
           mentor_other: form.mentor?.includes("Other") ? form.mentorOther?.trim() || null : null,
+          // handle_new_user() reads this straight out of the signup metadata.
+          // Without it the devotee's chosen mentor is stored as text only and
+          // mentor_id stays null, so the mentor's dashboard never sees them.
+          mentor_id: (await resolveMentorFromNames(form.mentor)).id,
           mobile_number: form.mobileNumber || null,
         },
       },
@@ -410,9 +441,17 @@ export async function requestEmailChange(newEmail) {
  */
 export async function updateProfile(userId, updates) {
   if (isSupabaseConfigured) {
+    // Keep mentor_id in step with the names the form just saved, so changing
+    // mentor from Profile or the admin screen actually moves the devotee
+    // between mentor dashboards. When several account-backed mentors are
+    // selected the result is ambiguous, so whatever is already linked is left
+    // alone rather than being overwritten with null.
+    const { id: resolvedMentorId, matchCount } = await resolveMentorFromNames(updates.mentor);
+    const mentorIdPatch = matchCount > 1 ? {} : { mentor_id: resolvedMentorId };
     const { error } = await supabase
       .from("profiles")
       .update({
+        ...mentorIdPatch,
         first_name: updates.firstName,
         last_name: updates.lastName,
         date_of_birth: updates.dob || null,
