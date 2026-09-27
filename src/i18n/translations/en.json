@@ -72,7 +72,9 @@
     "autoLinkedNote": "Also automatically linked {{count}} existing devotee(s) who had previously selected this mentor by name.",
     "updated": "Mentor updated.",
     "deleted": "Mentor deleted.",
-    "table": { "mentees": "Mentees" },
+    "table": {
+      "mentees": "Mentees"
+    },
     "active": "Active",
     "inactive": "Inactive",
     "pendingAccount": "No account yet",
@@ -557,7 +559,24 @@
       "status": "Status",
       "onAsan": "On Asan",
       "withoutAsan": "Without Asan"
-    }
+    },
+    "acctTitle": "Account Management",
+    "acctCurrentEmail": "Current email",
+    "acctChangeEmail": "Change Email",
+    "acctChangePassword": "Change Password",
+    "acctNewEmail": "New email address",
+    "acctNewPassword": "New password",
+    "acctConfirmPassword": "Confirm new password",
+    "acctEmailConfirm": "Change this devotee's sign-in email?",
+    "acctEmailConfirmBody": "They will need to use the new address to sign in. The change takes effect immediately.",
+    "acctPwConfirm": "Set a new password for this devotee?",
+    "acctPwConfirmBody": "Their current password stops working immediately. Tell them the new one yourself — it is never shown again.",
+    "acctEmailDone": "Email updated.",
+    "acctPwDone": "Password updated.",
+    "acctErrEmail": "Enter a valid email address.",
+    "acctErrPw": "Password must be at least 6 characters.",
+    "acctErrMatch": "The two passwords don't match.",
+    "acctNote": "Passwords are never shown or stored here."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

@@ -12,7 +12,7 @@ import {
   TriangleAlert,
   Fingerprint,
 } from "lucide-react";
-import { listAllUsers, deleteUserAccount } from "../../services/adminUserService";
+import { listAllUsers, deleteUserAccount, adminChangeEmail, adminChangePassword } from "../../services/adminUserService";
 import { updateProfile, requestPasswordReset } from "../../services/authService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -82,6 +82,47 @@ export default function UserDetail() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingReset, setIsSendingReset] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+
+  // --- Account Management (admin-initiated credential changes) -------------
+  // Both submit to /api/admin/credentials, which re-verifies the admin
+  // server-side and holds the only copy of the service-role key. The password
+  // lives in this component's state just long enough to be sent, and is
+  // cleared immediately afterwards — it is never persisted or displayed back.
+  const [acct, setAcct] = useState({ email: "", password: "", confirm: "" });
+  const [acctErr, setAcctErr] = useState({});
+  const [acctBusy, setAcctBusy] = useState(false);
+  const [confirmKind, setConfirmKind] = useState(null); // 'email' | 'password'
+
+  function askEmail() {
+    const clean = acct.email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(clean)) return setAcctErr({ email: t("admin.acctErrEmail") });
+    setAcctErr({}); setConfirmKind("email");
+  }
+  function askPassword() {
+    if (acct.password.length < 6) return setAcctErr({ password: t("admin.acctErrPw") });
+    if (acct.password !== acct.confirm) return setAcctErr({ confirm: t("admin.acctErrMatch") });
+    setAcctErr({}); setConfirmKind("password");
+  }
+  async function runCredentialChange() {
+    setAcctBusy(true);
+    try {
+      if (confirmKind === "email") {
+        const r = await adminChangeEmail(id, acct.email.trim().toLowerCase());
+        setUser((u) => (u ? { ...u, email: r.email } : u));
+        setAcct((a) => ({ ...a, email: "" }));
+        addToast(t("admin.acctEmailDone"), "success");
+      } else {
+        await adminChangePassword(id, acct.password);
+        setAcct((a) => ({ ...a, password: "", confirm: "" }));
+        addToast(t("admin.acctPwDone"), "success");
+      }
+      setConfirmKind(null);
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t), "error");
+    } finally {
+      setAcctBusy(false);
+    }
+  }
   const [isDeleting, setIsDeleting] = useState(false);
 
   function load() {
@@ -406,6 +447,82 @@ export default function UserDetail() {
           </div>
         </div>
       </Card>
+
+      {/* ---------- Account Management ---------- */}
+      <Card className="mt-6">
+        <h3 className="font-display text-lg font-semibold text-maroon-600">{t("admin.acctTitle")}</h3>
+        <p className="mt-1 text-xs text-brown-500">{t("admin.acctNote")}</p>
+
+        <div className="mt-4 rounded-xl border border-brown-900/5 bg-beige-100 px-4 py-3">
+          <p className="text-xs uppercase tracking-wide text-brown-500">{t("admin.acctCurrentEmail")}</p>
+          <p className="mt-0.5 break-all text-sm font-medium text-brown-900">{user.email}</p>
+        </div>
+
+        <div className="mt-5 grid gap-5 sm:grid-cols-2">
+          <div>
+            <FormInput
+              label={t("admin.acctNewEmail")}
+              type="email"
+              name="acctEmail"
+              autoComplete="off"
+              value={acct.email}
+              onChange={(e) => setAcct((a) => ({ ...a, email: e.target.value }))}
+              error={acctErr.email}
+            />
+            <Button variant="ghost" className="mt-3" onClick={askEmail} disabled={acctBusy || !acct.email.trim()}>
+              {t("admin.acctChangeEmail")}
+            </Button>
+          </div>
+
+          <div>
+            <FormInput
+              label={t("admin.acctNewPassword")}
+              type="password"
+              name="acctPassword"
+              autoComplete="new-password"
+              value={acct.password}
+              onChange={(e) => setAcct((a) => ({ ...a, password: e.target.value }))}
+              error={acctErr.password}
+            />
+            <div className="mt-3">
+              <FormInput
+                label={t("admin.acctConfirmPassword")}
+                type="password"
+                name="acctConfirm"
+                autoComplete="new-password"
+                value={acct.confirm}
+                onChange={(e) => setAcct((a) => ({ ...a, confirm: e.target.value }))}
+                error={acctErr.confirm}
+              />
+            </div>
+            <Button variant="ghost" className="mt-3" onClick={askPassword} disabled={acctBusy || !acct.password}>
+              {t("admin.acctChangePassword")}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <Modal
+        isOpen={Boolean(confirmKind)}
+        onClose={() => setConfirmKind(null)}
+        title={confirmKind === "email" ? t("admin.acctEmailConfirm") : t("admin.acctPwConfirm")}
+        size="sm"
+      >
+        <p className="text-sm text-brown-600">
+          {confirmKind === "email" ? t("admin.acctEmailConfirmBody") : t("admin.acctPwConfirmBody")}
+        </p>
+        {confirmKind === "email" && (
+          <p className="mt-3 break-all text-sm text-brown-700">
+            <span className="text-brown-500">{user.email}</span> → <span className="font-medium text-brown-900">{acct.email.trim().toLowerCase()}</span>
+          </p>
+        )}
+        <div className="mt-6 flex justify-end gap-3">
+          <Button variant="ghost" onClick={() => setConfirmKind(null)} disabled={acctBusy}>Cancel</Button>
+          <Button variant="primary" isLoading={acctBusy} onClick={runCredentialChange}>
+            {confirmKind === "email" ? t("admin.acctChangeEmail") : t("admin.acctChangePassword")}
+          </Button>
+        </div>
+      </Modal>
 
       <Modal isOpen={isDeleteOpen} onClose={() => setIsDeleteOpen(false)} title="Delete this user?" size="sm">
         <p className="text-sm text-brown-700">
