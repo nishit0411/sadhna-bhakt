@@ -413,41 +413,6 @@ export default function UserDetail() {
         )}
       </Card>
 
-      <Card>
-        <div className="mb-2 flex items-center gap-2.5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-saffron-100 text-maroon-600">
-            <KeyRound className="h-[18px] w-[18px]" />
-          </span>
-          <h2 className="font-display text-lg font-semibold text-maroon-600">Account Actions</h2>
-        </div>
-        <div className="flex flex-col divide-y divide-brown-900/5">
-          <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-brown-800">Update Password</p>
-              <p className="text-xs text-brown-500">Sends a password-reset email to {user.email} via Supabase Auth.</p>
-            </div>
-            <Button variant="outline" size="sm" isLoading={isSendingReset} onClick={handleSendPasswordReset}>
-              Send Reset Email
-            </Button>
-          </div>
-          <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm font-medium text-clay-600">Delete User</p>
-              <p className="text-xs text-brown-500">Permanently removes this Auth account and all associated data.</p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              icon={Trash2}
-              className="!border-clay-400 !text-clay-600 hover:!bg-clay-100"
-              onClick={() => setIsDeleteOpen(true)}
-            >
-              Delete User
-            </Button>
-          </div>
-        </div>
-      </Card>
-
       {/* ---------- Account Management ---------- */}
       <Card className="mt-6">
         <h3 className="font-display text-lg font-semibold text-maroon-600">{t("admin.acctTitle")}</h3>
@@ -497,6 +462,41 @@ export default function UserDetail() {
             </div>
             <Button variant="ghost" className="mt-3" onClick={askPassword} disabled={acctBusy || !acct.password}>
               {t("admin.acctChangePassword")}
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <div className="mb-2 flex items-center gap-2.5">
+          <span className="flex h-9 w-9 items-center justify-center rounded-full bg-saffron-100 text-maroon-600">
+            <KeyRound className="h-[18px] w-[18px]" />
+          </span>
+          <h2 className="font-display text-lg font-semibold text-maroon-600">Account Actions</h2>
+        </div>
+        <div className="flex flex-col divide-y divide-brown-900/5">
+          <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-brown-800">Update Password</p>
+              <p className="text-xs text-brown-500">Sends a password-reset email to {user.email} via Supabase Auth.</p>
+            </div>
+            <Button variant="outline" size="sm" isLoading={isSendingReset} onClick={handleSendPasswordReset}>
+              Send Reset Email
+            </Button>
+          </div>
+          <div className="flex flex-col gap-2 py-3.5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm font-medium text-clay-600">Delete User</p>
+              <p className="text-xs text-brown-500">Permanently removes this Auth account and all associated data.</p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={Trash2}
+              className="!border-clay-400 !text-clay-600 hover:!bg-clay-100"
+              onClick={() => setIsDeleteOpen(true)}
+            >
+              Delete User
             </Button>
           </div>
         </div>
