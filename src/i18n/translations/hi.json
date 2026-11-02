@@ -414,6 +414,7 @@
   "monthlyReport": {
     "pageTitleSuffix": "साधना रिपोर्ट",
     "subtitle": "आपके भक्ति के महीने पर एक शांत चिंतन।",
+    "calendarTitle": "साधना कैलेंडर",
     "noRecordsTitle": "इस महीने कोई साधना दर्ज नहीं है",
     "noRecordsBody": "यह रिपोर्ट बनाने के लिए अपनी दैनिक साधना जमा करें।",
     "daysCompletedHero": "इस महीने पूर्ण किए गए दिन",
