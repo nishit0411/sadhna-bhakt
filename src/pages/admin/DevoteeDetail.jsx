@@ -17,7 +17,8 @@ import ChartCard from "../../components/charts/ChartCard";
 import ActivityConsistencyChart from "../../components/charts/ActivityConsistencyChart";
 import LoadingState from "../../components/ui/LoadingState";
 import EmptyState from "../../components/ui/EmptyState";
-import { formatLongDate } from "../../utils/dateHelpers";
+import DatePicker from "../../components/ui/DatePicker";
+import { formatLongDate, formatMonthYear } from "../../utils/dateHelpers";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
@@ -38,10 +39,13 @@ function initiationSummary(devotee) {
 export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { user } = useAuth();
   const { addToast } = useToast();
-  const now = new Date();
+  const [cursor, setCursor] = useState(() => {
+    const today = new Date();
+    return { year: today.getFullYear(), month: today.getMonth() };
+  });
   const [devotee, setDevotee] = useState(null);
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -49,7 +53,7 @@ export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
   useEffect(() => {
     let active = true;
     setIsLoading(true);
-    Promise.all([devoteeService.getDevoteeSummary(id), sadhanaService.getMonthlyRecords(id, now.getFullYear(), now.getMonth())])
+    Promise.all([devoteeService.getDevoteeSummary(id), sadhanaService.getMonthlyRecords(id, cursor.year, cursor.month)])
       .then(([summary, month]) => {
         if (!active) return;
         setDevotee(summary);
@@ -65,7 +69,19 @@ export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, cursor]);
+
+  const now = new Date();
+  const isCurrentMonth = cursor.year === now.getFullYear() && cursor.month === now.getMonth();
+
+  function goToPrevMonth() {
+    setCursor((prev) => (prev.month === 0 ? { year: prev.year - 1, month: 11 } : { year: prev.year, month: prev.month - 1 }));
+  }
+
+  function goToNextMonth() {
+    if (isCurrentMonth) return;
+    setCursor((prev) => (prev.month === 11 ? { year: prev.year + 1, month: 0 } : { year: prev.year, month: prev.month + 1 }));
+  }
 
   const breakdown = useMemo(() => getActivityBreakdown(records, t), [records, t]);
   const totalMalaThisMonth = useMemo(() => records.reduce((sum, r) => sum + r.totalMala, 0), [records]);
@@ -117,16 +133,24 @@ export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => navigate(backPath)}
           className="inline-flex w-fit items-center gap-1.5 text-sm font-medium text-brown-500 hover:text-maroon-600"
         >
           <ArrowLeft className="h-4 w-4" /> {t("admin.backToDevotees")}
         </button>
-        <Button variant="outline" size="sm" icon={Download} onClick={handleExport} disabled={!records.length}>
-          {t("admin.exportCsv")}
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <DatePicker
+            label={formatMonthYear(new Date(cursor.year, cursor.month), locale)}
+            onPrev={goToPrevMonth}
+            onNext={goToNextMonth}
+            nextDisabled={isCurrentMonth}
+          />
+          <Button variant="outline" size="sm" icon={Download} onClick={handleExport} disabled={!records.length}>
+            {t("admin.exportCsv")}
+          </Button>
+        </div>
       </div>
 
       <Card className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">

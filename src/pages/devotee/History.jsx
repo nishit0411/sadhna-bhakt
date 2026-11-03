@@ -47,7 +47,9 @@ export default function History() {
 
   const recordsByDate = useMemo(() => {
     const map = new Map();
-    records.forEach((r) => map.set(r.date, r));
+    // Key by the calendar's YYYY-MM-DD cell, tolerating a full timestamp
+    // (e.g. an imported/restored row) instead of silently matching no day.
+    records.forEach((r) => map.set(String(r.date).slice(0, 10), r));
     return map;
   }, [records]);
 
@@ -80,14 +82,10 @@ export default function History() {
       />
 
       <Card>
-        {isLoading ? (
-          <LoadingState label={t("common.loading")} />
-        ) : records.length ? (
-          <Calendar cells={cells} recordsByDate={recordsByDate} onSelectDay={setSelectedRecord} />
-        ) : (
-          <EmptyState icon={CalendarX} title={t("history.noRecordsTitle")} description={t("history.noRecordsBody")} />
-        )}
+        {isLoading ? <LoadingState label={t("common.loading")} /> : <Calendar cells={cells} recordsByDate={recordsByDate} onSelectDay={setSelectedRecord} />}
       </Card>
+
+      {!isLoading && !records.length && <EmptyState icon={CalendarX} title={t("history.noRecordsTitle")} description={t("history.noRecordsBody")} />}
 
       <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-brown-500">
         <span className="flex items-center gap-1.5">

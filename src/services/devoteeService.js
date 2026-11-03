@@ -52,10 +52,22 @@ async function fetchAllDevotees() {
 
 /** Every devotee's Sadhana records, grouped by devotee id. Supabase mode only. */
 async function fetchAllRecordsGrouped() {
-  const { data, error } = await supabase.from("sadhana_records").select("*");
-  if (error) throw error;
+  // PostgREST caps a single response at 1000 rows by default, so page
+  // through instead of silently losing older history once the table grows.
+  const pageSize = 1000;
+  const rows = [];
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("sadhana_records")
+      .select("*")
+      .order("date", { ascending: true })
+      .range(from, from + pageSize - 1);
+    if (error) throw error;
+    rows.push(...(data ?? []));
+    if (!data || data.length < pageSize) break;
+  }
   const byDevotee = new Map();
-  (data ?? []).forEach((row) => {
+  rows.forEach((row) => {
     const record = mapRecordRow(row);
     if (!byDevotee.has(record.devoteeId)) byDevotee.set(record.devoteeId, []);
     byDevotee.get(record.devoteeId).push(record);

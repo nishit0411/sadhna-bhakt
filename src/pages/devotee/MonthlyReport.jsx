@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Sparkles, Sprout } from "lucide-react";
+import { Sparkles, Sprout, CalendarX } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import * as sadhanaService from "../../services/sadhanaService";
-import { daysInMonth, formatMonthYear } from "../../utils/dateHelpers";
+import { daysInMonth, formatMonthYear, getMonthGrid } from "../../utils/dateHelpers";
 import { getActivityBreakdown } from "../../utils/activityBreakdown";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
@@ -19,7 +19,8 @@ import ActivityConsistencyChart from "../../components/charts/ActivityConsistenc
 import LoadingState from "../../components/ui/LoadingState";
 import EmptyState from "../../components/ui/EmptyState";
 import ProgressBar from "../../components/ui/ProgressBar";
-import { CalendarX } from "lucide-react";
+import Calendar from "../../components/history/Calendar";
+import DayDetailModal from "../../components/history/DayDetailModal";
 
 export default function MonthlyReport() {
   const { user } = useAuth();
@@ -29,6 +30,7 @@ export default function MonthlyReport() {
   const [cursor, setCursor] = useState({ year: now.getFullYear(), month: now.getMonth() });
   const [records, setRecords] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedRecord, setSelectedRecord] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -53,6 +55,16 @@ export default function MonthlyReport() {
 
   const isCurrentMonth = cursor.year === now.getFullYear() && cursor.month === now.getMonth();
   const totalDays = daysInMonth(cursor.year, cursor.month);
+
+  const recordsByDate = useMemo(() => {
+    const map = new Map();
+    // Key by the calendar's YYYY-MM-DD cell, tolerating a full timestamp
+    // (e.g. an imported/restored row) instead of silently matching no day.
+    records.forEach((r) => map.set(String(r.date).slice(0, 10), r));
+    return map;
+  }, [records]);
+
+  const cells = useMemo(() => getMonthGrid(cursor.year, cursor.month), [cursor]);
 
   const stats = useMemo(() => {
     if (!records.length) {
@@ -98,63 +110,82 @@ export default function MonthlyReport() {
 
       {isLoading ? (
         <LoadingState fullHeight />
-      ) : !records.length ? (
-        <EmptyState icon={CalendarX} title={t("monthlyReport.noRecordsTitle")} description={t("monthlyReport.noRecordsBody")} />
       ) : (
         <>
-          <Card className="flex flex-col items-center gap-2 bg-maroon-500 text-center text-cream-50">
-            <p className="font-display text-6xl font-semibold">{Math.round((records.length / totalDays) * 100)}%</p>
-            <p className="text-sm text-cream-100/80">{t("monthlyReport.daysCompletedHero")}</p>
-            <div className="mt-2 w-full max-w-xs">
-              <ProgressBar value={records.length} max={totalDays} tone="saffron" trackClassName="bg-cream-100/20" />
+          <Card>
+            <h2 className="mb-4 font-display text-lg font-semibold text-maroon-600">{t("monthlyReport.calendarTitle")}</h2>
+            <Calendar cells={cells} recordsByDate={recordsByDate} onSelectDay={setSelectedRecord} />
+            <div className="mt-4 flex flex-wrap items-center gap-4 text-xs text-brown-500">
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-sage-300" /> {t("history.submitted")}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-3 w-3 rounded-full bg-cream-300" /> {t("history.notSubmitted")}
+              </span>
             </div>
           </Card>
 
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <ProgressCard label={t("monthlyReport.daysSubmitted")} value={`${records.length} / ${totalDays}`} />
-            <ProgressCard label={t("monthlyReport.totalMala")} value={`${stats.totalMala}`} />
-            <ProgressCard label={t("monthlyReport.averageMala")} value={`${stats.avgMala}`} />
-            <ProgressCard label={t("monthlyReport.granthReading")} value={`${stats.granthDays}`} />
-            <ProgressCard label={t("monthlyReport.harikatha")} value={`${stats.harikathaDays}`} />
-            <ProgressCard label={t("monthlyReport.bhogPrasadam")} value={`${stats.bhogDays}`} />
-            <ProgressCard label={t("monthlyReport.gurudevRemembrance")} value={`${stats.gurudevDays}`} />
-          </div>
+          {!records.length ? (
+            <EmptyState icon={CalendarX} title={t("monthlyReport.noRecordsTitle")} description={t("monthlyReport.noRecordsBody")} />
+          ) : (
+            <>
+              <Card className="flex flex-col items-center gap-2 bg-maroon-500 text-center text-cream-50">
+                <p className="font-display text-6xl font-semibold">{Math.round((records.length / totalDays) * 100)}%</p>
+                <p className="text-sm text-cream-100/80">{t("monthlyReport.daysCompletedHero")}</p>
+                <div className="mt-2 w-full max-w-xs">
+                  <ProgressBar value={records.length} max={totalDays} tone="saffron" trackClassName="bg-cream-100/20" />
+                </div>
+              </Card>
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <ChartCard title={t("monthlyReport.malaProgressChart")}>
-              <JapaRoundsChart data={records.map((r) => ({ date: r.date, japaRounds: r.totalMala }))} />
-            </ChartCard>
-            <ChartCard title={t("monthlyReport.activityConsistencyChart")}>
-              <ActivityConsistencyChart data={breakdown} />
-            </ChartCard>
-          </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <ProgressCard label={t("monthlyReport.daysSubmitted")} value={`${records.length} / ${totalDays}`} />
+                <ProgressCard label={t("monthlyReport.totalMala")} value={`${stats.totalMala}`} />
+                <ProgressCard label={t("monthlyReport.averageMala")} value={`${stats.avgMala}`} />
+                <ProgressCard label={t("monthlyReport.granthReading")} value={`${stats.granthDays}`} />
+                <ProgressCard label={t("monthlyReport.harikatha")} value={`${stats.harikathaDays}`} />
+                <ProgressCard label={t("monthlyReport.bhogPrasadam")} value={`${stats.bhogDays}`} />
+                <ProgressCard label={t("monthlyReport.gurudevRemembrance")} value={`${stats.gurudevDays}`} />
+              </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Card className="flex items-start gap-3 bg-sage-50">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-600">
-                <Sparkles className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="font-display text-base font-semibold text-brown-900">{t("monthlyReport.strongestPracticeTitle")}</p>
-                <p className="mt-1 text-sm text-brown-600">
-                  {t("monthlyReport.strongestPracticeBody", { label: strongest.label, value: strongest.value })}
-                </p>
+              <div className="grid gap-6 lg:grid-cols-2">
+                <ChartCard title={t("monthlyReport.malaProgressChart")}>
+                  <JapaRoundsChart data={records.map((r) => ({ date: r.date, japaRounds: r.totalMala }))} />
+                </ChartCard>
+                <ChartCard title={t("monthlyReport.activityConsistencyChart")}>
+                  <ActivityConsistencyChart data={breakdown} />
+                </ChartCard>
               </div>
-            </Card>
-            <Card className="flex items-start gap-3 bg-saffron-50">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-saffron-100 text-saffron-600">
-                <Sprout className="h-5 w-5" />
-              </span>
-              <div>
-                <p className="font-display text-base font-semibold text-brown-900">{t("monthlyReport.consistencyAreaTitle")}</p>
-                <p className="mt-1 text-sm text-brown-600">
-                  {t("monthlyReport.consistencyAreaBody", { label: weakest.label, value: weakest.value })}
-                </p>
+
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Card className="flex items-start gap-3 bg-sage-50">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sage-100 text-sage-600">
+                    <Sparkles className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="font-display text-base font-semibold text-brown-900">{t("monthlyReport.strongestPracticeTitle")}</p>
+                    <p className="mt-1 text-sm text-brown-600">
+                      {t("monthlyReport.strongestPracticeBody", { label: strongest.label, value: strongest.value })}
+                    </p>
+                  </div>
+                </Card>
+                <Card className="flex items-start gap-3 bg-saffron-50">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-saffron-100 text-saffron-600">
+                    <Sprout className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <p className="font-display text-base font-semibold text-brown-900">{t("monthlyReport.consistencyAreaTitle")}</p>
+                    <p className="mt-1 text-sm text-brown-600">
+                      {t("monthlyReport.consistencyAreaBody", { label: weakest.label, value: weakest.value })}
+                    </p>
+                  </div>
+                </Card>
               </div>
-            </Card>
-          </div>
+            </>
+          )}
         </>
       )}
+
+      <DayDetailModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
     </div>
   );
 }

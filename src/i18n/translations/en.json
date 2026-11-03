@@ -414,6 +414,7 @@
   "monthlyReport": {
     "pageTitleSuffix": "Sadhana Report",
     "subtitle": "A quiet reflection on your month of devotion.",
+    "calendarTitle": "Sadhana Calendar",
     "noRecordsTitle": "No Sadhana recorded this month",
     "noRecordsBody": "Submit your Daily Sadhana to build this report.",
     "daysCompletedHero": "Days Completed This Month",
