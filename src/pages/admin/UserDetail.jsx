@@ -12,7 +12,7 @@ import {
   TriangleAlert,
   Fingerprint,
 } from "lucide-react";
-import { listAllUsers, deleteUserAccount, adminChangeEmail, adminChangePassword } from "../../services/adminUserService";
+import { getUserById, deleteUserAccount, adminChangeEmail, adminChangePassword } from "../../services/adminUserService";
 import { updateProfile, requestPasswordReset } from "../../services/authService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -127,14 +127,13 @@ export default function UserDetail() {
 
   function load() {
     setIsLoading(true);
-    listAllUsers()
-      .then(({ users }) => {
-        const match = users.find((u) => u.id === id);
-        if (!match) {
+    getUserById(id)
+      .then(({ user }) => {
+        if (!user) {
           setLoadError("This user could not be found.");
         } else {
-          setUser(match);
-          setForm(buildFormFromProfile(match.profile));
+          setUser(user);
+          setForm(buildFormFromProfile(user.profile));
           setLoadError(null);
         }
         setIsLoading(false);
