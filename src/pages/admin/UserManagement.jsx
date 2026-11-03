@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, ShieldCheck, ShieldAlert, ChevronLeft, ChevronRight, TriangleAlert, Eye } from "lucide-react";
 import { listAllUsers } from "../../services/adminUserService";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -60,72 +60,86 @@ function RoleBadge({ role }) {
 
 export default function UserManagement() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
 
   const [users, setUsers] = useState([]);
   const [orphanedProfiles, setOrphanedProfiles] = useState([]);
+  const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
-  const [search, setSearch] = useState("");
-  const [roleFilter, setRoleFilter] = useState("all");
-  const [verifiedFilter, setVerifiedFilter] = useState("all");
-  const [profileFilter, setProfileFilter] = useState("all");
-  const [page, setPage] = useState(1);
+  // Read filters from URL state (shareable, back-button friendly)
+  const search = searchParams.get("search") ?? "";
+  const roleFilter = searchParams.get("role") ?? "all";
+  const verifiedFilter = searchParams.get("verified") ?? "all";
+  const profileFilter = searchParams.get("profile") ?? "all";
+  const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10));
+
+  // Local search input state — immediate UI feedback while typing.
+  // Synced to the URL (and thus to the API) after a 500ms debounce.
+  const [searchInput, setSearchInput] = useState(search);
+
+  const fetchUsers = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+    try {
+      const data = await listAllUsers({
+        page,
+        pageSize: PAGE_SIZE,
+        search,
+        role: roleFilter,
+        verified: verifiedFilter,
+        profile: profileFilter,
+      });
+      setUsers(data.users ?? []);
+      setOrphanedProfiles(data.orphanedProfiles ?? []);
+      setTotal(data.total ?? 0);
+      setIsLoading(false);
+    } catch (err) {
+      setLoadError(err.message || friendlyErrorMessage(err, t, "errors.loadFailed"));
+      setIsLoading(false);
+    }
+  }, [page, search, roleFilter, verifiedFilter, profileFilter, t]);
 
   useEffect(() => {
-    let active = true;
-    setIsLoading(true);
-    listAllUsers()
-      .then(({ users: list, orphanedProfiles: orphans }) => {
-        if (!active) return;
-        setUsers(list);
-        setOrphanedProfiles(orphans ?? []);
-        setLoadError(null);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        // This is an admin-only diagnostic tool, not a devotee-facing page —
-        // showing the real error (rather than routing it through
-        // friendlyErrorMessage's sanitizing) is the right tradeoff here so
-        // an admin can actually see *why* the server rejected the request.
-        setLoadError(err.message || friendlyErrorMessage(err, t, "errors.loadFailed"));
-        setIsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
+    fetchUsers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, search, roleFilter, verifiedFilter, profileFilter]);
 
-  const filtered = useMemo(() => {
-    return users.filter((u) => {
-      if (search) {
-        const q = search.toLowerCase();
-        const matchesEmail = u.email.toLowerCase().includes(q);
-        const matchesName = displayName(u).toLowerCase().includes(q);
-        if (!matchesEmail && !matchesName) return false;
+  // Debounce: when the user stops typing for 500ms, push the search value to the URL.
+  // This triggers fetchUsers via the URL-param effect above.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchInput !== search) {
+        setSearchParams(
+          (prev) => {
+            prev.set("search", searchInput);
+            prev.set("page", "1");
+            return prev;
+          },
+          { replace: true },
+        );
       }
-      if (roleFilter !== "all" && (u.profile?.role ?? "devotee") !== roleFilter) return false;
-      if (verifiedFilter === "verified" && !u.emailConfirmedAt) return false;
-      if (verifiedFilter === "unverified" && u.emailConfirmedAt) return false;
-      if (profileFilter === "exists" && !u.profile) return false;
-      if (profileFilter === "missing" && u.profile) return false;
-      return true;
-    });
-  }, [users, search, roleFilter, verifiedFilter, profileFilter]);
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput, search, setSearchParams]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageRows = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-
-  function updateFilter(setter) {
-    return (value) => {
-      setter(value);
-      setPage(1);
-    };
+  function updateUrlParam(key, value) {
+    setSearchParams(
+      (prev) => {
+        prev.set(key, value);
+        prev.set("page", "1");
+        return prev;
+      },
+      { replace: true },
+    );
   }
+
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+
+  const noResults = !isLoading && !loadError && total === 0;
 
   if (isLoading) return <LoadingState fullHeight label="Loading users…" />;
 
@@ -166,26 +180,38 @@ export default function UserManagement() {
           <Input
             label="Search"
             placeholder="Search by name or email…"
-            value={search}
-            onChange={(e) => updateFilter(setSearch)(e.target.value)}
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         <div className="min-w-[160px]">
-          <Select label="Role" value={roleFilter} onChange={(e) => updateFilter(setRoleFilter)(e.target.value)}>
+          <Select
+            label="Role"
+            value={roleFilter}
+            onChange={(e) => updateUrlParam("role", e.target.value)}
+          >
             <option value="all">All Users</option>
             <option value="admin">Admins</option>
             <option value="devotee">Devotees</option>
           </Select>
         </div>
         <div className="min-w-[160px]">
-          <Select label="Email status" value={verifiedFilter} onChange={(e) => updateFilter(setVerifiedFilter)(e.target.value)}>
+          <Select
+            label="Email status"
+            value={verifiedFilter}
+            onChange={(e) => updateUrlParam("verified", e.target.value)}
+          >
             <option value="all">All</option>
             <option value="verified">Verified</option>
             <option value="unverified">Unverified</option>
           </Select>
         </div>
         <div className="min-w-[180px]">
-          <Select label="Profile" value={profileFilter} onChange={(e) => updateFilter(setProfileFilter)(e.target.value)}>
+          <Select
+            label="Profile"
+            value={profileFilter}
+            onChange={(e) => updateUrlParam("profile", e.target.value)}
+          >
             <option value="all">All</option>
             <option value="exists">Profile Exists</option>
             <option value="missing">Profile Missing</option>
@@ -193,7 +219,7 @@ export default function UserManagement() {
         </div>
       </Card>
 
-      {!filtered.length ? (
+      {noResults ? (
         <EmptyState icon={Search} title="No users match these filters" description="Try a different search or filter." />
       ) : (
         <Card padded={false} className="overflow-hidden">
@@ -212,7 +238,7 @@ export default function UserManagement() {
                 </tr>
               </thead>
               <tbody>
-                {pageRows.map((u) => (
+                {users.map((u) => (
                   <tr
                     key={u.id}
                     className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-100"
@@ -264,7 +290,7 @@ export default function UserManagement() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between gap-3 border-t border-brown-900/5 px-4 py-3">
               <p className="text-xs text-brown-500">
-                Page {currentPage} of {totalPages} · {filtered.length} user{filtered.length === 1 ? "" : "s"}
+                Page {currentPage} of {totalPages} · {total} user{total === 1 ? "" : "s"}
               </p>
               <div className="flex gap-2">
                 <Button
@@ -272,7 +298,7 @@ export default function UserManagement() {
                   size="sm"
                   icon={ChevronLeft}
                   disabled={currentPage <= 1}
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  onClick={() => updateUrlParam("page", String(currentPage - 1))}
                 >
                   Prev
                 </Button>
@@ -281,7 +307,7 @@ export default function UserManagement() {
                   size="sm"
                   icon={ChevronRight}
                   disabled={currentPage >= totalPages}
-                  onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                  onClick={() => updateUrlParam("page", String(currentPage + 1))}
                 >
                   Next
                 </Button>

@@ -3,9 +3,34 @@
  */
 import { authorizedRequest } from "./adminApiClient";
 
-/** Every auth user merged with their profile, plus any orphaned-profile rows. */
-export async function listAllUsers() {
-  return authorizedRequest("/api/admin/users");
+/**
+ * Paginated, filterable list of auth users merged with their profiles,
+ * plus any orphaned-profile rows.
+ *
+ * @param {Object} params
+ * @param {number} params.page          — 1-based page number (default 1)
+ * @param {number} params.pageSize      — rows per page (default 20, max 100)
+ * @param {string} params.search        — substring matched against email / firstName / lastName
+ * @param {string} params.role          — "all" | "admin" | "devotee"
+ * @param {string} params.verified      — "all" | "verified" | "unverified"
+ * @param {string} params.profile       — "all" | "exists" | "missing"
+ * @returns {Promise<{ users, orphanedProfiles, total, page, pageSize, totalPages }>}
+ */
+export async function listAllUsers(params = {}) {
+  const qs = new URLSearchParams({
+    page: String(params.page ?? 1),
+    pageSize: String(params.pageSize ?? 20),
+  });
+  if (params.search) qs.set("search", params.search);
+  if (params.role && params.role !== "all") qs.set("role", params.role);
+  if (params.verified && params.verified !== "all") qs.set("verified", params.verified);
+  if (params.profile && params.profile !== "all") qs.set("profile", params.profile);
+  return authorizedRequest(`/api/admin/users?${qs}`);
+}
+
+/** Single auth user merged with their profile. */
+export async function getUserById(userId) {
+  return authorizedRequest(`/api/admin/users/${encodeURIComponent(userId)}`);
 }
 
 /** Permanently deletes the Supabase Auth account (and its profile, via ON DELETE CASCADE). */
