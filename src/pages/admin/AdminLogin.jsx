@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -33,6 +33,7 @@ export default function AdminLogin() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -123,17 +124,28 @@ export default function AdminLogin() {
               <label htmlFor="admin-password" className="text-sm font-medium" style={{ color: "#cfc4b3" }}>
                 {t("auth.passwordLabel")}
               </label>
+              <div className="relative mt-1.5">
               <input
                 id="admin-password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 autoComplete="current-password"
                 placeholder={t("auth.passwordPlaceholder")}
                 value={form.password}
                 onChange={handleChange}
-                className="mt-1.5 w-full rounded-xl border bg-transparent px-4 py-2.5 text-base outline-none transition-colors focus:ring-2 sm:text-sm"
+                className="w-full rounded-xl border bg-transparent py-2.5 pl-4 pr-10 text-base outline-none transition-colors focus:ring-2 sm:text-sm"
                 style={{ borderColor: errors.password ? "#cc4a3d" : `${GOLD}44`, color: "#f7f2e7" }}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword((s) => !s)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 rounded-md p-1 focus:outline-none focus:ring-2"
+                style={{ color: GOLD_SOFT }}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+              </div>
               {errors.password && <p className="mt-1.5 text-xs" style={{ color: "#e0938a" }}>{errors.password}</p>}
               <Link to="/forgot-password" className="mt-1.5 inline-block text-xs font-medium hover:underline" style={{ color: GOLD_SOFT }}>
                 {t("auth.forgotPasswordLink")}

@@ -1,35 +1,39 @@
+import { lazy, Suspense } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+import LoadingState from "./components/ui/LoadingState";
 import Landing from "./pages/Landing";
 import Login from "./pages/auth/Login";
-import ForgotPassword from "./pages/auth/ForgotPassword";
-import ResetPassword from "./pages/auth/ResetPassword";
-import Register from "./pages/Register";
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
+const Register = lazy(() => import("./pages/Register"));
 import ProtectedRoute from "./layouts/ProtectedRoute";
 import DevoteeLayout from "./layouts/DevoteeLayout";
 import AdminLayout from "./layouts/AdminLayout";
 import MentorLayout from "./layouts/MentorLayout";
 
-import Dashboard from "./pages/devotee/Dashboard";
-import DailySadhana from "./pages/devotee/DailySadhana";
-import AutofillSetup from "./pages/devotee/AutofillSetup";
-import History from "./pages/devotee/History";
-import MonthlyReport from "./pages/devotee/MonthlyReport";
-import Profile from "./pages/devotee/Profile";
+const Dashboard = lazy(() => import("./pages/devotee/Dashboard"));
+const DailySadhana = lazy(() => import("./pages/devotee/DailySadhana"));
+const AutofillSetup = lazy(() => import("./pages/devotee/AutofillSetup"));
+const History = lazy(() => import("./pages/devotee/History"));
+const MonthlyReport = lazy(() => import("./pages/devotee/MonthlyReport"));
+const Profile = lazy(() => import("./pages/devotee/Profile"));
 
-import AdminLogin from "./pages/admin/AdminLogin";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import Analytics from "./pages/admin/Analytics";
-import Devotees from "./pages/admin/Devotees";
-import DevoteeDetail from "./pages/admin/DevoteeDetail";
-import Reports from "./pages/admin/Reports";
-import UserManagement from "./pages/admin/UserManagement";
-import UserDetail from "./pages/admin/UserDetail";
-import MentorManagement from "./pages/admin/MentorManagement";
+const AdminLogin = lazy(() => import("./pages/admin/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
+const Analytics = lazy(() => import("./pages/admin/Analytics"));
+const Devotees = lazy(() => import("./pages/admin/Devotees"));
+const DevoteeDetail = lazy(() => import("./pages/admin/DevoteeDetail"));
+const Reports = lazy(() => import("./pages/admin/Reports"));
+const UserManagement = lazy(() => import("./pages/admin/UserManagement"));
+const UserDetail = lazy(() => import("./pages/admin/UserDetail"));
+const MentorManagement = lazy(() => import("./pages/admin/MentorManagement"));
 
-import MentorDashboard from "./pages/mentor/MentorDashboard";
+const MentorDashboard = lazy(() => import("./pages/mentor/MentorDashboard"));
+const MentorReports = lazy(() => import("./pages/mentor/MentorReports"));
 
 export default function App() {
   return (
+    <Suspense fallback={<LoadingState fullHeight />}>
     <Routes>
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
@@ -65,6 +69,7 @@ export default function App() {
       <Route element={<ProtectedRoute role="mentor" />}>
         <Route element={<MentorLayout />}>
           <Route path="/mentor/dashboard" element={<MentorDashboard />} />
+          <Route path="/mentor/reports" element={<MentorReports />} />
           <Route path="/mentor/sadhana" element={<DailySadhana />} />
           <Route path="/mentor/profile" element={<Profile />} />
           <Route path="/mentor/devotees/:id" element={<DevoteeDetail backPath="/mentor/dashboard" />} />
@@ -73,5 +78,6 @@ export default function App() {
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </Suspense>
   );
 }

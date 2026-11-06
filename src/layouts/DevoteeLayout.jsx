@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import LoadingState from "../components/ui/LoadingState";
 import { Outlet } from "react-router-dom";
 import { LayoutDashboard, NotebookPen, History, BarChart3, UserRound } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
@@ -26,7 +27,7 @@ export default function DevoteeLayout() {
         <Navbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 sm:pb-10 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">
-            <Outlet />
+            <Suspense fallback={<LoadingState />}><Outlet /></Suspense>
           </div>
           <DeveloperCredit className="mt-10 pb-2" />
         </main>

@@ -45,22 +45,52 @@ function mapRecordRow(row) {
 
 /** All devotee (non-admin) profiles. Supabase mode only. */
 async function fetchAllDevotees() {
-  const { data, error } = await supabase.from("profiles").select("*").eq("role", "devotee");
-  if (error) throw error;
-  return (data ?? []).map(mapProfileRow);
+  return cached("devotees", async () => {
+    const { data, error } = await supabase.from("profiles").select("*").eq("role", "devotee");
+    if (error) throw error;
+    return (data ?? []).map(mapProfileRow);
+  });
+}
+
+// Short-lived cache + in-flight de-duplication. Dashboard/Analytics call
+// several functions that each need the full directory/records at once;
+// without this the same thousands of rows were downloaded 2–3 times per page.
+const CACHE_TTL_MS = 30_000;
+const cache = new Map();
+function cached(key, loader) {
+  const hit = cache.get(key);
+  if (hit && Date.now() - hit.at < CACHE_TTL_MS) return hit.promise;
+  const promise = loader().catch((err) => {
+    cache.delete(key);
+    throw err;
+  });
+  cache.set(key, { at: Date.now(), promise });
+  return promise;
+}
+
+/** Drops cached devotee/record data (call after writes that should show immediately). */
+export function invalidateDevoteeCache() {
+  cache.clear();
 }
 
 /** Every devotee's Sadhana records, grouped by devotee id. Supabase mode only. */
-async function fetchAllRecordsGrouped() {
+async function fetchAllRecordsGrouped(range = {}) {
+  const { fromDate, toDate } = range;
+  return cached(`records:${fromDate ?? ""}:${toDate ?? ""}`, () => loadRecordsGrouped(fromDate, toDate));
+}
+
+async function loadRecordsGrouped(fromDate, toDate) {
   // PostgREST caps a single response at 1000 rows by default, so page
   // through instead of silently losing older history once the table grows.
   const pageSize = 1000;
   const rows = [];
   for (let from = 0; ; from += pageSize) {
-    const { data, error } = await supabase
-      .from("sadhana_records")
-      .select("*")
+    let q = supabase.from("sadhana_records").select("*");
+    if (fromDate) q = q.gte("date", fromDate);
+    if (toDate) q = q.lte("date", toDate);
+    const { data, error } = await q
       .order("date", { ascending: true })
+      .order("id", { ascending: true })
       .range(from, from + pageSize - 1);
     if (error) throw error;
     rows.push(...(data ?? []));
@@ -139,7 +169,10 @@ export async function getDevoteeDirectory(forDate, windowDays = 30) {
 export async function getSubmissionTrend(days = 7) {
   let recordsByDevotee;
   if (isSupabaseConfigured) {
-    recordsByDevotee = await fetchAllRecordsGrouped();
+    // Only the last `days` days — not every record ever submitted.
+    const start = new Date();
+    start.setDate(start.getDate() - (days - 1));
+    recordsByDevotee = await fetchAllRecordsGrouped({ fromDate: toISODate(start) });
   } else {
     await delay();
     recordsByDevotee = new Map(getDevoteesOnly().map((d) => [d.id, getAllRecordsForDevotee(d.id)]));
@@ -192,7 +225,13 @@ export async function getDevoteeSummary(devoteeId) {
 export async function getSanghaMonthlyOverview(year, monthIndex) {
   let recordsByDevotee;
   if (isSupabaseConfigured) {
-    recordsByDevotee = await fetchAllRecordsGrouped();
+    // Only the requested month — not every record ever submitted.
+    const pad = (n) => String(n).padStart(2, "0");
+    const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+    recordsByDevotee = await fetchAllRecordsGrouped({
+      fromDate: `${year}-${pad(monthIndex + 1)}-01`,
+      toDate: `${year}-${pad(monthIndex + 1)}-${pad(lastDay)}`,
+    });
   } else {
     await delay();
     recordsByDevotee = new Map(getDevoteesOnly().map((d) => [d.id, getAllRecordsForDevotee(d.id)]));
@@ -226,12 +265,19 @@ export async function getSanghaMonthlyOverview(year, monthIndex) {
   });
 
   const dailyMalaAverages = [...byDate.entries()]
-    .map(([date, { mala, count }]) => ({ date, japaRounds: Math.round((mala / count) * 10) / 10 }))
+    .map(([date, { mala, count }]) => ({ date, japaRounds: Math.round((mala / count) * 10) / 10, submissions: count }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return {
     dailyMalaAverages,
     totalMala,
+    totalSubmissions: breakdownTotals.count,
+    activeDevotees: [...recordsByDevotee.values()].filter((list) =>
+      list.some((r) => {
+        const d = new Date(`${r.date}T00:00:00`);
+        return d.getFullYear() === year && d.getMonth() === monthIndex;
+      }),
+    ).length,
     activeDays: byDate.size,
     activityBreakdown: breakdownTotals.count
       ? [
