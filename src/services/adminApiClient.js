@@ -19,7 +19,11 @@ export async function authorizedRequest(path, options = {}) {
     ...options,
     headers: { ...(options.headers ?? {}), Authorization: `Bearer ${token}` },
   });
-  const body = await res.json().catch(() => ({}));
+  const isJson = (res.headers.get("content-type") || "").includes("application/json");
+  const body = isJson ? await res.json().catch(() => ({})) : {};
   if (!res.ok) throw new Error(body.error || "Request failed.");
+  if (!isJson) {
+    throw new Error("Admin API is not available (got a non-JSON response). Run the app with `vercel dev` locally.");
+  }
   return body;
 }
