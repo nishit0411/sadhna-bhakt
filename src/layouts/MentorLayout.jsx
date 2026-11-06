@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import LoadingState from "../components/ui/LoadingState";
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, NotebookPen, UserRound } from "lucide-react";
+import { LayoutDashboard, NotebookPen, UserRound, BarChart3 } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
@@ -15,6 +16,7 @@ export default function MentorLayout() {
     { label: t("nav.mentorDashboard"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },
     { label: t("nav.dailySadhana"), to: "/mentor/sadhana", icon: NotebookPen },
     { label: t("nav.myProfile"), to: "/mentor/profile", icon: UserRound },
+    { label: t("nav.mentorReports"), to: "/mentor/reports", icon: BarChart3 },
   ];
 
   return (
@@ -24,7 +26,7 @@ export default function MentorLayout() {
         <Navbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 px-4 pb-24 pt-5 sm:px-6 sm:pb-10 lg:px-8">
           <div className="mx-auto w-full max-w-6xl">
-            <Outlet />
+            <Suspense fallback={<LoadingState />}><Outlet /></Suspense>
           </div>
           <DeveloperCredit className="mt-10 pb-2" />
         </main>
