@@ -30,7 +30,7 @@ export async function listAllUsers(params = {}) {
 
 /** Single auth user merged with their profile. */
 export async function getUserById(userId) {
-  return authorizedRequest(`/api/admin/users/${encodeURIComponent(userId)}`);
+  return authorizedRequest(`/api/admin/users?userId=${encodeURIComponent(userId)}`);
 }
 
 /** Permanently deletes the Supabase Auth account (and its profile, via ON DELETE CASCADE). */
