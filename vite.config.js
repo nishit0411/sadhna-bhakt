@@ -10,6 +10,6 @@ export default defineConfig({
   build: {
     // Inline the two small guru portraits as base64 so `npm run build` can
     // still produce a single self-contained bundle when needed.
-    assetsInlineLimit: 300000,
+    assetsInlineLimit: 4096,
   },
 })
