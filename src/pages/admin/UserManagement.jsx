@@ -136,6 +136,16 @@ export default function UserManagement() {
     );
   }
 
+  // Pagination only changes the page — unlike updateUrlParam, which resets to
+  // page 1 for filter changes (and so silently undid Next/Prev).
+  function goToPage(nextPage) {
+    setSearchParams((prev) => {
+      prev.set("page", String(nextPage));
+      return prev;
+    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
 
@@ -298,7 +308,7 @@ export default function UserManagement() {
                   size="sm"
                   icon={ChevronLeft}
                   disabled={currentPage <= 1}
-                  onClick={() => updateUrlParam("page", String(currentPage - 1))}
+                  onClick={() => goToPage(currentPage - 1)}
                 >
                   Prev
                 </Button>
@@ -307,7 +317,7 @@ export default function UserManagement() {
                   size="sm"
                   icon={ChevronRight}
                   disabled={currentPage >= totalPages}
-                  onClick={() => updateUrlParam("page", String(currentPage + 1))}
+                  onClick={() => goToPage(currentPage + 1)}
                 >
                   Next
                 </Button>
