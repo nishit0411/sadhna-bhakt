@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { Download } from "lucide-react";
 import { formatMonthYear } from "../../utils/dateHelpers";
 import { ACTIVITY_LABEL_KEYS } from "../../utils/activityBreakdown";
@@ -7,73 +7,36 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
+import { useMonthlyReport } from "../../hooks/useMonthlyReport";
+import { describeFilters, exportColumns, exportFileSuffix, toMasterExportRows, MASTER_EXPORT_KEYS } from "../../utils/reportFilters";
 import PageHeader from "../../components/layout/PageHeader";
-import * as devoteeService from "../../services/devoteeService";
 import ProgressCard from "../../components/dashboard/ProgressCard";
 import ChartCard from "../../components/charts/ChartCard";
 import JapaRoundsChart from "../../components/charts/JapaRoundsChart";
 import ActivityConsistencyChart from "../../components/charts/ActivityConsistencyChart";
 import LoadingState from "../../components/ui/LoadingState";
-import DatePicker from "../../components/ui/DatePicker";
 import Button from "../../components/ui/Button";
-import EmptyState from "../../components/ui/EmptyState";
+import ReportFilterBar from "../../components/admin/ReportFilterBar";
+import MasterReportTable from "../../components/admin/MasterReportTable";
+
+// Stable reference — the mentor view has no mentor filter (RLS already
+// scopes every query to this mentor's own mentees).
+const NO_MENTORS = [];
+const MENTOR_FILTERS = { search: true, location: true, month: true, status: true, mentor: false };
 
 /**
- * Mentor Reports — read-only, scoped to the mentor's own mentees via RLS.
- *
- * getSanghaMonthlyOverview() calls fetchAllRecordsGrouped(), which is limited
- * by the sadhana_select_own_or_admin RLS policy to records where
- * profiles.mentor_id = auth.uid(). So a mentor calling this endpoint only ever
- * sees their own mentees' data — no admin access needed, no cross-mentor
- * leakage possible.
- *
- * No edit, no password change, no user-modification features — mentors can
- * only view and download reports for their assigned devotees.
+ * Mentor Reports — read-only, scoped to the mentor's own mentees by RLS.
+ * Shares the admin report's filter state, aggregation, Master Report table
+ * and CSV allowlist; mentors can view and download only.
  */
 export default function MentorReports() {
   const { t, locale } = useTranslation();
   const { user } = useAuth();
   const { addToast } = useToast();
-  const now = new Date();
-  const [cursor, setCursor] = useState(() => ({
-    year: now.getFullYear(),
-    month: now.getMonth(),
-  }));
-  const [overview, setOverview] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const onError = (err) => addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
 
-  useEffect(() => {
-    let active = true;
-    setIsLoading(true);
-    devoteeService
-      .getSanghaMonthlyOverview(cursor.year, cursor.month)
-      .then((data) => {
-        if (!active) return;
-        setOverview(data);
-        setIsLoading(false);
-      })
-      .catch((err) => {
-        if (!active) return;
-        addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
-        setIsLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cursor]);
-
-  const isCurrentMonth =
-    cursor.year === now.getFullYear() && cursor.month === now.getMonth();
-
-  function goToPrevMonth() {
-    setCursor((prev) => (prev.month === 0 ? { year: prev.year - 1, month: 11 } : { year: prev.year, month: prev.month - 1 }));
-  }
-
-  function goToNextMonth() {
-    if (isCurrentMonth) return;
-    setCursor((prev) => (prev.month === 11 ? { year: prev.year + 1, month: 0 } : { year: prev.year, month: prev.month + 1 }));
-  }
+  const { filters, setFilters, resetFilters, rows, filteredRows, locationOptions, overview, isLoading, isOverviewLoading } =
+    useMonthlyReport({ mentors: NO_MENTORS, onError });
 
   const translatedBreakdown = useMemo(() => {
     if (!overview) return [];
@@ -83,44 +46,31 @@ export default function MentorReports() {
     }));
   }, [overview, t]);
 
-  function handleExport() {
+  const monthLabel = formatMonthYear(new Date(filters.cursor.year, filters.cursor.month), locale);
+  const filterText = describeFilters(filters, { locationOptions, mentors: NO_MENTORS, t, monthLabel });
+  const chartSubtitle = filterText
+    ? t("admin.report.chartFiltered", { filters: filterText, count: filteredRows.length })
+    : t("admin.report.chartAll", { month: monthLabel });
+  const submittedCount = filteredRows.filter((r) => r.submissions > 0).length;
+  const suffix = exportFileSuffix(filters, { locationOptions });
+  const exportNote = `Exported by: ${user?.name ?? user?.email ?? "Mentor"}`;
+
+  function handleExportDaily() {
     if (!overview?.dailyMalaAverages?.length) return;
     downloadCSV(
-      `mentees-report-${formatMonthYear(new Date(cursor.year, cursor.month), locale)}`,
+      `mentees-report-${suffix}`,
       overview.dailyMalaAverages,
       [
         { key: "date", label: "Date" },
         { key: "japaRounds", label: "Average Mala" },
         { key: "submissions", label: "Submissions" },
       ],
-      `Exported by: ${user?.name ?? user?.email ?? "Mentor"}`
+      exportNote,
     );
   }
 
-  if (isLoading) return <LoadingState fullHeight />;
-
-  if (!overview || !overview.dailyMalaAverages?.length) {
-    return (
-      <div className="flex flex-col gap-6">
-        <PageHeader
-          title={t("mentor.reportsTitle")}
-          subtitle={t("mentor.reportsSubtitle")}
-          action={
-            <DatePicker
-              label={formatMonthYear(new Date(cursor.year, cursor.month), locale)}
-              onPrev={goToPrevMonth}
-              onNext={goToNextMonth}
-              nextDisabled={isCurrentMonth}
-            />
-          }
-        />
-        <EmptyState
-          icon={Download}
-          title={t("mentor.noReportData")}
-          description={t("mentor.noReportDataDesc")}
-        />
-      </div>
-    );
+  function handleExportMaster() {
+    downloadCSV(`mentees-master-report-${suffix}`, toMasterExportRows(filteredRows, t), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
   }
 
   return (
@@ -129,74 +79,73 @@ export default function MentorReports() {
         title={t("mentor.reportsTitle")}
         subtitle={t("mentor.reportsSubtitle")}
         action={
-          <div className="flex flex-wrap items-center gap-2">
-            <DatePicker
-              label={formatMonthYear(new Date(cursor.year, cursor.month), locale)}
-              onPrev={goToPrevMonth}
-              onNext={goToNextMonth}
-              nextDisabled={isCurrentMonth}
-            />
-            <Button
-              variant="outline"
-              size="sm"
-              icon={Download}
-              onClick={handleExport}
-              disabled={!overview?.dailyMalaAverages?.length}
-            >
-              {t("mentor.exportMenteesCsv")}
-            </Button>
-          </div>
+          <Button variant="outline" size="sm" icon={Download} onClick={handleExportDaily} disabled={!overview?.dailyMalaAverages?.length}>
+            {t("mentor.exportMenteesCsv")}
+          </Button>
         }
       />
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <ProgressCard label={t("mentor.activeMentees")} value={overview.activeDevotees} />
-        <ProgressCard label={t("mentor.totalSubmissions")} value={overview.totalSubmissions} />
-        <ProgressCard label={t("mentor.totalMala")} value={overview.totalMala} />
-        <ProgressCard
-          label={t("mentor.averageMalaPerSubmission")}
-          value={overview.totalSubmissions ? Math.round((overview.totalMala / overview.totalSubmissions) * 10) / 10 : 0}
-        />
-      </div>
+      <ReportFilterBar
+        filters={filters}
+        onChange={setFilters}
+        onReset={resetFilters}
+        locationOptions={locationOptions}
+        show={MENTOR_FILTERS}
+      />
 
-      <div className="grid grid-cols-2 gap-6 lg:grid-cols-3">
-        <ChartCard title={t("mentor.monthlyOverview")} subtitle={t("admin.acrossAllDevotees")}>
-          <JapaRoundsChart data={overview.dailyMalaAverages} />
-        </ChartCard>
+      {isLoading ? (
+        <LoadingState fullHeight />
+      ) : (
+        <>
+          <p className="-mt-2 text-xs text-brown-500">{t("admin.report.showing", { count: filteredRows.length, total: rows.length })}</p>
 
-        <ChartCard title={t("admin.activityConsistency")} subtitle={t("admin.sanghaWide")} height={300}>
-          <ActivityConsistencyChart data={translatedBreakdown} />
-        </ChartCard>
-      </div>
+          <div className="grid grid-cols-3 gap-4">
+            <ProgressCard label={t("admin.report.devotees")} value={filteredRows.length} />
+            <ProgressCard label={t("admin.report.submitted")} value={submittedCount} />
+            <ProgressCard label={t("admin.report.notSubmitted")} value={filteredRows.length - submittedCount} />
+          </div>
 
-      <div className="border-t border-brown-900/5 pt-6">
-        <h2 className="mb-4 font-display text-lg font-semibold text-maroon-600">
-          {t("mentor.masterReport")}
-        </h2>
-        <p className="text-xs text-brown-500 mb-4">
-          {t("mentor.dailyBreakdownDesc")}
-        </p>
-        <div className="overflow-x-auto rounded-xl border border-brown-900/5">
-          <table className="w-full border-collapse text-sm">
-            <thead>
-              <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
-                <th className="px-4 py-3">{t("mentor.colDate")}</th>
-                <th className="px-4 py-3">{t("mentor.colAvgMala")}</th>
-                <th className="px-4 py-3">{t("mentor.colSubmissions")}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {overview.dailyMalaAverages.map((row) => (
-                <tr key={row.date} className="border-b border-brown-900/5 last:border-0">
-                  <td className="px-4 py-3 font-medium text-brown-900">{row.date}</td>
-                  <td className="px-4 py-3 text-brown-700">{row.japaRounds}</td>
-                  <td className="px-4 py-3 text-brown-700">{row.submissions}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+          {isOverviewLoading || !overview ? (
+            <LoadingState />
+          ) : (
+            <>
+              <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                <ProgressCard label={t("mentor.activeMentees")} value={overview.activeDevotees} />
+                <ProgressCard label={t("mentor.totalSubmissions")} value={overview.totalSubmissions} />
+                <ProgressCard label={t("mentor.totalMala")} value={overview.totalMala} />
+                <ProgressCard
+                  label={t("mentor.averageMalaPerSubmission")}
+                  value={overview.totalSubmissions ? Math.round((overview.totalMala / overview.totalSubmissions) * 10) / 10 : 0}
+                />
+              </div>
+
+              {overview.dailyMalaAverages.length > 0 && (
+                <div className="grid gap-6 lg:grid-cols-2">
+                  <ChartCard title={t("mentor.monthlyOverview")} subtitle={chartSubtitle}>
+                    <JapaRoundsChart data={overview.dailyMalaAverages} />
+                  </ChartCard>
+                  <ChartCard title={t("admin.activityConsistency")} subtitle={chartSubtitle} height={300}>
+                    <ActivityConsistencyChart data={translatedBreakdown} />
+                  </ChartCard>
+                </div>
+              )}
+            </>
+          )}
+
+          <section className="flex flex-col gap-3 border-t border-brown-900/5 pt-6">
+            <div className="flex flex-wrap items-end justify-between gap-2">
+              <div>
+                <h2 className="font-display text-lg font-semibold text-maroon-600">{t("mentor.masterReport")}</h2>
+                <p className="text-xs text-brown-500">{t("admin.report.masterDesc")}</p>
+              </div>
+              <Button variant="outline" size="sm" icon={Download} onClick={handleExportMaster} disabled={!filteredRows.length}>
+                {t("admin.report.exportMaster")}
+              </Button>
+            </div>
+            <MasterReportTable rows={filteredRows} basePath="/mentor/devotees" />
+          </section>
+        </>
+      )}
     </div>
   );
 }
