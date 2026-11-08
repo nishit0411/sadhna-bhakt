@@ -222,20 +222,78 @@ export async function getDevoteeSummary(devoteeId) {
   return summarize(devotee, getAllRecordsForDevotee(devoteeId));
 }
 
-export async function getSanghaMonthlyOverview(year, monthIndex) {
+/** "YYYY-MM" for a 0-based month — compared against the date column as a string, so no timezone shifts. */
+function monthKey(year, monthIndex) {
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+}
+
+/** Every record in one calendar month, grouped by devotee id (only that month is fetched). */
+async function loadMonthRecords(year, monthIndex) {
+  const key = monthKey(year, monthIndex);
   let recordsByDevotee;
   if (isSupabaseConfigured) {
-    // Only the requested month — not every record ever submitted.
-    const pad = (n) => String(n).padStart(2, "0");
     const lastDay = new Date(year, monthIndex + 1, 0).getDate();
     recordsByDevotee = await fetchAllRecordsGrouped({
-      fromDate: `${year}-${pad(monthIndex + 1)}-01`,
-      toDate: `${year}-${pad(monthIndex + 1)}-${pad(lastDay)}`,
+      fromDate: `${key}-01`,
+      toDate: `${key}-${String(lastDay).padStart(2, "0")}`,
     });
   } else {
     await delay();
     recordsByDevotee = new Map(getDevoteesOnly().map((d) => [d.id, getAllRecordsForDevotee(d.id)]));
   }
+  // Belt-and-braces month filter on the date string itself (mock mode returns everything).
+  const result = new Map();
+  recordsByDevotee.forEach((list, id) => {
+    const inMonth = list.filter((r) => String(r.date).slice(0, 7) === key);
+    if (inMonth.length) result.set(id, inMonth);
+  });
+  return result;
+}
+
+/**
+ * Per-devotee submission tracking for one month — every devotee is included,
+ * even with zero reports. Rows contain only report-safe fields (no DOB, email
+ * or credentials). Under a mentor session RLS limits both queries to that
+ * mentor's own mentees.
+ */
+export async function getMonthlySubmissionReport(year, monthIndex) {
+  const [devotees, recordsByDevotee] = await Promise.all([
+    isSupabaseConfigured ? fetchAllDevotees() : delay().then(() => getDevoteesOnly()),
+    loadMonthRecords(year, monthIndex),
+  ]);
+  return devotees
+    .map((d) => {
+      const records = recordsByDevotee.get(d.id) ?? [];
+      const latest = records.reduce((max, r) => (String(r.date) > max ? String(r.date).slice(0, 10) : max), "");
+      return {
+        id: d.id,
+        name: d.name,
+        spiritualName: d.spiritualName ?? "",
+        phone: d.phone ?? "",
+        city: d.city ?? "",
+        centre: d.centre ?? "",
+        mentor: d.mentor ?? [],
+        mentorOther: d.mentorOther ?? "",
+        mentorId: d.mentorId ?? null,
+        avatarColor: d.avatarColor,
+        initials: d.initials,
+        submissions: records.length,
+        latestSubmission: latest || null,
+        totalMala: records.reduce((sum, r) => sum + (r.totalMala ?? 0), 0),
+      };
+    })
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+/**
+ * `options.devoteeIds` (optional array/Set) limits the aggregation to those
+ * devotees — used when report filters are active. Calculation rules are
+ * unchanged.
+ */
+export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
+  const loaded = await loadMonthRecords(year, monthIndex);
+  const allowed = options.devoteeIds ? new Set(options.devoteeIds) : null;
+  const recordsByDevotee = allowed ? new Map([...loaded].filter(([id]) => allowed.has(id))) : loaded;
 
   const byDate = new Map();
   const breakdownTotals = { mala: 0, tulsi: 0, granth: 0, harikatha: 0, bhog: 0, gurudev: 0, count: 0 };
