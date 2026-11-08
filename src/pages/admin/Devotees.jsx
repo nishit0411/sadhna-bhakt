@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { Search, Download } from "lucide-react";
+import { Download } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
 import { toISODate } from "../../utils/dateHelpers";
 import { downloadCSV } from "../../utils/csvExport";
@@ -9,19 +9,26 @@ import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
-import Card from "../../components/ui/Card";
 import Input from "../../components/ui/Input";
 import Select from "../../components/ui/Select";
 import Button from "../../components/ui/Button";
 import DevoteeTable from "../../components/admin/DevoteeTable";
 import LoadingState from "../../components/ui/LoadingState";
+import ReportFilterBar from "../../components/admin/ReportFilterBar";
+import { getAllMentors } from "../../services/mentorService";
+import {
+  applyReportFilters,
+  buildLocationOptions,
+  defaultReportFilters,
+  exportColumns,
+  exportSafeName,
+  hasActiveFilters,
+  toExportRow,
+} from "../../utils/reportFilters";
 
-// Kept deliberately minimal — no email/phone/mentor/mala detail — since
-// this export is meant to be safe to share outside the admin panel.
-const EXPORT_COLUMNS = [
-  { key: "name", label: "Name" },
-  { key: "status", label: "Status Today" },
-];
+// Allowlisted export fields only (see utils/reportFilters) — no DOB, email,
+// phone or credentials, so the file is safe to share outside the admin panel.
+const EXPORT_KEYS = ["name", "location", "centre", "mentors", "statusToday"];
 
 const VALID_STATUS_FILTERS = ["Completed", "Pending"];
 
@@ -32,7 +39,9 @@ export default function Devotees() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [devotees, setDevotees] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState("");
+  // Shared location / mentor / name-or-mobile filters (same logic as Reports).
+  const [filters, setFilters] = useState(defaultReportFilters);
+  const [mentors, setMentors] = useState([]);
   const [date, setDate] = useState(toISODate(new Date()));
   const [malaFilter, setMalaFilter] = useState("all");
   // Seeded from ?status=Completed|Pending (the Admin Dashboard's "Submitted
@@ -71,6 +80,16 @@ export default function Devotees() {
 
   useEffect(() => {
     let active = true;
+    getAllMentors()
+      .then((list) => active && setMentors(list.map((m) => ({ id: m.id, name: m.name }))))
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    let active = true;
     setIsLoading(true);
     devoteeService
       .getDevoteeDirectory(date)
@@ -91,8 +110,7 @@ export default function Devotees() {
   }, [date]);
 
   const filtered = useMemo(() => {
-    return devotees.filter((d) => {
-      if (search && !d.name.toLowerCase().includes(search.toLowerCase())) return false;
+    return applyReportFilters(devotees, filters, { mentors }).filter((d) => {
       if (statusFilter !== "all" && d.status !== statusFilter) return false;
       if (malaFilter !== "all") {
         if (d.todayTotalMala === null) return false;
@@ -102,10 +120,33 @@ export default function Devotees() {
       }
       return true;
     });
-  }, [devotees, search, malaFilter, statusFilter]);
+  }, [devotees, filters, mentors, malaFilter, statusFilter]);
+
+  const locationOptions = useMemo(() => buildLocationOptions(devotees), [devotees]);
+  const today = toISODate(new Date());
+  const canReset = hasActiveFilters(filters) || malaFilter !== "all" || statusFilter !== "all" || date !== today;
+
+  function handleReset() {
+    setFilters(defaultReportFilters());
+    setMalaFilter("all");
+    handleStatusFilterChange("all");
+    setDate(today);
+  }
 
   function handleExport() {
-    downloadCSV(`devotees-${date}`, filtered, EXPORT_COLUMNS, `Exported by: ${user?.name ?? user?.email ?? "Admin"} · ${date}`);
+    const rows = filtered.map((d) =>
+      toExportRow(
+        {
+          name: exportSafeName(d.name, t),
+          location: d.city,
+          centre: d.centre,
+          mentors: (d.mentor ?? []).map((v) => (v === "Other" && d.mentorOther ? d.mentorOther : v)).join("; "),
+          statusToday: d.status === "Completed" ? t("common.completed") : t("common.pending"),
+        },
+        EXPORT_KEYS,
+      ),
+    );
+    downloadCSV(`devotees-${date}`, rows, exportColumns(EXPORT_KEYS, t), `Exported by: ${user?.name ?? user?.email ?? "Admin"} · ${date}`);
   }
 
   return (
@@ -120,36 +161,31 @@ export default function Devotees() {
         subtitle={`${t("admin.devoteesSubtitle")} ${filtered.length} ${t("admin.of")} ${devotees.length} ${t("admin.devoteesWord")}.`}
       />
 
-      <Card>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="relative lg:col-span-1">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-brown-400" />
-            <input
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={t("admin.searchPlaceholder")}
-              aria-label={t("admin.searchPlaceholder")}
-              className="w-full rounded-xl border border-brown-900/10 bg-cream-50 py-2.5 pl-10 pr-4 text-base focus:border-saffron-500 focus:outline-none focus:ring-2 focus:ring-saffron-200 sm:text-sm"
-            />
-          </div>
-          <Input label="" type="date" aria-label={t("common.date")} value={date} onChange={(e) => setDate(e.target.value)} max={toISODate(new Date())} />
-          <Select aria-label={t("admin.anyMalaCount")} value={malaFilter} onChange={(e) => setMalaFilter(e.target.value)}>
-            {MALA_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </Select>
-          <Select aria-label={t("admin.allStatuses")} value={statusFilter} onChange={(e) => handleStatusFilterChange(e.target.value)}>
-            {STATUS_FILTERS.map((f) => (
-              <option key={f.value} value={f.value}>
-                {f.label}
-              </option>
-            ))}
-          </Select>
-        </div>
-      </Card>
+      <ReportFilterBar
+        filters={filters}
+        onChange={setFilters}
+        onReset={handleReset}
+        canReset={canReset}
+        locationOptions={locationOptions}
+        mentorOptions={mentors}
+        show={{ search: true, location: true, mentor: true }}
+      >
+        <Input label="" type="date" aria-label={t("common.date")} value={date} onChange={(e) => setDate(e.target.value)} max={today} />
+        <Select aria-label={t("admin.anyMalaCount")} value={malaFilter} onChange={(e) => setMalaFilter(e.target.value)}>
+          {MALA_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </Select>
+        <Select aria-label={t("admin.allStatuses")} value={statusFilter} onChange={(e) => handleStatusFilterChange(e.target.value)}>
+          {STATUS_FILTERS.map((f) => (
+            <option key={f.value} value={f.value}>
+              {f.label}
+            </option>
+          ))}
+        </Select>
+      </ReportFilterBar>
 
       {isLoading ? <LoadingState /> : <DevoteeTable devotees={filtered} />}
     </div>
