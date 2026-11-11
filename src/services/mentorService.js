@@ -7,6 +7,7 @@
 import { supabase, isSupabaseConfigured } from "../lib/supabaseClient";
 import { authorizedRequest } from "./adminApiClient";
 import { mapProfileRow } from "./authService";
+import { isMenteeOf } from "../utils/reportFilters";
 
 /** { id, name }[] for every active mentor — used by Register.jsx's mentor dropdown. */
 export async function getActiveMentors() {
@@ -14,15 +15,6 @@ export async function getActiveMentors() {
   const { data, error } = await supabase.rpc("get_active_mentors");
   if (error) throw error;
   return data ?? [];
-}
-
-/** Lower-cased, trimmed — the same comparison the mentor_names RLS clause uses. */
-function normalizeName(value) {
-  return (value ?? "").trim().toLowerCase();
-}
-
-function mentorFullName(row) {
-  return normalizeName(`${row.first_name ?? ""} ${row.last_name ?? ""}`);
 }
 
 /** Every mentor profile, with how many mentees each currently has. Admin only. */
@@ -41,12 +33,10 @@ export async function getAllMentors() {
   if (menteesError) throw menteesError;
 
   const menteeCounts = new Map();
+  const devoteeRefs = (devotees ?? []).map((d) => ({ mentorId: d.mentor_id, mentor: d.mentor_names ?? [] }));
   for (const mentor of mentors ?? []) {
-    const fullName = mentorFullName(mentor);
-    const count = (devotees ?? []).filter(
-      (d) => d.mentor_id === mentor.id || (d.mentor_names ?? []).some((n) => normalizeName(n) === fullName),
-    ).length;
-    menteeCounts.set(mentor.id, count);
+    const ref = { id: mentor.id, name: `${mentor.first_name ?? ""} ${mentor.last_name ?? ""}` };
+    menteeCounts.set(mentor.id, devoteeRefs.filter((d) => isMenteeOf(d, ref)).length);
   }
 
   const withCounts = (mentors ?? []).map((row) => ({ ...mapProfileRow(row), active: row.active, menteeCount: menteeCounts.get(row.id) ?? 0 }));
@@ -87,7 +77,6 @@ export async function updateMentor(mentorId, updates) {
  * /admin/mentors route. No new policy, no service-role access from the browser.
  */
 export async function getMenteesForMentor(mentor) {
-  const fullName = normalizeName(mentor?.name);
   const { data, error } = await supabase
     .from("profiles")
     .select("id, first_name, last_name, email, active, centre, mentor_id, mentor_names, mentor_other, avatar_color, role, created_at")
@@ -95,7 +84,7 @@ export async function getMenteesForMentor(mentor) {
   if (error) throw error;
 
   return (data ?? [])
-    .filter((d) => d.mentor_id === mentor.id || (d.mentor_names ?? []).some((n) => normalizeName(n) === fullName))
     .map((d) => ({ ...mapProfileRow(d), active: d.active, linkedById: d.mentor_id === mentor.id }))
+    .filter((d) => isMenteeOf(d, mentor))
     .sort((a, b) => a.name.localeCompare(b.name));
 }

@@ -5,6 +5,7 @@ import StatusBadge from "../ui/StatusBadge";
 import EmptyState from "../ui/EmptyState";
 import { Users } from "lucide-react";
 import { useTranslation } from "../../i18n/LanguageContext";
+import { formatMentorNames } from "../../data/mentorList";
 
 function initialsAvatar(devotee) {
   const tones = {
@@ -114,7 +115,12 @@ export default function DevoteeTable({ devotees, basePath = "/admin/devotees" })
                   {initialsAvatar(devotee)}
                   <div>
                     <p className="font-medium text-brown-900">{devotee.name}</p>
-                    <p className="text-xs text-brown-500">{devotee.centre}</p>
+                    <p className="text-xs text-brown-500">{[devotee.city, devotee.centre].filter(Boolean).join(" · ")}</p>
+                    {devotee.mentor?.length > 0 && (
+                      <p className="text-xs text-brown-400">
+                        {t("admin.report.colMentor")}: {formatMentorNames(devotee.mentor, devotee.mentorOther)}
+                      </p>
+                    )}
                   </div>
                 </div>
               </td>
