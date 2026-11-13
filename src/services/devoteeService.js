@@ -323,7 +323,7 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
   });
 
   const dailyMalaAverages = [...byDate.entries()]
-    .map(([date, { mala, count }]) => ({ date, japaRounds: Math.round((mala / count) * 10) / 10, submissions: count }))
+    .map(([date, { mala, count }]) => ({ date, japaRounds: Math.round((mala / count) * 10) / 10, submissions: count, totalMala: mala }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   return {

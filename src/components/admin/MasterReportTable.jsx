@@ -5,6 +5,7 @@ import EmptyState from "../ui/EmptyState";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 import { formatMentorNames } from "../../data/mentorList";
+import { displayLocation } from "../../utils/reportFilters";
 
 /**
  * Master Report: one row per devotee for the selected month, from
@@ -21,10 +22,11 @@ export default function MasterReportTable({ rows, basePath = "/admin/devotees" }
 
   return (
     <div className="overflow-x-auto rounded-2xl border border-brown-900/5">
-      <table className="w-full min-w-[720px] border-collapse text-sm">
+      <table className="w-full min-w-[860px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
             <th className="px-4 py-3">{t("admin.report.colDevotee")}</th>
+            <th className="px-4 py-3">{t("admin.report.colPhone")}</th>
             <th className="px-4 py-3">{t("admin.report.colLocation")}</th>
             <th className="px-4 py-3">{t("admin.report.colMentor")}</th>
             <th className="px-4 py-3 text-right">{t("admin.report.colSubmissions")}</th>
@@ -46,7 +48,16 @@ export default function MasterReportTable({ rows, basePath = "/admin/devotees" }
                   <p className="font-medium text-brown-900">{row.name}</p>
                   {row.centre && <p className="text-xs text-brown-500">{row.centre}</p>}
                 </td>
-                <td className="px-4 py-3 text-brown-700">{row.city || "—"}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-brown-700">
+                  {row.phone ? (
+                    <a href={`tel:${row.phone}`} onClick={(e) => e.stopPropagation()} className="hover:text-maroon-600 hover:underline">
+                      {row.phone}
+                    </a>
+                  ) : (
+                    "—"
+                  )}
+                </td>
+                <td className="px-4 py-3 text-brown-700">{displayLocation(row.city) || "—"}</td>
                 <td className="px-4 py-3 text-brown-700">{formatMentorNames(row.mentor, row.mentorOther)}</td>
                 <td className="px-4 py-3 text-right font-medium text-brown-900">{row.submissions}</td>
                 <td className="px-4 py-3 text-brown-700">{row.latestSubmission ? formatDateDDMMYYYY(row.latestSubmission) : "—"}</td>
