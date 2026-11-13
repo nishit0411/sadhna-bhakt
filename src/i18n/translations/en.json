@@ -30,7 +30,10 @@
     "actions": "Actions",
     "hareKrishna": "Hare Krishna",
     "selectLanguage": "Select Language",
-    "language": "Language"
+    "language": "Language",
+    "prev": "Prev",
+    "next": "Next",
+    "pageInfo": "Showing {{from}}–{{to}} of {{total}} · Page {{page}} of {{pages}}"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -45,7 +48,8 @@
     "adminMentors": "Mentors",
     "adminUserManagement": "User Management",
     "mentorDashboard": "My Mentees",
-    "mentorReports": "Reports"
+    "mentorReports": "Reports",
+    "mentorAnalytics": "Analytics"
   },
   "mentor": {
     "activeMentees": "Active Mentees",
@@ -118,7 +122,9 @@
     "noMentees": "No mentees found",
     "noMenteesDesc": "No devotees have selected you as their mentor yet.",
     "monthPicker": "Month",
-    "viewDetails": "View Details"
+    "viewDetails": "View Details",
+    "analyticsTitle": "My Mentees Analytics",
+    "analyticsSubtitle": "Mala, consistency and participation for the devotees assigned to you."
   },
   "landing": {
     "hareKrishnaGreeting": "Hare Krishna 🙏",
@@ -321,7 +327,9 @@
     "errEmailInvalid": "Please enter a valid email address.",
     "checkEmailTitle": "Check Your Email",
     "checkEmailBody": "We've sent a confirmation link to {{email}}. Please confirm it to activate your account, then sign in.",
-    "backToLogin": "Back to Login"
+    "backToLogin": "Back to Login",
+    "cityDidYouMean": "Did you mean {{city}}?",
+    "cityUse": "Use {{city}}"
   },
   "dashboard": {
     "greeting": "Hare Krishna,",
@@ -536,7 +544,19 @@
       "mentorName": "Mentor",
       "totalDevotees": "Total Devotees",
       "submittedCount": "Submitted",
-      "notSubmittedCount": "Not Submitted"
+      "notSubmittedCount": "Not Submitted",
+      "spiritualName": "Spiritual Name",
+      "phone": "Phone",
+      "month": "Month",
+      "daysReported": "Days Reported",
+      "daysInPeriod": "Days in Period",
+      "submissionRate": "Submission Rate (%)",
+      "averageMala": "Average Mala per Report",
+      "date": "Date",
+      "submittedPercent": "Submitted (%)",
+      "dailySubmissions": "Reports Submitted",
+      "dailyTotalMala": "Total Mala",
+      "dailyAverageMala": "Average Mala per Report"
     },
     "report": {
       "chartFiltered": "Filtered: {{filters}} ({{count}} devotees)",
@@ -564,7 +584,9 @@
       "exportMaster": "Export Master Report",
       "exportMentorWise": "Export Mentor Summary",
       "showing": "Showing {{count}} of {{total}} devotees",
-      "noMentor": "No mentor"
+      "noMentor": "No mentor",
+      "colPhone": "Phone",
+      "exportMasterPage": "Export this page ({{from}}–{{to}})"
     },
     "dashboardTitle": "Admin / Mentor Dashboard",
     "dashboardSubtitle": "An overview of the sangha's Sadhana today.",
