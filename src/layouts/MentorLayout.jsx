@@ -1,7 +1,7 @@
 import { useState, Suspense } from "react";
 import LoadingState from "../components/ui/LoadingState";
 import { Outlet } from "react-router-dom";
-import { LayoutDashboard, NotebookPen, UserRound, BarChart3 } from "lucide-react";
+import { LayoutDashboard, NotebookPen, UserRound, BarChart3, ChartNoAxesCombined } from "lucide-react";
 import Navbar from "../components/layout/Navbar";
 import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
@@ -16,6 +16,7 @@ export default function MentorLayout() {
     { label: t("nav.mentorDashboard"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },
     { label: t("nav.dailySadhana"), to: "/mentor/sadhana", icon: NotebookPen },
     { label: t("nav.myProfile"), to: "/mentor/profile", icon: UserRound },
+    { label: t("nav.mentorAnalytics"), to: "/mentor/analytics", icon: ChartNoAxesCombined },
     { label: t("nav.mentorReports"), to: "/mentor/reports", icon: BarChart3 },
   ];
 

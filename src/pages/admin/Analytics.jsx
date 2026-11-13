@@ -34,6 +34,8 @@ import { formatShortDate } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/ui/Pagination";
 
 // Same blush/rose palette as the rest of the app (src/index.css) — this
 // page used to run a standalone dark "control room" theme; these
@@ -50,6 +52,20 @@ const TEXT_ON_GOLD = "#7d2647"; // maroon-700 — readable text set directly on 
 const ROSE = "#cc648c"; // maroon-400 — secondary chart series
 const CREAM = "#33212a"; // brown-900 — primary text (kept the name; role is now "ink", not background)
 const MUTED = "#7a5b64"; // brown-500 — secondary/meta text
+
+// Hover tooltips: solid white card with a visible border + shadow so it stands
+// out from the near-white chart background (it used to blend in and "white
+// out" the chart), and dark item text (the default used the bar's gradient
+// url as a text colour, which browsers ignore).
+const TOOLTIP_STYLE = {
+  backgroundColor: "#ffffff",
+  border: "1px solid rgba(156, 49, 89, 0.25)",
+  borderRadius: 10,
+  boxShadow: "0 6px 20px rgba(51, 33, 42, 0.12)",
+  color: "#33212a",
+  padding: "8px 12px",
+};
+const TOOLTIP_ITEM_STYLE = { color: "#33212a", padding: 0 };
 
 const MEDAL_STYLE = [
   { icon: Trophy, color: "#f0cf6b", ring: "#f0cf6b55" },
@@ -204,7 +220,9 @@ function TopMalaBarChart({ data }) {
         />
         <Tooltip
           cursor={{ fill: "rgba(209,97,143,0.08)" }}
-          contentStyle={{ backgroundColor: CHARCOAL, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, color: CREAM }}
+          formatter={(value) => [value, "Mala"]}
+          contentStyle={TOOLTIP_STYLE}
+          itemStyle={TOOLTIP_ITEM_STYLE}
           labelStyle={{ color: GOLD_SOFT }}
         />
         <Bar dataKey="value" fill="url(#goldRose)" radius={[0, 6, 6, 0]} />
@@ -216,7 +234,7 @@ function TopMalaBarChart({ data }) {
 function WeeklyTrendChart({ data }) {
   return (
     <ResponsiveContainer width="100%" height={260}>
-      <AreaChart data={data} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={GOLD} stopOpacity={0.45} />
@@ -226,15 +244,18 @@ function WeeklyTrendChart({ data }) {
         <CartesianGrid strokeDasharray="3 6" stroke={CARD_BORDER} vertical={false} />
         <XAxis
           dataKey="date"
-          tickFormatter={formatShortDate}
+          tickFormatter={(value) => formatShortDate(value)}
           tick={{ fontSize: 11, fill: MUTED }}
           axisLine={{ stroke: CARD_BORDER }}
           tickLine={false}
         />
-        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} width={24} />
+        <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: MUTED }} axisLine={false} tickLine={false} width={36} />
         <Tooltip
-          labelFormatter={formatShortDate}
-          contentStyle={{ backgroundColor: CHARCOAL, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, color: CREAM }}
+          cursor={{ stroke: GOLD, strokeOpacity: 0.35, strokeDasharray: "4 4" }}
+          formatter={(value) => [value, "Submissions"]}
+          labelFormatter={(label) => formatShortDate(label)}
+          contentStyle={TOOLTIP_STYLE}
+          itemStyle={TOOLTIP_ITEM_STYLE}
           labelStyle={{ color: GOLD_SOFT }}
         />
         <Area
@@ -290,7 +311,8 @@ function MalaDistributionPie({ onAsan, withoutAsan, malaType, onSelect }) {
             ))}
           </Pie>
           <Tooltip
-            contentStyle={{ backgroundColor: CHARCOAL, border: `1px solid ${CARD_BORDER}`, borderRadius: 10, color: CREAM }}
+            contentStyle={TOOLTIP_STYLE}
+          itemStyle={TOOLTIP_ITEM_STYLE}
           />
         </PieChart>
       </ResponsiveContainer>
@@ -359,7 +381,10 @@ function DetailedTable({ devotees, malaType, onRowClick }) {
     return copy;
   }, [devotees, sortKey, sortDir, malaType]);
 
+  const paging = usePagination(sorted);
+
   return (
+    <div className="flex flex-col gap-3">
     <div className="overflow-x-auto rounded-2xl" style={{ border: `1px solid ${CARD_BORDER}` }}>
       <table className="w-full min-w-[720px] border-collapse text-sm">
         <thead>
@@ -375,7 +400,7 @@ function DetailedTable({ devotees, malaType, onRowClick }) {
           </tr>
         </thead>
         <tbody>
-          {sorted.map((d) => {
+          {paging.pageItems.map((d) => {
             const status = statusOf(d);
             return (
               <tr
@@ -412,12 +437,20 @@ function DetailedTable({ devotees, malaType, onRowClick }) {
         </tbody>
       </table>
     </div>
+    <Pagination {...paging} onPageChange={paging.setPage} />
+    </div>
   );
 }
 
 /* ---------- page ---------- */
 
-export default function Analytics() {
+/**
+ * Admin: whole sangha. Mentor (`mode="mentor"`): the same page, but every
+ * query is limited by RLS to the mentor's own mentees and rows open the
+ * mentor's read-only devotee view.
+ */
+export default function Analytics({ mode = "admin" }) {
+  const isMentor = mode === "mentor";
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { addToast } = useToast();
@@ -488,7 +521,7 @@ export default function Analytics() {
   }, [devotees, malaType]);
 
   function goToDevotee(id) {
-    navigate(`/admin/devotees/${id}`);
+    navigate(`${isMentor ? "/mentor" : "/admin"}/devotees/${id}`);
   }
 
   return (
@@ -496,13 +529,13 @@ export default function Analytics() {
       <div className="mx-auto max-w-6xl">
         <div className="mb-6">
           <p className="text-xs font-medium uppercase tracking-[0.25em]" style={{ color: GOLD }}>
-            {t("admin.dashboardTitle")}
+            {isMentor ? t("nav.mentorDashboard") : t("admin.dashboardTitle")}
           </p>
           <h1 className="mt-1 font-display text-3xl font-semibold" style={{ color: CREAM }}>
-            {t("admin.analyticsTitle")}
+            {isMentor ? t("mentor.analyticsTitle") : t("admin.analyticsTitle")}
           </h1>
           <p className="mt-1 text-sm" style={{ color: MUTED }}>
-            {t("admin.analyticsSubtitle")}
+            {isMentor ? t("mentor.analyticsSubtitle") : t("admin.analyticsSubtitle")}
           </p>
         </div>
 
