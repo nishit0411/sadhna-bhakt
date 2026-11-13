@@ -10,13 +10,15 @@ import { friendlyErrorMessage } from "../../utils/friendlyError";
 import PageHeader from "../../components/layout/PageHeader";
 import { getAllMentors } from "../../services/mentorService";
 import { useMonthlyReport } from "../../hooks/useMonthlyReport";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/ui/Pagination";
 import {
   applyReportFilters,
   buildMentorSummary,
   describeFilters,
   exportColumns,
   exportFileSuffix,
-  toExportRow,
+  toMentorSummaryExportRows,
   toMasterExportRows,
   MASTER_EXPORT_KEYS,
   MENTOR_SUMMARY_EXPORT_KEYS,
@@ -71,32 +73,20 @@ export default function Reports() {
   const chartSubtitle = filterText
     ? t("admin.report.chartFiltered", { filters: filterText, count: filteredRows.length })
     : t("admin.report.chartAll", { month: monthLabel });
+  const masterPage = usePagination(filteredRows);
   const submittedCount = filteredRows.filter((r) => r.submissions > 0).length;
   const suffix = exportFileSuffix(filters, { locationOptions, mentors });
   const exportNote = `Exported by: ${user?.name ?? user?.email ?? "Admin"}`;
 
-  function handleExportDaily() {
-    if (!overview) return;
-    downloadCSV(
-      `sangha-report-${suffix}`,
-      overview.dailyMalaAverages,
-      [
-        { key: "date", label: "Date" },
-        { key: "japaRounds", label: "Average Mala" },
-        { key: "submissions", label: "Submissions" },
-      ],
-      exportNote,
-    );
-  }
-
+  // Master Report shows 50 devotees per page; its export downloads the page on screen.
   function handleExportMaster() {
-    downloadCSV(`master-report-${suffix}`, toMasterExportRows(filteredRows, t), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
+    downloadCSV(`master-report-${suffix}-page-${masterPage.page}`, toMasterExportRows(masterPage.pageItems, t, filters.cursor), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
   }
 
   function handleExportMentorSummary() {
     downloadCSV(
       `mentor-summary-${suffix}`,
-      mentorSummary.map((r) => toExportRow(r, MENTOR_SUMMARY_EXPORT_KEYS)),
+      toMentorSummaryExportRows(mentorSummary, filters.cursor),
       exportColumns(MENTOR_SUMMARY_EXPORT_KEYS, t),
       exportNote,
     );
@@ -107,11 +97,6 @@ export default function Reports() {
       <PageHeader
         title={t("admin.reportsTitle")}
         subtitle={t("admin.reportsSubtitle")}
-        action={
-          <Button variant="outline" size="sm" icon={Download} onClick={handleExportDaily} disabled={!overview?.dailyMalaAverages?.length}>
-            {t("admin.exportCsv")}
-          </Button>
-        }
       />
 
       <ReportFilterBar
@@ -183,10 +168,13 @@ export default function Reports() {
                 <p className="text-xs text-brown-500">{t("admin.report.masterDesc")}</p>
               </div>
               <Button variant="outline" size="sm" icon={Download} onClick={handleExportMaster} disabled={!filteredRows.length}>
-                {t("admin.report.exportMaster")}
+                {masterPage.totalPages > 1
+                  ? t("admin.report.exportMasterPage", { from: masterPage.from, to: masterPage.to })
+                  : t("admin.report.exportMaster")}
               </Button>
             </div>
-            <MasterReportTable rows={filteredRows} />
+            <MasterReportTable rows={masterPage.pageItems} />
+            <Pagination {...masterPage} onPageChange={masterPage.setPage} />
           </section>
         </>
       )}

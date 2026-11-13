@@ -12,6 +12,7 @@ import Input from "../../components/ui/Input";
 import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import FormInput from "../../components/FormInput";
+import CityInput from "../../components/CityInput";
 import DobInput from "../../components/DobInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
@@ -479,7 +480,8 @@ export default function Profile() {
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div data-error={Boolean(errors.city)}>
-            <FormInput
+            <CityInput
+              onValueChange={(city) => setField("city", city)}
               label={t("register.city")}
               required
               name="city"

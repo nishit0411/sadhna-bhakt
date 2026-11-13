@@ -15,6 +15,7 @@ import Button from "../components/ui/Button";
 import ProgressBar from "../components/ui/ProgressBar";
 import FormSection from "../components/FormSection";
 import FormInput from "../components/FormInput";
+import CityInput from "../components/CityInput";
 import FormSelect from "../components/FormSelect";
 import GenderSelector from "../components/GenderSelector";
 import CheckboxGroup from "../components/sadhana/CheckboxGroup";
@@ -346,7 +347,8 @@ export default function Register() {
 
           <FormSection icon={MapPin} title={t("register.locationContactTitle")} description={t("register.locationContactDesc")}>
             <div data-error={Boolean(errors.city)}>
-              <FormInput
+              <CityInput
+                onValueChange={(city) => setField("city", city)}
                 label={t("register.city")}
                 required
                 name="city"

@@ -30,7 +30,10 @@
     "actions": "Действия",
     "hareKrishna": "Харе Кришна",
     "selectLanguage": "Выберите язык",
-    "language": "Язык"
+    "language": "Язык",
+    "prev": "Назад",
+    "next": "Далее",
+    "pageInfo": "{{from}}–{{to}} из {{total}} · Стр. {{page}} из {{pages}}"
   },
   "nav": {
     "dashboard": "Главная",
@@ -45,7 +48,8 @@
     "adminMentors": "Наставники",
     "adminUserManagement": "Управление пользователями",
     "mentorDashboard": "Мои подопечные",
-    "mentorReports": "Отчёты"
+    "mentorReports": "Отчёты",
+    "mentorAnalytics": "Аналитика"
   },
   "mentor": {
     "activeMentees": "Активные подопечные",
@@ -118,7 +122,9 @@
     "noMentees": "Подопечных не найдено",
     "noMenteesDesc": "Пока никто не выбрал этого наставника.",
     "monthPicker": "Месяц",
-    "viewDetails": "Посмотреть подробности"
+    "viewDetails": "Посмотреть подробности",
+    "analyticsTitle": "Аналитика подопечных",
+    "analyticsSubtitle": "Мала, регулярность и участие ваших подопечных."
   },
   "landing": {
     "hareKrishnaGreeting": "Харе Кришна 🙏",
@@ -321,7 +327,9 @@
     "errEmailInvalid": "Пожалуйста, введите корректный адрес эл. почты.",
     "checkEmailTitle": "Проверьте вашу почту",
     "checkEmailBody": "Мы отправили ссылку для подтверждения на {{email}}. Подтвердите её, чтобы активировать аккаунт, затем войдите.",
-    "backToLogin": "Вернуться ко входу"
+    "backToLogin": "Вернуться ко входу",
+    "cityDidYouMean": "Вы имели в виду {{city}}?",
+    "cityUse": "Выбрать {{city}}"
   },
   "dashboard": {
     "greeting": "Харе Кришна,",
@@ -536,7 +544,19 @@
       "mentorName": "Наставник",
       "totalDevotees": "Всего преданных",
       "submittedCount": "Отправили",
-      "notSubmittedCount": "Не отправили"
+      "notSubmittedCount": "Не отправили",
+      "spiritualName": "Духовное имя",
+      "phone": "Телефон",
+      "month": "Месяц",
+      "daysReported": "Дней с отчётом",
+      "daysInPeriod": "Дней в периоде",
+      "submissionRate": "Доля отчётов (%)",
+      "averageMala": "Средне мал на отчёт",
+      "date": "Дата",
+      "submittedPercent": "Сдали (%)",
+      "dailySubmissions": "Отчётов сдано",
+      "dailyTotalMala": "Всего мал",
+      "dailyAverageMala": "Средне мал на отчёт"
     },
     "report": {
       "chartFiltered": "С фильтром: {{filters}} ({{count}} преданных)",
@@ -564,7 +584,9 @@
       "exportMaster": "Экспорт сводного отчёта",
       "exportMentorWise": "Экспорт сводки по наставникам",
       "showing": "Показано {{count}} из {{total}} преданных",
-      "noMentor": "Без наставника"
+      "noMentor": "Без наставника",
+      "colPhone": "Телефон",
+      "exportMasterPage": "Экспорт этой страницы ({{from}}–{{to}})"
     },
     "dashboardTitle": "Панель администратора / наставника",
     "dashboardSubtitle": "Обзор сегодняшней садханы общины.",

@@ -10,6 +10,8 @@
  *            page use, so counts stay consistent everywhere).
  */
 
+import { canonicalPlace, locationKey, sameLocationKey, tidyPlace } from "./location";
+
 export const ALL = "all";
 export const STATUS_SUBMITTED = "submitted";
 export const STATUS_NOT_SUBMITTED = "notSubmitted";
@@ -23,31 +25,45 @@ export function defaultReportFilters() {
   return { location: ALL, mentorId: ALL, status: ALL, search: "", cursor: currentMonthCursor() };
 }
 
-/** "  PATHANKOT " and "Pathankot" are the same location. */
+/**
+ * Fuzzy location key — "Ghaziabad", "Gaziyabad" and " ghaziabad " are the same
+ * place (see utils/location.js). Kept under this name for existing callers.
+ */
 export function normalizeLocation(value) {
-  return (value ?? "").trim().replace(/\s+/g, " ").toLowerCase();
+  return locationKey(value);
 }
 
-/** Distinct locations from profile data → [{ value, label, count }], most common first. */
+/**
+ * Distinct locations from profile data → [{ value, label, count }], A–Z.
+ * Spelling variants are grouped together; the label is the correct spelling
+ * when the place is known, otherwise the most frequently typed spelling.
+ */
 export function buildLocationOptions(devotees) {
-  const byKey = new Map();
+  const groups = [];
   for (const d of devotees) {
-    const key = normalizeLocation(d.city);
+    const key = locationKey(d.city);
     if (!key) continue;
-    const entry = byKey.get(key) ?? { value: key, labels: new Map(), count: 0 };
-    entry.count += 1;
-    const raw = d.city.trim().replace(/\s+/g, " ");
-    entry.labels.set(raw, (entry.labels.get(raw) ?? 0) + 1);
-    byKey.set(key, entry);
+    let group = groups.find((g) => sameLocationKey(g.value, key));
+    if (!group) {
+      group = { value: key, labels: new Map(), count: 0 };
+      groups.push(group);
+    }
+    group.count += 1;
+    const raw = tidyPlace(d.city);
+    group.labels.set(raw, (group.labels.get(raw) ?? 0) + 1);
   }
-  return [...byKey.values()]
-    .map(({ value, labels, count }) => ({
-      value,
-      // Most frequently typed spelling becomes the display label.
-      label: [...labels.entries()].sort((a, b) => b[1] - a[1])[0][0],
-      count,
-    }))
+  return groups
+    .map(({ value, labels, count }) => {
+      const typed = [...labels.entries()].sort((a, b) => b[1] - a[1])[0][0];
+      return { value, label: canonicalPlace(typed) ?? typed, count };
+    })
     .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+/** Display name for a devotee's location (correct spelling when known). */
+export function displayLocation(city) {
+  if (!(city ?? "").trim()) return "";
+  return canonicalPlace(city) ?? tidyPlace(city);
 }
 
 function normalizeName(value) {
@@ -84,7 +100,7 @@ export function matchesSearch(devotee, search) {
 export function applyReportFilters(rows, filters, { mentors = [], skip = [] } = {}) {
   const mentor = filters.mentorId !== ALL ? mentors.find((m) => m.id === filters.mentorId) : null;
   return rows.filter((row) => {
-    if (!skip.includes("location") && filters.location !== ALL && normalizeLocation(row.city) !== filters.location) return false;
+    if (!skip.includes("location") && filters.location !== ALL && !sameLocationKey(locationKey(row.city), filters.location)) return false;
     if (!skip.includes("mentor") && filters.mentorId !== ALL && !isMenteeOf(row, mentor ?? { id: filters.mentorId })) return false;
     if (!skip.includes("status") && filters.status !== ALL && "submissions" in row) {
       const submitted = row.submissions > 0;
@@ -116,6 +132,14 @@ export function hasActiveFilters(filters) {
  */
 export const REPORT_EXPORT_FIELDS = {
   name: "admin.export.name",
+  spiritualName: "admin.export.spiritualName",
+  phone: "admin.export.phone",
+  month: "admin.export.month",
+  daysReported: "admin.export.daysReported",
+  daysInPeriod: "admin.export.daysInPeriod",
+  submissionRate: "admin.export.submissionRate",
+  averageMala: "admin.export.averageMala",
+  date: "admin.export.date",
   location: "admin.export.location",
   centre: "admin.export.centre",
   mentors: "admin.export.mentors",
@@ -128,6 +152,7 @@ export const REPORT_EXPORT_FIELDS = {
   totalDevotees: "admin.export.totalDevotees",
   submittedCount: "admin.export.submittedCount",
   notSubmittedCount: "admin.export.notSubmittedCount",
+  submittedPercent: "admin.export.submittedPercent",
 };
 
 /** Builds downloadCSV() columns from allowlisted keys, with translated headings. */
@@ -177,20 +202,55 @@ function mentorLabel(row) {
   return names.join("; ");
 }
 
-export const MASTER_EXPORT_KEYS = ["name", "location", "centre", "mentors", "submissions", "latestSubmission", "totalMala", "status"];
+export const MASTER_EXPORT_KEYS = [
+  "name",
+  "spiritualName",
+  "phone",
+  "location",
+  "centre",
+  "mentors",
+  "month",
+  "submissions",
+  "daysInPeriod",
+  "submissionRate",
+  "latestSubmission",
+  "totalMala",
+  "averageMala",
+  "status",
+];
 
-/** Master Report rows → allowlisted CSV rows. Dates stay ISO (YYYY-MM-DD), numbers stay numbers. */
-export function toMasterExportRows(rows, t) {
+/** Days of the month that count: the whole month, or up to today for the current month. */
+export function daysInPeriod(cursor) {
+  const today = new Date();
+  const last = new Date(cursor.year, cursor.month + 1, 0).getDate();
+  return cursor.year === today.getFullYear() && cursor.month === today.getMonth() ? today.getDate() : last;
+}
+
+const round1 = (n) => Math.round(n * 10) / 10;
+
+/**
+ * Master Report rows → allowlisted CSV rows, ready for Excel / Sheets:
+ * ISO dates (YYYY-MM-DD), plain numbers, phone as text, one row per devotee.
+ */
+export function toMasterExportRows(rows, t, cursor) {
+  const days = daysInPeriod(cursor);
+  const month = `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}`;
   return rows.map((row) =>
     toExportRow(
       {
         name: exportSafeName(row.name, t),
-        location: row.city,
+        spiritualName: row.spiritualName,
+        phone: row.phone,
+        location: displayLocation(row.city),
         centre: row.centre,
         mentors: mentorLabel(row),
+        month,
         submissions: row.submissions,
+        daysInPeriod: days,
+        submissionRate: days ? Math.round((row.submissions / days) * 100) : 0,
         latestSubmission: row.latestSubmission ?? "",
         totalMala: row.totalMala,
+        averageMala: row.submissions ? round1(row.totalMala / row.submissions) : 0,
         status: row.submissions > 0 ? t("admin.filters.submitted") : t("admin.filters.notSubmitted"),
       },
       MASTER_EXPORT_KEYS,
@@ -198,7 +258,18 @@ export function toMasterExportRows(rows, t) {
   );
 }
 
-export const MENTOR_SUMMARY_EXPORT_KEYS = ["mentorName", "totalDevotees", "submittedCount", "notSubmittedCount"];
+export const MENTOR_SUMMARY_EXPORT_KEYS = ["month", "mentorName", "totalDevotees", "submittedCount", "notSubmittedCount", "submittedPercent"];
+
+/** Mentor summary → CSV rows with the month and a submitted % column. */
+export function toMentorSummaryExportRows(summary, cursor) {
+  const month = `${cursor.year}-${String(cursor.month + 1).padStart(2, "0")}`;
+  return summary.map((r) =>
+    toExportRow(
+      { ...r, month, submittedPercent: r.totalDevotees ? Math.round((r.submittedCount / r.totalDevotees) * 100) : 0 },
+      MENTOR_SUMMARY_EXPORT_KEYS,
+    ),
+  );
+}
 
 /** Slug for export filenames: "2026-10" plus any active filter values. */
 export function exportFileSuffix(filters, { locationOptions = [], mentors = [] } = {}) {

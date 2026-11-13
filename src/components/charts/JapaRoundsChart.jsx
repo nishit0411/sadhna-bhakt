@@ -18,7 +18,7 @@ export default function JapaRoundsChart({ data }) {
         <CartesianGrid strokeDasharray="3 6" stroke="#f9e2e9" vertical={false} />
         <XAxis
           dataKey="date"
-          tickFormatter={formatShortDate}
+          tickFormatter={(value) => formatShortDate(value)}
           tick={{ fontSize: 11, fill: "#7a5b64" }}
           axisLine={{ stroke: "#f9e2e9" }}
           tickLine={false}

@@ -6,6 +6,9 @@ import EmptyState from "../ui/EmptyState";
 import { Users } from "lucide-react";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { formatMentorNames } from "../../data/mentorList";
+import { displayLocation } from "../../utils/reportFilters";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../ui/Pagination";
 
 function initialsAvatar(devotee) {
   const tones = {
@@ -86,58 +89,64 @@ export default function DevoteeTable({ devotees, basePath = "/admin/devotees" })
     return copy;
   }, [devotees, sortKey, sortDir]);
 
+  // 50 per page; back to page 1 whenever the list (filters) or sort changes.
+  const paging = usePagination(sorted);
+
   if (!devotees.length) {
     return <EmptyState icon={Users} title={t("admin.noDevoteesFound")} description={t("admin.noDevoteesFoundDesc")} />;
   }
 
   return (
-    <div className="overflow-x-auto rounded-2xl border border-brown-900/5">
-      <table className="w-full min-w-[640px] border-collapse text-sm">
-        <thead>
-          <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
-            <SortableHeader label={t("admin.table.devotee")} sortKeyName="name" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label={t("admin.table.totalMala")} sortKeyName="totalMala" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label={t("admin.table.granth")} sortKeyName="granth" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label={t("admin.table.harikatha")} sortKeyName="harikatha" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label={t("admin.table.gaudiyaKirtan")} sortKeyName="gaudiyaKirtan" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-            <SortableHeader label={t("admin.table.status")} sortKeyName="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((devotee) => (
-            <tr
-              key={devotee.id}
-              onClick={() => navigate(`${basePath}/${devotee.id}`)}
-              className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-100"
-            >
-              <td className="px-4 py-3">
-                <div className="flex items-center gap-3">
-                  {initialsAvatar(devotee)}
-                  <div>
-                    <p className="font-medium text-brown-900">{devotee.name}</p>
-                    <p className="text-xs text-brown-500">{[devotee.city, devotee.centre].filter(Boolean).join(" · ")}</p>
-                    {devotee.mentor?.length > 0 && (
-                      <p className="text-xs text-brown-400">
-                        {t("admin.report.colMentor")}: {formatMentorNames(devotee.mentor, devotee.mentorOther)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </td>
-              <td className="px-4 py-3 font-medium text-brown-900">{devotee.todayTotalMala ?? (devotee.status === "Completed" ? 0 : "—")}</td>
-              <td className="px-4 py-3 text-brown-700">{yn(devotee.todayGranth)}</td>
-              <td className="px-4 py-3 text-brown-700">{yn(devotee.todayHarikatha)}</td>
-              <td className="px-4 py-3 text-brown-700">{yn(devotee.todayGaudiyaKirtan)}</td>
-              <td className="px-4 py-3">
-                <StatusBadge
-                  status={devotee.status === "Completed" ? "completed" : "pending"}
-                  label={devotee.status === "Completed" ? t("common.completed") : t("common.pending")}
-                />
-              </td>
+    <div className="flex flex-col gap-3">
+      <div className="overflow-x-auto rounded-2xl border border-brown-900/5">
+        <table className="w-full min-w-[640px] border-collapse text-sm">
+          <thead>
+            <tr className="border-b border-brown-900/5 bg-beige-100 text-left text-xs font-medium uppercase tracking-wide text-brown-500">
+              <SortableHeader label={t("admin.table.devotee")} sortKeyName="name" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortableHeader label={t("admin.table.totalMala")} sortKeyName="totalMala" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortableHeader label={t("admin.table.granth")} sortKeyName="granth" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortableHeader label={t("admin.table.harikatha")} sortKeyName="harikatha" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortableHeader label={t("admin.table.gaudiyaKirtan")} sortKeyName="gaudiyaKirtan" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
+              <SortableHeader label={t("admin.table.status")} sortKeyName="status" activeKey={sortKey} dir={sortDir} onSort={handleSort} />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {paging.pageItems.map((devotee) => (
+              <tr
+                key={devotee.id}
+                onClick={() => navigate(`${basePath}/${devotee.id}`)}
+                className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-100"
+              >
+                <td className="px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    {initialsAvatar(devotee)}
+                    <div>
+                      <p className="font-medium text-brown-900">{devotee.name}</p>
+                      <p className="text-xs text-brown-500">{[displayLocation(devotee.city), devotee.centre].filter(Boolean).join(" · ")}</p>
+                      {devotee.mentor?.length > 0 && (
+                        <p className="text-xs text-brown-400">
+                          {t("admin.report.colMentor")}: {formatMentorNames(devotee.mentor, devotee.mentorOther)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-4 py-3 font-medium text-brown-900">{devotee.todayTotalMala ?? (devotee.status === "Completed" ? 0 : "—")}</td>
+                <td className="px-4 py-3 text-brown-700">{yn(devotee.todayGranth)}</td>
+                <td className="px-4 py-3 text-brown-700">{yn(devotee.todayHarikatha)}</td>
+                <td className="px-4 py-3 text-brown-700">{yn(devotee.todayGaudiyaKirtan)}</td>
+                <td className="px-4 py-3">
+                  <StatusBadge
+                    status={devotee.status === "Completed" ? "completed" : "pending"}
+                    label={devotee.status === "Completed" ? t("common.completed") : t("common.pending")}
+                  />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <Pagination {...paging} onPageChange={paging.setPage} />
     </div>
   );
 }

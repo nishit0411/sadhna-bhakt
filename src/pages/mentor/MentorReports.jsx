@@ -8,6 +8,8 @@ import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import { useMonthlyReport } from "../../hooks/useMonthlyReport";
+import { usePagination } from "../../hooks/usePagination";
+import Pagination from "../../components/ui/Pagination";
 import { describeFilters, exportColumns, exportFileSuffix, toMasterExportRows, MASTER_EXPORT_KEYS } from "../../utils/reportFilters";
 import PageHeader from "../../components/layout/PageHeader";
 import ProgressCard from "../../components/dashboard/ProgressCard";
@@ -51,26 +53,14 @@ export default function MentorReports() {
   const chartSubtitle = filterText
     ? t("admin.report.chartFiltered", { filters: filterText, count: filteredRows.length })
     : t("admin.report.chartAll", { month: monthLabel });
+  const masterPage = usePagination(filteredRows);
   const submittedCount = filteredRows.filter((r) => r.submissions > 0).length;
   const suffix = exportFileSuffix(filters, { locationOptions });
   const exportNote = `Exported by: ${user?.name ?? user?.email ?? "Mentor"}`;
 
-  function handleExportDaily() {
-    if (!overview?.dailyMalaAverages?.length) return;
-    downloadCSV(
-      `mentees-report-${suffix}`,
-      overview.dailyMalaAverages,
-      [
-        { key: "date", label: "Date" },
-        { key: "japaRounds", label: "Average Mala" },
-        { key: "submissions", label: "Submissions" },
-      ],
-      exportNote,
-    );
-  }
-
+  // Master Report shows 50 devotees per page; its export downloads the page on screen.
   function handleExportMaster() {
-    downloadCSV(`mentees-master-report-${suffix}`, toMasterExportRows(filteredRows, t), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
+    downloadCSV(`mentees-master-report-${suffix}-page-${masterPage.page}`, toMasterExportRows(masterPage.pageItems, t, filters.cursor), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
   }
 
   return (
@@ -78,11 +68,6 @@ export default function MentorReports() {
       <PageHeader
         title={t("mentor.reportsTitle")}
         subtitle={t("mentor.reportsSubtitle")}
-        action={
-          <Button variant="outline" size="sm" icon={Download} onClick={handleExportDaily} disabled={!overview?.dailyMalaAverages?.length}>
-            {t("mentor.exportMenteesCsv")}
-          </Button>
-        }
       />
 
       <ReportFilterBar
@@ -139,10 +124,13 @@ export default function MentorReports() {
                 <p className="text-xs text-brown-500">{t("admin.report.masterDesc")}</p>
               </div>
               <Button variant="outline" size="sm" icon={Download} onClick={handleExportMaster} disabled={!filteredRows.length}>
-                {t("admin.report.exportMaster")}
+                {masterPage.totalPages > 1
+                  ? t("admin.report.exportMasterPage", { from: masterPage.from, to: masterPage.to })
+                  : t("admin.report.exportMaster")}
               </Button>
             </div>
-            <MasterReportTable rows={filteredRows} basePath="/mentor/devotees" />
+            <MasterReportTable rows={masterPage.pageItems} basePath="/mentor/devotees" />
+            <Pagination {...masterPage} onPageChange={masterPage.setPage} />
           </section>
         </>
       )}

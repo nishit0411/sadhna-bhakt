@@ -19,6 +19,7 @@ import { getAllMentors } from "../../services/mentorService";
 import {
   applyReportFilters,
   buildLocationOptions,
+  displayLocation,
   defaultReportFilters,
   exportColumns,
   exportSafeName,
@@ -28,7 +29,7 @@ import {
 
 // Allowlisted export fields only (see utils/reportFilters) — no DOB, email,
 // phone or credentials, so the file is safe to share outside the admin panel.
-const EXPORT_KEYS = ["name", "location", "centre", "mentors", "statusToday"];
+const EXPORT_KEYS = ["date", "name", "spiritualName", "phone", "location", "centre", "mentors", "statusToday", "totalMala"];
 
 const VALID_STATUS_FILTERS = ["Completed", "Pending"];
 
@@ -137,11 +138,15 @@ export default function Devotees() {
     const rows = filtered.map((d) =>
       toExportRow(
         {
+          date,
           name: exportSafeName(d.name, t),
-          location: d.city,
+          spiritualName: d.spiritualName,
+          phone: d.phone,
+          location: displayLocation(d.city),
           centre: d.centre,
           mentors: (d.mentor ?? []).map((v) => (v === "Other" && d.mentorOther ? d.mentorOther : v)).join("; "),
           statusToday: d.status === "Completed" ? t("common.completed") : t("common.pending"),
+          totalMala: d.todayTotalMala ?? "",
         },
         EXPORT_KEYS,
       ),
