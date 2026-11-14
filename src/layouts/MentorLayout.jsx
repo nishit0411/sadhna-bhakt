@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import LoadingState from "../components/ui/LoadingState";
 import { Outlet } from "react-router-dom";
 import { LayoutDashboard, NotebookPen, UserRound, BarChart3, ChartNoAxesCombined } from "lucide-react";
@@ -7,10 +7,14 @@ import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
 import DeveloperCredit from "../components/layout/DeveloperCredit";
 import { useTranslation } from "../i18n/LanguageContext";
+import { preloadPages } from "../utils/preloadPages";
 
 export default function MentorLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { t } = useTranslation();
+
+  // Download the other pages in the background so menu clicks switch instantly.
+  useEffect(() => preloadPages("mentor"), []);
 
   const NAV_ITEMS = [
     { label: t("nav.mentorDashboard"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },

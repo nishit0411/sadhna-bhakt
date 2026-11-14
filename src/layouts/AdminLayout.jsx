@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import LoadingState from "../components/ui/LoadingState";
 import { Outlet } from "react-router-dom";
 import { LayoutDashboard, Users, FileBarChart, ChartNoAxesCombined, UserCog, GraduationCap } from "lucide-react";
@@ -7,10 +7,14 @@ import Sidebar from "../components/layout/Sidebar";
 import MobileNav from "../components/layout/MobileNav";
 import DeveloperCredit from "../components/layout/DeveloperCredit";
 import { useTranslation } from "../i18n/LanguageContext";
+import { preloadPages } from "../utils/preloadPages";
 
 export default function AdminLayout() {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const { t } = useTranslation();
+
+  // Download the other pages in the background so menu clicks switch instantly.
+  useEffect(() => preloadPages("admin"), []);
 
   const NAV_ITEMS = [
     { label: t("nav.adminDashboard"), to: "/admin/dashboard", icon: LayoutDashboard, end: true },
