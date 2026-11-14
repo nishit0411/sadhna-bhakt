@@ -31,7 +31,7 @@ function SortableHeader({ label, sortKeyName, activeKey, dir, onSort, align = "l
   );
 }
 
-export default function MalaBreakdownTable({ rows }) {
+export default function MalaBreakdownTable({ rows, basePath = "/admin/devotees" }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [sortKey, setSortKey] = useState(null);
@@ -79,7 +79,7 @@ export default function MalaBreakdownTable({ rows }) {
           {sorted.map((row) => (
             <tr
               key={row.id}
-              onClick={() => navigate(`/admin/devotees/${row.id}`)}
+              onClick={() => navigate(`${basePath}/${row.id}`)}
               className="cursor-pointer border-b border-brown-900/5 bg-cream-50 transition-colors last:border-0 hover:bg-beige-100"
             >
               <td className="px-4 py-3 font-medium text-brown-900">{row.name}</td>
