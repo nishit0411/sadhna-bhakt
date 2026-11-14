@@ -106,6 +106,11 @@ async function loadRecordsGrouped(fromDate, toDate) {
   return byDevotee;
 }
 
+/** Calendar days from `from` to `to`, both included ("2026-11-01".."2026-11-30" → 30). */
+function daysInclusive(from, to) {
+  return Math.round((new Date(`${to}T00:00:00`) - new Date(`${from}T00:00:00`)) / 86400000) + 1;
+}
+
 /**
  * `windowDays` controls how far back "average"/"consistency"/"total" look
  * — 7, 30, or Infinity for all-time (used by the Analytics page's period
@@ -113,10 +118,21 @@ async function loadRecordsGrouped(fromDate, toDate) {
  * exactly, so nothing else needed to change when this was added.
  */
 function summarize(devotee, records, forDate, windowDays = 30) {
-  const targetDate = forDate ?? toISODate(new Date());
+  // `windowDays` may also be a date range { from, to } (YYYY-MM-DD, inclusive)
+  // — the Analytics page's custom date range.
+  const range = windowDays && typeof windowDays === "object" ? windowDays : null;
+  const targetDate = forDate ?? (range ? range.to : toISODate(new Date()));
   const targetEntry = records.find((r) => r.date === targetDate);
-  const windowRecords = Number.isFinite(windowDays) ? records.slice(-windowDays) : records;
-  const windowSize = Number.isFinite(windowDays) ? windowDays : windowRecords.length;
+  const windowRecords = range
+    ? records.filter((r) => r.date >= range.from && r.date <= range.to)
+    : Number.isFinite(windowDays)
+      ? records.slice(-windowDays)
+      : records;
+  const windowSize = range
+    ? daysInclusive(range.from, range.to)
+    : Number.isFinite(windowDays)
+      ? windowDays
+      : windowRecords.length;
   const windowTotalMala = windowRecords.reduce((sum, r) => sum + r.totalMala, 0);
   const avgMala = windowRecords.length ? Math.round((windowTotalMala / windowRecords.length) * 10) / 10 : 0;
 
@@ -153,7 +169,8 @@ function summarize(devotee, records, forDate, windowDays = 30) {
 
 export async function getDevoteeDirectory(forDate, windowDays = 30) {
   if (isSupabaseConfigured) {
-    const [devotees, recordsByDevotee] = await Promise.all([fetchAllDevotees(), fetchAllRecordsGrouped()]);
+    const range = windowDays && typeof windowDays === "object" ? { fromDate: windowDays.from, toDate: windowDays.to } : {};
+    const [devotees, recordsByDevotee] = await Promise.all([fetchAllDevotees(), fetchAllRecordsGrouped(range)]);
     return devotees.map((d) => summarize(d, recordsByDevotee.get(d.id) ?? [], forDate, windowDays));
   }
 
@@ -167,22 +184,30 @@ export async function getDevoteeDirectory(forDate, windowDays = 30) {
  * weekly trend chart. Days with zero submissions still appear, at 0.
  */
 export async function getSubmissionTrend(days = 7) {
-  let recordsByDevotee;
-  if (isSupabaseConfigured) {
-    // Only the last `days` days — not every record ever submitted.
+  // `days` may also be a date range { from, to } (inclusive).
+  let fromISO;
+  let toISO;
+  if (days && typeof days === "object") {
+    fromISO = days.from;
+    toISO = days.to;
+  } else {
     const start = new Date();
     start.setDate(start.getDate() - (days - 1));
-    recordsByDevotee = await fetchAllRecordsGrouped({ fromDate: toISODate(start) });
+    fromISO = toISODate(start);
+    toISO = toISODate(new Date());
+  }
+
+  let recordsByDevotee;
+  if (isSupabaseConfigured) {
+    // Only the requested window — not every record ever submitted.
+    recordsByDevotee = await fetchAllRecordsGrouped({ fromDate: fromISO, toDate: toISO });
   } else {
     await delay();
     recordsByDevotee = new Map(getDevoteesOnly().map((d) => [d.id, getAllRecordsForDevotee(d.id)]));
   }
 
   const byDate = new Map();
-  const today = new Date();
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
+  for (let d = new Date(`${fromISO}T00:00:00`); toISODate(d) <= toISO; d.setDate(d.getDate() + 1)) {
     byDate.set(toISODate(d), { submissions: 0, totalMala: 0 });
   }
 
@@ -350,8 +375,16 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
   };
 }
 
-export async function getAdminOverview() {
-  const directory = await getDevoteeDirectory();
+export async function getAdminOverview(forDate) {
+  return buildDayOverview(await getDevoteeDirectory(forDate));
+}
+
+/**
+ * Day summary (submitted / pending / mala totals) from a devotee directory
+ * already loaded for that day — lets the dashboard compute it without a
+ * second fetch. Under a mentor session the directory is RLS-scoped.
+ */
+export function buildDayOverview(directory) {
   const submittedToday = directory.filter((d) => d.status === "Completed");
   const totalMalaChanted = submittedToday.reduce((sum, d) => sum + (d.todayTotalMala ?? 0), 0);
   const totalMalaOnAsan = submittedToday.reduce((sum, d) => sum + (d.todayMalaOnAsan ?? 0), 0);

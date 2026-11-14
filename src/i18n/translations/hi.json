@@ -586,7 +586,8 @@
       "showing": "{{total}} में से {{count}} भक्त दिखाए जा रहे हैं",
       "noMentor": "कोई मार्गदर्शक नहीं",
       "colPhone": "फ़ोन",
-      "exportMasterPage": "यह पृष्ठ एक्सपोर्ट करें ({{from}}–{{to}})"
+      "exportMasterPage": "यह पृष्ठ एक्सपोर्ट करें ({{from}}–{{to}})",
+      "exportMasterAll": "सभी एक्सपोर्ट करें ({{count}})"
     },
     "dashboardTitle": "एडमिन / मेंटर डैशबोर्ड",
     "dashboardSubtitle": "आज संघ की साधना का अवलोकन।",
@@ -681,7 +682,17 @@
     "acctErrEmail": "मान्य ईमेल पता दर्ज करें।",
     "acctErrPw": "पासवर्ड कम से कम 6 अक्षरों का होना चाहिए।",
     "acctErrMatch": "दोनों पासवर्ड मेल नहीं खाते।",
-    "acctNote": "पासवर्ड यहाँ कभी दिखाए या संग्रहीत नहीं किए जाते।"
+    "acctNote": "पासवर्ड यहाँ कभी दिखाए या संग्रहीत नहीं किए जाते।",
+    "customRange": "कस्टम अवधि",
+    "rangeFrom": "से",
+    "rangeTo": "तक",
+    "rangeInvalid": "आरंभ तिथि समाप्ति तिथि से पहले या उसी दिन चुनें (भविष्य की नहीं)।",
+    "analyticsSubmissionTrend": "जमा करने का रुझान",
+    "dashboardToday": "आज",
+    "submittedOn": "जमा · {{day}}",
+    "pendingOn": "बाकी · {{day}}",
+    "malaSummaryOn": "माला सारांश — {{day}}",
+    "sadhanaOverviewOn": "साधना अवलोकन — {{day}}"
   },
   "errors": {
     "generic": "कुछ गड़बड़ हो गई। कृपया फिर से प्रयास करें।",

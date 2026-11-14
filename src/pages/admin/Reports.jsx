@@ -79,8 +79,11 @@ export default function Reports() {
   const exportNote = `Exported by: ${user?.name ?? user?.email ?? "Admin"}`;
 
   // Master Report shows 50 devotees per page; its export downloads the page on screen.
-  function handleExportMaster() {
-    downloadCSV(`master-report-${suffix}-page-${masterPage.page}`, toMasterExportRows(masterPage.pageItems, t, filters.cursor), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
+  // "all" = every devotee matching the filters; "page" = the 50 rows on screen.
+  function handleExportMaster(scope) {
+    const rows = scope === "page" ? masterPage.pageItems : filteredRows;
+    const name = scope === "page" ? `master-report-${suffix}-page-${masterPage.page}` : `master-report-${suffix}`;
+    downloadCSV(name, toMasterExportRows(rows, t, filters.cursor), exportColumns(MASTER_EXPORT_KEYS, t), exportNote);
   }
 
   function handleExportMentorSummary() {
@@ -167,11 +170,16 @@ export default function Reports() {
                 <h2 className="font-display text-lg font-semibold text-maroon-600">{t("admin.report.masterTitle")}</h2>
                 <p className="text-xs text-brown-500">{t("admin.report.masterDesc")}</p>
               </div>
-              <Button variant="outline" size="sm" icon={Download} onClick={handleExportMaster} disabled={!filteredRows.length}>
-                {masterPage.totalPages > 1
-                  ? t("admin.report.exportMasterPage", { from: masterPage.from, to: masterPage.to })
-                  : t("admin.report.exportMaster")}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {masterPage.totalPages > 1 && (
+                  <Button variant="ghost" size="sm" icon={Download} onClick={() => handleExportMaster("page")}>
+                    {t("admin.report.exportMasterPage", { from: masterPage.from, to: masterPage.to })}
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" icon={Download} onClick={() => handleExportMaster("all")} disabled={!filteredRows.length}>
+                  {t("admin.report.exportMasterAll", { count: filteredRows.length })}
+                </Button>
+              </div>
             </div>
             <MasterReportTable rows={masterPage.pageItems} />
             <Pagination {...masterPage} onPageChange={masterPage.setPage} />
