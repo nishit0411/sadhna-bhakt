@@ -586,7 +586,8 @@
       "showing": "Показано {{count}} из {{total}} преданных",
       "noMentor": "Без наставника",
       "colPhone": "Телефон",
-      "exportMasterPage": "Экспорт этой страницы ({{from}}–{{to}})"
+      "exportMasterPage": "Экспорт этой страницы ({{from}}–{{to}})",
+      "exportMasterAll": "Экспорт всех ({{count}})"
     },
     "dashboardTitle": "Панель администратора / наставника",
     "dashboardSubtitle": "Обзор сегодняшней садханы общины.",
@@ -681,7 +682,17 @@
     "acctErrEmail": "Введите корректный email.",
     "acctErrPw": "Пароль должен содержать не менее 6 символов.",
     "acctErrMatch": "Пароли не совпадают.",
-    "acctNote": "Пароли здесь никогда не показываются и не сохраняются."
+    "acctNote": "Пароли здесь никогда не показываются и не сохраняются.",
+    "customRange": "Свой период",
+    "rangeFrom": "С",
+    "rangeTo": "По",
+    "rangeInvalid": "Дата начала должна быть не позже даты окончания (и не в будущем).",
+    "analyticsSubmissionTrend": "Динамика отчётов",
+    "dashboardToday": "Сегодня",
+    "submittedOn": "Сдали · {{day}}",
+    "pendingOn": "Не сдали · {{day}}",
+    "malaSummaryOn": "Итоги по мале — {{day}}",
+    "sadhanaOverviewOn": "Обзор садханы — {{day}}"
   },
   "errors": {
     "generic": "Что-то пошло не так. Пожалуйста, попробуйте снова.",

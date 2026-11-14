@@ -586,7 +586,8 @@
       "showing": "Showing {{count}} of {{total}} devotees",
       "noMentor": "No mentor",
       "colPhone": "Phone",
-      "exportMasterPage": "Export this page ({{from}}–{{to}})"
+      "exportMasterPage": "Export this page ({{from}}–{{to}})",
+      "exportMasterAll": "Export all ({{count}})"
     },
     "dashboardTitle": "Admin / Mentor Dashboard",
     "dashboardSubtitle": "An overview of the sangha's Sadhana today.",
@@ -681,7 +682,17 @@
     "acctErrEmail": "Enter a valid email address.",
     "acctErrPw": "Password must be at least 6 characters.",
     "acctErrMatch": "The two passwords don't match.",
-    "acctNote": "Passwords are never shown or stored here."
+    "acctNote": "Passwords are never shown or stored here.",
+    "customRange": "Custom range",
+    "rangeFrom": "From",
+    "rangeTo": "To",
+    "rangeInvalid": "Pick a start date on or before the end date (not in the future).",
+    "analyticsSubmissionTrend": "Submission Trend",
+    "dashboardToday": "Today",
+    "submittedOn": "Submitted · {{day}}",
+    "pendingOn": "Pending · {{day}}",
+    "malaSummaryOn": "Mala Summary — {{day}}",
+    "sadhanaOverviewOn": "Sadhana Overview — {{day}}"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

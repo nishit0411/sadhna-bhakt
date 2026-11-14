@@ -30,7 +30,7 @@ import {
   List as ListIcon,
 } from "lucide-react";
 import * as devoteeService from "../../services/devoteeService";
-import { formatShortDate } from "../../utils/dateHelpers";
+import { formatShortDate, toISODate } from "../../utils/dateHelpers";
 import { useTranslation } from "../../i18n/LanguageContext";
 import { useToast } from "../../context/ToastContext";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
@@ -463,15 +463,30 @@ export default function Analytics({ mode = "admin" }) {
   const [trend, setTrend] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const windowDays = period === "7" ? 7 : period === "30" ? 30 : Infinity;
+  // Custom date range (inclusive). Defaults to the last 30 days.
+  const todayISO = toISODate(new Date());
+  const [range, setRange] = useState(() => {
+    const start = new Date();
+    start.setDate(start.getDate() - 29);
+    return { from: toISODate(start), to: toISODate(new Date()) };
+  });
+  const rangeValid = range.from && range.to && range.from <= range.to && range.to <= todayISO;
+  const isCustom = period === "custom";
+
+  // What every query below is computed over: 7 / 30 records, all time, or the custom range.
+  const windowDays = isCustom ? (rangeValid ? range : null) : period === "7" ? 7 : period === "30" ? 30 : Infinity;
+  const windowKey = isCustom ? `${range.from}:${range.to}` : period;
+  // Trend chart follows the selected period (all-time shows the last 90 days).
+  const trendWindow = isCustom ? range : period === "7" ? 7 : period === "30" ? 30 : 90;
 
   useEffect(() => {
+    if (!windowDays) return undefined; // custom range not valid yet
     let active = true;
     setIsLoading(true);
     Promise.all([
       devoteeService.getDevoteeDirectory(undefined, windowDays),
       devoteeService.getAdminOverview(),
-      devoteeService.getSubmissionTrend(7),
+      devoteeService.getSubmissionTrend(trendWindow),
     ])
       .then(([list, ov, trendData]) => {
         if (!active) return;
@@ -489,7 +504,7 @@ export default function Analytics({ mode = "admin" }) {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [windowDays]);
+  }, [windowKey, rangeValid]);
 
   const sortedForLists = useMemo(() => {
     const copy = [...devotees];
@@ -548,8 +563,38 @@ export default function Analytics({ mode = "admin" }) {
               { value: "7", label: t("admin.last7Days") },
               { value: "30", label: t("admin.last30Days") },
               { value: "all", label: t("admin.allTime") },
+              { value: "custom", label: t("admin.customRange") },
             ]}
           />
+          {isCustom && (
+            <div
+              className="inline-flex flex-wrap items-center gap-2 rounded-full px-3 py-1.5 text-sm"
+              style={{ backgroundColor: CHARCOAL, border: `1px solid ${rangeValid ? CARD_BORDER : "#c2410c"}`, color: CREAM }}
+            >
+              <label className="flex items-center gap-1.5">
+                <span style={{ color: MUTED }}>{t("admin.rangeFrom")}</span>
+                <input
+                  type="date"
+                  value={range.from}
+                  max={range.to || todayISO}
+                  onChange={(e) => setRange((r) => ({ ...r, from: e.target.value }))}
+                  className="rounded-md bg-transparent px-1 focus:outline-none focus:ring-2 focus:ring-saffron-200"
+                />
+              </label>
+              <label className="flex items-center gap-1.5">
+                <span style={{ color: MUTED }}>{t("admin.rangeTo")}</span>
+                <input
+                  type="date"
+                  value={range.to}
+                  min={range.from}
+                  max={todayISO}
+                  onChange={(e) => setRange((r) => ({ ...r, to: e.target.value }))}
+                  className="rounded-md bg-transparent px-1 focus:outline-none focus:ring-2 focus:ring-saffron-200"
+                />
+              </label>
+              {!rangeValid && <span className="text-xs text-clay-600">{t("admin.rangeInvalid")}</span>}
+            </div>
+          )}
           <FilterGroup
             value={malaType}
             onChange={setMalaType}
@@ -701,7 +746,7 @@ export default function Analytics({ mode = "admin" }) {
               </div>
               <div className="rounded-2xl p-5" style={{ backgroundColor: CARD, border: `1px solid ${CARD_BORDER}` }}>
                 <p className="mb-3 text-sm font-medium" style={{ color: CREAM }}>
-                  {t("admin.analyticsWeeklyTrend")}
+                  {period === "7" ? t("admin.analyticsWeeklyTrend") : t("admin.analyticsSubmissionTrend")}
                 </p>
                 <WeeklyTrendChart data={trend} />
               </div>
