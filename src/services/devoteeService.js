@@ -80,21 +80,32 @@ async function fetchAllRecordsGrouped(range = {}) {
 }
 
 async function loadRecordsGrouped(fromDate, toDate) {
-  // PostgREST caps a single response at 1000 rows by default, so page
-  // through instead of silently losing older history once the table grows.
+  // PostgREST caps a single response at 1000 rows, so large ranges come in
+  // pages. The first page also returns the total count; the remaining pages
+  // are then fetched in parallel instead of one after another.
   const pageSize = 1000;
-  const rows = [];
-  for (let from = 0; ; from += pageSize) {
-    let q = supabase.from("sadhana_records").select("*");
+  const query = (from, withCount = false) => {
+    let q = supabase.from("sadhana_records").select("*", withCount ? { count: "exact" } : undefined);
     if (fromDate) q = q.gte("date", fromDate);
     if (toDate) q = q.lte("date", toDate);
-    const { data, error } = await q
+    return q
       .order("date", { ascending: true })
       .order("id", { ascending: true })
       .range(from, from + pageSize - 1);
-    if (error) throw error;
-    rows.push(...(data ?? []));
-    if (!data || data.length < pageSize) break;
+  };
+
+  const first = await query(0, true);
+  if (first.error) throw first.error;
+  const rows = [...(first.data ?? [])];
+  const total = first.count ?? rows.length;
+  if (total > pageSize) {
+    const starts = [];
+    for (let from = pageSize; from < total; from += pageSize) starts.push(from);
+    const pages = await Promise.all(starts.map((from) => query(from)));
+    for (const page of pages) {
+      if (page.error) throw page.error;
+      rows.push(...(page.data ?? []));
+    }
   }
   const byDevotee = new Map();
   rows.forEach((row) => {
@@ -167,9 +178,20 @@ function summarize(devotee, records, forDate, windowDays = 30) {
   };
 }
 
-export async function getDevoteeDirectory(forDate, windowDays = 30) {
+/**
+ * `options.dayView` — the caller only shows the chosen day (Dashboard,
+ * Devotees list: that day's status, mala, granth, harikatha, kirtan), so only
+ * that day's reports are downloaded instead of every report ever submitted.
+ * Multi-day stats on these rows (average, streak, consistency) are not shown
+ * by those pages.
+ */
+export async function getDevoteeDirectory(forDate, windowDays = 30, options = {}) {
   if (isSupabaseConfigured) {
-    const range = windowDays && typeof windowDays === "object" ? { fromDate: windowDays.from, toDate: windowDays.to } : {};
+    let range = windowDays && typeof windowDays === "object" ? { fromDate: windowDays.from, toDate: windowDays.to } : {};
+    if (options.dayView) {
+      const day = forDate ?? toISODate(new Date());
+      range = { fromDate: day, toDate: day };
+    }
     const [devotees, recordsByDevotee] = await Promise.all([fetchAllDevotees(), fetchAllRecordsGrouped(range)]);
     return devotees.map((d) => summarize(d, recordsByDevotee.get(d.id) ?? [], forDate, windowDays));
   }
@@ -376,7 +398,7 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
 }
 
 export async function getAdminOverview(forDate) {
-  return buildDayOverview(await getDevoteeDirectory(forDate));
+  return buildDayOverview(await getDevoteeDirectory(forDate, 30, { dayView: true }));
 }
 
 /**

@@ -12,7 +12,7 @@ import {
   TriangleAlert,
   Fingerprint,
 } from "lucide-react";
-import { getUserById, deleteUserAccount, adminChangeEmail, adminChangePassword } from "../../services/adminUserService";
+import { getUserById, deleteUserAccount, adminChangeEmail, adminChangePassword, clearUserListCache } from "../../services/adminUserService";
 import { updateProfile, requestPasswordReset } from "../../services/authService";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -173,6 +173,7 @@ export default function UserDetail() {
 
     setIsSaving(true);
     try {
+      clearUserListCache(); // names/roles in the list may change
       await updateProfile(id, {
         firstName: form.firstName.trim(),
         lastName: form.lastName.trim(),

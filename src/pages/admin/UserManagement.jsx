@@ -96,6 +96,10 @@ export default function UserManagement() {
       setOrphanedProfiles(data.orphanedProfiles ?? []);
       setTotal(data.total ?? 0);
       setIsLoading(false);
+      // Load the next page in the background so "Next" opens instantly.
+      if (page * PAGE_SIZE < (data.total ?? 0)) {
+        listAllUsers({ page: page + 1, pageSize: PAGE_SIZE, search, role: roleFilter, verified: verifiedFilter, profile: profileFilter }).catch(() => {});
+      }
     } catch (err) {
       setLoadError(err.message || friendlyErrorMessage(err, t, "errors.loadFailed"));
       setIsLoading(false);

@@ -474,7 +474,14 @@ export default function Analytics({ mode = "admin" }) {
   const isCustom = period === "custom";
 
   // What every query below is computed over: 7 / 30 records, all time, or the custom range.
-  const windowDays = isCustom ? (rangeValid ? range : null) : period === "7" ? 7 : period === "30" ? 30 : Infinity;
+  // "Last 7 / 30 days" are real calendar ranges ending today, so only those
+  // days are downloaded (and the numbers match the label).
+  const lastDays = (n) => {
+    const start = new Date();
+    start.setDate(start.getDate() - (n - 1));
+    return { from: toISODate(start), to: todayISO };
+  };
+  const windowDays = isCustom ? (rangeValid ? range : null) : period === "7" ? lastDays(7) : period === "30" ? lastDays(30) : Infinity;
   const windowKey = isCustom ? `${range.from}:${range.to}` : period;
   // Trend chart follows the selected period (all-time shows the last 90 days).
   const trendWindow = isCustom ? range : period === "7" ? 7 : period === "30" ? 30 : 90;
