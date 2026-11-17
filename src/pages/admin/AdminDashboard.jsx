@@ -40,7 +40,7 @@ export default function AdminDashboard({ mode = "admin" }) {
     let active = true;
     setIsLoading(true);
     devoteeService
-      .getDevoteeDirectory(date)
+      .getDevoteeDirectory(date, 30, { dayView: true })
       .then((list) => {
         if (!active) return;
         setDevotees(list);
@@ -65,8 +65,14 @@ export default function AdminDashboard({ mode = "admin" }) {
 
   const isToday = date === todayISO;
   const dayLabel = isToday ? t("admin.dashboardToday") : formatLongDate(date, locale);
-  // Admin-only shortcuts into the Devotees list; mentors stay on this page.
-  const toDevotees = (query = "") => (isMentor ? undefined : () => navigate(`/admin/devotees${query}`));
+  // Cards open the Devotees list (admin: all devotees, mentor: own mentees) for the chosen day.
+  const toDevotees = (status) => () => {
+    const params = new URLSearchParams();
+    if (status) params.set("status", status);
+    if (!isToday) params.set("date", date);
+    const query = params.toString();
+    navigate(`${base}/devotees${query ? `?${query}` : ""}`);
+  };
   const toAnalytics = () => navigate(`${base}/analytics`);
 
   return (
@@ -80,6 +86,11 @@ export default function AdminDashboard({ mode = "admin" }) {
             onPrev={() => setDate((d) => addDays(d, -1))}
             onNext={() => !isToday && setDate((d) => addDays(d, 1))}
             nextDisabled={isToday}
+            value={date}
+            max={todayISO}
+            onSelect={(iso) => setDate(iso > todayISO ? todayISO : iso)}
+            prevLabel={t("admin.previousDay")}
+            nextLabel={t("admin.nextDay")}
           />
         }
       />
@@ -101,14 +112,14 @@ export default function AdminDashboard({ mode = "admin" }) {
               label={t("admin.submittedOn", { day: dayLabel })}
               value={overview.submittedToday}
               tone="sage"
-              onClick={isToday ? toDevotees("?status=Completed") : undefined}
+              onClick={toDevotees("Completed")}
             />
             <StatCard
               icon={Clock3}
               label={t("admin.pendingOn", { day: dayLabel })}
               value={overview.pendingToday}
               tone="saffron"
-              onClick={isToday ? toDevotees("?status=Pending") : undefined}
+              onClick={toDevotees("Pending")}
             />
           </div>
 

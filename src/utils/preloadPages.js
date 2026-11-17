@@ -23,6 +23,7 @@ const PAGES = {
   ],
   mentor: [
     () => import("../pages/mentor/MentorDashboard"),
+    () => import("../pages/admin/Devotees"),
     () => import("../pages/admin/Analytics"),
     () => import("../pages/mentor/MentorReports"),
     () => import("../pages/devotee/DailySadhana"),
