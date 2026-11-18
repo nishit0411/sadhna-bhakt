@@ -49,7 +49,8 @@
     "adminUserManagement": "User Management",
     "mentorDashboard": "My Mentees",
     "mentorReports": "Reports",
-    "mentorAnalytics": "Analytics"
+    "mentorAnalytics": "Analytics",
+    "mentorDevotees": "Devotees"
   },
   "mentor": {
     "activeMentees": "Active Mentees",
@@ -124,7 +125,8 @@
     "monthPicker": "Month",
     "viewDetails": "View Details",
     "analyticsTitle": "My Mentees Analytics",
-    "analyticsSubtitle": "Mala, consistency and participation for the devotees assigned to you."
+    "analyticsSubtitle": "Mala, consistency and participation for the devotees assigned to you.",
+    "devoteesTitle": "My Devotees"
   },
   "landing": {
     "hareKrishnaGreeting": "Hare Krishna 🙏",
@@ -505,7 +507,9 @@
     "errConfirmMismatch": "Passwords do not match.",
     "passwordChanged": "Password changed successfully.",
     "emailChangePending": "A confirmation link has been sent to your new email address. Your email will update once you confirm it.",
-    "emailChangeHelper": "Changing this requires confirming a link sent to the new address."
+    "emailChangeHelper": "Changing this requires confirming a link sent to the new address.",
+    "exportEmpty": "You have no Sadhana records to download yet.",
+    "exportDone": "Downloaded {{count}} Sadhana records."
   },
   "adminLogin": {
     "eyebrow": "Restricted Access",
@@ -692,7 +696,9 @@
     "submittedOn": "Submitted · {{day}}",
     "pendingOn": "Pending · {{day}}",
     "malaSummaryOn": "Mala Summary — {{day}}",
-    "sadhanaOverviewOn": "Sadhana Overview — {{day}}"
+    "sadhanaOverviewOn": "Sadhana Overview — {{day}}",
+    "previousDay": "Previous day",
+    "nextDay": "Next day"
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

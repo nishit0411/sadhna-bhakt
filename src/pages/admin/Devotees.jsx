@@ -33,7 +33,13 @@ const EXPORT_KEYS = ["date", "name", "spiritualName", "phone", "location", "cent
 
 const VALID_STATUS_FILTERS = ["Completed", "Pending"];
 
-export default function Devotees() {
+/**
+ * Devotees list. Admin: every devotee, with the mentor filter. Mentor
+ * (`mode="mentor"`): the same list limited by RLS to the mentor's own
+ * mentees, without the mentor filter; rows open the read-only devotee page.
+ */
+export default function Devotees({ mode = "admin" }) {
+  const isMentor = mode === "mentor";
   const { t } = useTranslation();
   const { user } = useAuth();
   const { addToast } = useToast();
@@ -43,7 +49,12 @@ export default function Devotees() {
   // Shared location / mentor / name-or-mobile filters (same logic as Reports).
   const [filters, setFilters] = useState(defaultReportFilters);
   const [mentors, setMentors] = useState([]);
-  const [date, setDate] = useState(toISODate(new Date()));
+  // ?date=YYYY-MM-DD lets the Dashboard open this list on the day it was showing.
+  const [date, setDate] = useState(() => {
+    const fromUrl = searchParams.get("date");
+    const todayISO = toISODate(new Date());
+    return /^\d{4}-\d{2}-\d{2}$/.test(fromUrl ?? "") && fromUrl <= todayISO ? fromUrl : todayISO;
+  });
   const [malaFilter, setMalaFilter] = useState("all");
   // Seeded from ?status=Completed|Pending (the Admin Dashboard's "Submitted
   // Today" / "Pending Today" cards link here) — falls back to "all" for a
@@ -80,6 +91,7 @@ export default function Devotees() {
   ];
 
   useEffect(() => {
+    if (isMentor) return undefined; // mentors don't filter by mentor
     let active = true;
     getAllMentors()
       .then((list) => active && setMentors(list.map((m) => ({ id: m.id, name: m.name }))))
@@ -87,13 +99,13 @@ export default function Devotees() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isMentor]);
 
   useEffect(() => {
     let active = true;
     setIsLoading(true);
     devoteeService
-      .getDevoteeDirectory(date)
+      .getDevoteeDirectory(date, 30, { dayView: true })
       .then((list) => {
         if (!active) return;
         setDevotees(list);
@@ -151,13 +163,13 @@ export default function Devotees() {
         EXPORT_KEYS,
       ),
     );
-    downloadCSV(`devotees-${date}`, rows, exportColumns(EXPORT_KEYS, t), `Exported by: ${user?.name ?? user?.email ?? "Admin"} · ${date}`);
+    downloadCSV(`${isMentor ? "mentees" : "devotees"}-${date}`, rows, exportColumns(EXPORT_KEYS, t), `Exported by: ${user?.name ?? user?.email ?? (isMentor ? "Mentor" : "Admin")} · ${date}`);
   }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={t("admin.devoteesTitle")}
+        title={isMentor ? t("mentor.devoteesTitle") : t("admin.devoteesTitle")}
         action={
           <Button variant="outline" size="sm" icon={Download} onClick={handleExport} disabled={!filtered.length}>
             {t("admin.exportCsv")}
@@ -173,7 +185,7 @@ export default function Devotees() {
         canReset={canReset}
         locationOptions={locationOptions}
         mentorOptions={mentors}
-        show={{ search: true, location: true, mentor: true }}
+        show={{ search: true, location: true, mentor: !isMentor }}
       >
         <Input label="" type="date" aria-label={t("common.date")} value={date} onChange={(e) => setDate(e.target.value)} max={today} />
         <Select aria-label={t("admin.anyMalaCount")} value={malaFilter} onChange={(e) => setMalaFilter(e.target.value)}>
@@ -192,7 +204,7 @@ export default function Devotees() {
         </Select>
       </ReportFilterBar>
 
-      {isLoading ? <LoadingState /> : <DevoteeTable devotees={filtered} />}
+      {isLoading ? <LoadingState /> : <DevoteeTable devotees={filtered} basePath={isMentor ? "/mentor/devotees" : "/admin/devotees"} />}
     </div>
   );
 }

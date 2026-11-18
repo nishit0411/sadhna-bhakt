@@ -19,6 +19,8 @@ import GenderSelector from "../../components/GenderSelector";
 import CheckboxGroup from "../../components/sadhana/CheckboxGroup";
 import { MENTOR_OPTIONS, formatMentorNames } from "../../data/mentorList";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
+import { getHistory } from "../../services/sadhanaService";
+import { downloadMySadhana } from "../../utils/sadhanaExport";
 
 const TONES = {
   maroon: "bg-maroon-500",
@@ -179,6 +181,24 @@ export default function Profile() {
   const [isSaving, setIsSaving] = useState(false);
   const [prefs, setPrefs] = useState({ dailyReminder: true, weeklySummary: true, mentorUpdates: false });
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+
+  async function handleExportData() {
+    setIsExporting(true);
+    try {
+      const records = await getHistory(user.id);
+      if (!records.length) {
+        addToast(t("profile.exportEmpty"), "info");
+        return;
+      }
+      const count = downloadMySadhana(records, user);
+      addToast(t("profile.exportDone", { count }), "success");
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t, "errors.loadFailed"), "error");
+    } finally {
+      setIsExporting(false);
+    }
+  }
 
   const localeMap = { en: "en-IN", hi: "hi-IN", ru: "ru-RU" };
 
@@ -580,7 +600,7 @@ export default function Profile() {
           </div>
           <div className="flex items-center justify-between py-3.5">
             <p className="text-sm text-brown-700">{t("profile.exportData")}</p>
-            <Button variant="outline" size="sm" onClick={() => addToast(t("profile.exportComingSoon"), "info")}>
+            <Button variant="outline" size="sm" onClick={handleExportData} disabled={isExporting}>
               {t("profile.export")}
             </Button>
           </div>

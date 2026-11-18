@@ -49,7 +49,8 @@
     "adminUserManagement": "उपयोगकर्ता प्रबंधन",
     "mentorDashboard": "मेरे भक्त",
     "mentorReports": "रिपोर्ट",
-    "mentorAnalytics": "विश्लेषण"
+    "mentorAnalytics": "विश्लेषण",
+    "mentorDevotees": "भक्त"
   },
   "mentor": {
     "activeMentees": "सक्रिय शिष्य",
@@ -124,7 +125,8 @@
     "monthPicker": "महीना",
     "viewDetails": "विवरण देखें",
     "analyticsTitle": "मेरे शिष्यों का विश्लेषण",
-    "analyticsSubtitle": "आपको सौंपे गए भक्तों की माला, नियमितता और भागीदारी।"
+    "analyticsSubtitle": "आपको सौंपे गए भक्तों की माला, नियमितता और भागीदारी।",
+    "devoteesTitle": "मेरे भक्त"
   },
   "landing": {
     "hareKrishnaGreeting": "हरे कृष्ण 🙏",
@@ -505,7 +507,9 @@
     "errConfirmMismatch": "पासवर्ड मेल नहीं खाते।",
     "passwordChanged": "पासवर्ड सफलतापूर्वक बदला गया।",
     "emailChangePending": "आपके नए ईमेल पते पर एक पुष्टिकरण लिंक भेजा गया है। पुष्टि करने के बाद आपका ईमेल अपडेट हो जाएगा।",
-    "emailChangeHelper": "इसे बदलने के लिए नए पते पर भेजे गए लिंक की पुष्टि आवश्यक है।"
+    "emailChangeHelper": "इसे बदलने के लिए नए पते पर भेजे गए लिंक की पुष्टि आवश्यक है।",
+    "exportEmpty": "अभी डाउनलोड करने के लिए कोई साधना रिकॉर्ड नहीं है।",
+    "exportDone": "{{count}} साधना रिकॉर्ड डाउनलोड हुए।"
   },
   "adminLogin": {
     "eyebrow": "सीमित पहुंच",
@@ -692,7 +696,9 @@
     "submittedOn": "जमा · {{day}}",
     "pendingOn": "बाकी · {{day}}",
     "malaSummaryOn": "माला सारांश — {{day}}",
-    "sadhanaOverviewOn": "साधना अवलोकन — {{day}}"
+    "sadhanaOverviewOn": "साधना अवलोकन — {{day}}",
+    "previousDay": "पिछला दिन",
+    "nextDay": "अगला दिन"
   },
   "errors": {
     "generic": "कुछ गड़बड़ हो गई। कृपया फिर से प्रयास करें।",

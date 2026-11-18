@@ -49,7 +49,8 @@
     "adminUserManagement": "Управление пользователями",
     "mentorDashboard": "Мои подопечные",
     "mentorReports": "Отчёты",
-    "mentorAnalytics": "Аналитика"
+    "mentorAnalytics": "Аналитика",
+    "mentorDevotees": "Преданные"
   },
   "mentor": {
     "activeMentees": "Активные подопечные",
@@ -124,7 +125,8 @@
     "monthPicker": "Месяц",
     "viewDetails": "Посмотреть подробности",
     "analyticsTitle": "Аналитика подопечных",
-    "analyticsSubtitle": "Мала, регулярность и участие ваших подопечных."
+    "analyticsSubtitle": "Мала, регулярность и участие ваших подопечных.",
+    "devoteesTitle": "Мои преданные"
   },
   "landing": {
     "hareKrishnaGreeting": "Харе Кришна 🙏",
@@ -505,7 +507,9 @@
     "errConfirmMismatch": "Пароли не совпадают.",
     "passwordChanged": "Пароль успешно изменён.",
     "emailChangePending": "Ссылка для подтверждения отправлена на ваш новый адрес эл. почты. Ваш адрес обновится после подтверждения.",
-    "emailChangeHelper": "Для изменения потребуется подтвердить ссылку, отправленную на новый адрес."
+    "emailChangeHelper": "Для изменения потребуется подтвердить ссылку, отправленную на новый адрес.",
+    "exportEmpty": "Пока нет записей садханы для скачивания.",
+    "exportDone": "Скачано записей садханы: {{count}}."
   },
   "adminLogin": {
     "eyebrow": "Ограниченный доступ",
@@ -692,7 +696,9 @@
     "submittedOn": "Сдали · {{day}}",
     "pendingOn": "Не сдали · {{day}}",
     "malaSummaryOn": "Итоги по мале — {{day}}",
-    "sadhanaOverviewOn": "Обзор садханы — {{day}}"
+    "sadhanaOverviewOn": "Обзор садханы — {{day}}",
+    "previousDay": "Предыдущий день",
+    "nextDay": "Следующий день"
   },
   "errors": {
     "generic": "Что-то пошло не так. Пожалуйста, попробуйте снова.",
