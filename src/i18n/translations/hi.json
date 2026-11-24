@@ -50,7 +50,8 @@
     "mentorDashboard": "मेरे भक्त",
     "mentorReports": "रिपोर्ट",
     "mentorAnalytics": "विश्लेषण",
-    "mentorDevotees": "भक्त"
+    "mentorDevotees": "भक्त",
+    "mentorHome": "डैशबोर्ड"
   },
   "mentor": {
     "activeMentees": "सक्रिय शिष्य",
@@ -509,7 +510,15 @@
     "emailChangePending": "आपके नए ईमेल पते पर एक पुष्टिकरण लिंक भेजा गया है। पुष्टि करने के बाद आपका ईमेल अपडेट हो जाएगा।",
     "emailChangeHelper": "इसे बदलने के लिए नए पते पर भेजे गए लिंक की पुष्टि आवश्यक है।",
     "exportEmpty": "अभी डाउनलोड करने के लिए कोई साधना रिकॉर्ड नहीं है।",
-    "exportDone": "{{count}} साधना रिकॉर्ड डाउनलोड हुए।"
+    "exportDone": "{{count}} साधना रिकॉर्ड डाउनलोड हुए।",
+    "changePhoto": "प्रोफ़ाइल फ़ोटो बदलें",
+    "removePhoto": "फ़ोटो हटाएँ",
+    "photoUpdated": "प्रोफ़ाइल फ़ोटो अपडेट हो गई।",
+    "photoRemoved": "प्रोफ़ाइल फ़ोटो हटा दी गई।",
+    "photoErrType": "कृपया JPG, PNG या WebP फ़ोटो चुनें।",
+    "photoErrSize": "फ़ोटो बहुत बड़ी है (अधिकतम 15 MB)।",
+    "photoErrDecode": "यह फ़ोटो पढ़ी नहीं जा सकी। JPG या PNG आज़माएँ।",
+    "photoErrUpload": "फ़ोटो सेव नहीं हो सकी। कृपया फिर से कोशिश करें।"
   },
   "adminLogin": {
     "eyebrow": "सीमित पहुंच",
@@ -698,7 +707,10 @@
     "malaSummaryOn": "माला सारांश — {{day}}",
     "sadhanaOverviewOn": "साधना अवलोकन — {{day}}",
     "previousDay": "पिछला दिन",
-    "nextDay": "अगला दिन"
+    "nextDay": "अगला दिन",
+    "consistencyHint": "अवधि के दिनों में से रिपोर्ट वाले दिनों का औसत।",
+    "mostActiveHint": "80%+ दिनों में रिपोर्ट करने वाले भक्त।",
+    "activityConsistencyHint": "रिपोर्ट में से कितने % में हर साधना की गई (माला: 16 माला की तुलना में औसत)।"
   },
   "errors": {
     "generic": "कुछ गड़बड़ हो गई। कृपया फिर से प्रयास करें।",
