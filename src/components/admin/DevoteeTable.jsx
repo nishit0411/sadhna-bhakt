@@ -9,24 +9,16 @@ import { formatMentorNames } from "../../data/mentorList";
 import { displayLocation } from "../../utils/reportFilters";
 import { usePagination } from "../../hooks/usePagination";
 import Pagination from "../ui/Pagination";
+import Avatar from "../ui/Avatar";
 
 function initialsAvatar(devotee) {
-  const tones = {
-    maroon: "bg-maroon-100 text-maroon-600",
-    saffron: "bg-saffron-100 text-saffron-600",
-    sage: "bg-sage-100 text-sage-600",
-  };
-  return (
-    <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${tones[devotee.avatarColor] ?? tones.maroon}`}>
-      {devotee.initials}
-    </span>
-  );
+  return <Avatar person={devotee} size="sm" tone="soft" />;
 }
 
 const YES_NO_RANK = { Yes: 2, No: 1 };
 
 const SORTERS = {
-  name: (d) => d.name?.toLowerCase() ?? "",
+  name: (d) => (d.name ?? "").trim().replace(/\s+/g, " ").toLowerCase(),
   totalMala: (d) => d.todayTotalMala ?? -1,
   granth: (d) => YES_NO_RANK[d.todayGranth] ?? 0,
   harikatha: (d) => YES_NO_RANK[d.todayHarikatha] ?? 0,
@@ -57,7 +49,7 @@ function SortableHeader({ label, sortKeyName, activeKey, dir, onSort }) {
 export default function DevoteeTable({ devotees, basePath = "/admin/devotees" }) {
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const [sortKey, setSortKey] = useState(null);
+  const [sortKey, setSortKey] = useState("name"); // A–Z by default
   const [sortDir, setSortDir] = useState("asc");
 
   function yn(value) {

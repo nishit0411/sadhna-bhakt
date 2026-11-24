@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Bell, Cake, Heart, MapPin, Pencil, Phone, Save, Shield, Sparkles, User as UserIcon, X } from "lucide-react";
+import { useRef, useState } from "react";
+
+// Turn back on once daily/weekly reminders are implemented.
+const SHOW_NOTIFICATION_PREFS = false;
+import { Bell, Camera, Trash2, Cake, Heart, MapPin, Pencil, Phone, Save, Shield, Sparkles, User as UserIcon, X } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useTranslation } from "../../i18n/LanguageContext";
@@ -13,6 +16,8 @@ import Button from "../../components/ui/Button";
 import Modal from "../../components/ui/Modal";
 import FormInput from "../../components/FormInput";
 import CityInput from "../../components/CityInput";
+import Avatar from "../../components/ui/Avatar";
+import { uploadAvatar, removeAvatar } from "../../services/avatarService";
 import DobInput from "../../components/DobInput";
 import FormSelect from "../../components/FormSelect";
 import GenderSelector from "../../components/GenderSelector";
@@ -21,12 +26,6 @@ import { MENTOR_OPTIONS, formatMentorNames } from "../../data/mentorList";
 import { friendlyErrorMessage } from "../../utils/friendlyError";
 import { getHistory } from "../../services/sadhanaService";
 import { downloadMySadhana } from "../../utils/sadhanaExport";
-
-const TONES = {
-  maroon: "bg-maroon-500",
-  saffron: "bg-saffron-500",
-  sage: "bg-sage-500",
-};
 
 const PRESET_GURUDEVS = GURUDEV_OPTIONS.filter((g) => g !== "Other");
 const CURRENT_YEAR = new Date().getFullYear();
@@ -172,7 +171,7 @@ function ChangePasswordModal({ isOpen, onClose, email, t, addToast }) {
 }
 
 export default function Profile() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, setAvatarUrl } = useAuth();
   const { addToast } = useToast();
   const { t, language } = useTranslation();
   const [isEditing, setIsEditing] = useState(false);
@@ -182,6 +181,38 @@ export default function Profile() {
   const [prefs, setPrefs] = useState({ dailyReminder: true, weeklySummary: true, mentorUpdates: false });
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const photoInputRef = useRef(null);
+
+  async function handlePhotoChosen(e) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow choosing the same file again later
+    if (!file) return;
+    setPhotoBusy(true);
+    try {
+      const url = await uploadAvatar(user.id, file, user.avatarUrl);
+      setAvatarUrl(url);
+      addToast(t("profile.photoUpdated"), "success");
+    } catch (err) {
+      const key = { type: "profile.photoErrType", size: "profile.photoErrSize", decode: "profile.photoErrDecode" }[err?.code];
+      addToast(key ? t(key) : friendlyErrorMessage(err, t, "profile.photoErrUpload"), "error");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  async function handlePhotoRemove() {
+    setPhotoBusy(true);
+    try {
+      await removeAvatar(user.id, user.avatarUrl);
+      setAvatarUrl(null);
+      addToast(t("profile.photoRemoved"), "success");
+    } catch (err) {
+      addToast(friendlyErrorMessage(err, t, "profile.photoErrUpload"), "error");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
 
   async function handleExportData() {
     setIsExporting(true);
@@ -282,9 +313,33 @@ export default function Profile() {
       <PageHeader title={t("profile.pageTitle")} subtitle={t("profile.subtitle")} />
 
       <Card className="flex flex-col items-center gap-3 text-center sm:flex-row sm:text-left">
-        <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-2xl font-semibold text-cream-50 ${TONES[user.avatarColor] ?? TONES.maroon}`}>
-          {user.initials}
-        </span>
+        <div className="flex shrink-0 flex-col items-center gap-2">
+          <button
+            type="button"
+            onClick={() => photoInputRef.current?.click()}
+            disabled={photoBusy || !isSupabaseConfigured}
+            aria-label={t("profile.changePhoto")}
+            className="group relative rounded-full focus:outline-none focus:ring-2 focus:ring-saffron-300 disabled:cursor-wait"
+          >
+            <Avatar person={user} size="lg" />
+            <span className="absolute bottom-0 right-0 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white bg-maroon-600 text-cream-50 shadow group-hover:bg-maroon-700">
+              <Camera className="h-3.5 w-3.5" aria-hidden="true" />
+            </span>
+            {photoBusy && <span className="absolute inset-0 animate-pulse rounded-full bg-white/50" />}
+          </button>
+          <input ref={photoInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChosen} />
+          {user.avatarUrl && (
+            <button
+              type="button"
+              onClick={handlePhotoRemove}
+              disabled={photoBusy}
+              className="flex items-center gap-1 text-xs text-brown-500 hover:text-clay-600 disabled:opacity-50"
+            >
+              <Trash2 className="h-3 w-3" aria-hidden="true" />
+              {t("profile.removePhoto")}
+            </button>
+          )}
+        </div>
         <div>
           <p className="font-display text-xl font-semibold text-brown-900">{user.name}</p>
           <p className="text-sm text-brown-500">{user.email}</p>
@@ -552,6 +607,8 @@ export default function Profile() {
         </div>
       </Card>
 
+      {/* Notification preferences: hidden until reminders are actually sent (nothing stores or sends them yet). */}
+      {SHOW_NOTIFICATION_PREFS && (
       <Card>
         <div className="mb-2 flex items-center gap-2.5">
           <span className="flex h-9 w-9 items-center justify-center rounded-full bg-saffron-100 text-maroon-600">
@@ -578,6 +635,7 @@ export default function Profile() {
           onChange={() => setPrefs((p) => ({ ...p, mentorUpdates: !p.mentorUpdates }))}
         />
       </Card>
+      )}
 
       <Card>
         <div className="mb-2 flex items-center gap-2.5">
