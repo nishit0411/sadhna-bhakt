@@ -79,10 +79,23 @@ function malaValueOf(devotee, malaType) {
   return devotee.windowTotalMala ?? 0;
 }
 
+/**
+ * Consistency rate = days with a report ÷ days in the selected period
+ * (counted from the day the devotee joined, if that is later).
+ *   80%+ Consistent · 40–79% Active · below 40% Inactive
+ *   New = joined in the last 7 days and no report yet.
+ */
+const CONSISTENT_MIN = 80;
+const ACTIVE_MIN = 40;
+
 function statusOf(devotee) {
-  if (!devotee.daysSubmitted) return "new";
-  if (devotee.completionRate >= 80) return "consistent";
-  if (devotee.completionRate >= 40) return "active";
+  if (!devotee.daysSubmitted) {
+    const joined = devotee.joinedOn ? new Date(devotee.joinedOn) : null;
+    const recent = joined && Date.now() - joined.getTime() < 7 * 86400000;
+    return recent ? "new" : "inactive";
+  }
+  if (devotee.completionRate >= CONSISTENT_MIN) return "consistent";
+  if (devotee.completionRate >= ACTIVE_MIN) return "active";
   return "inactive";
 }
 
@@ -132,7 +145,7 @@ function FilterGroup({ options, value, onChange }) {
   );
 }
 
-function MetricCard({ icon: Icon, label, value, suffix, trend }) {
+function MetricCard({ icon: Icon, label, value, suffix, trend, hint }) {
   return (
     <div
       className="rounded-2xl p-5 shadow-[0_8px_30px_rgba(0,0,0,0.25)] transition-transform duration-200 hover:-translate-y-0.5"
@@ -159,6 +172,11 @@ function MetricCard({ icon: Icon, label, value, suffix, trend }) {
         {value}
         {suffix && <span className="ml-1 text-sm font-sans font-normal" style={{ color: MUTED }}>{suffix}</span>}
       </p>
+      {hint && (
+        <p className="mt-1.5 text-xs leading-snug" style={{ color: MUTED }}>
+          {hint}
+        </p>
+      )}
     </div>
   );
 }
@@ -538,7 +556,7 @@ export default function Analytics({ mode = "admin" }) {
     const avgConsistency = devotees.length
       ? Math.round(devotees.reduce((sum, d) => sum + d.completionRate, 0) / devotees.length)
       : 0;
-    const mostActive = devotees.filter((d) => d.completionRate >= 70).length;
+    const mostActive = devotees.filter((d) => d.completionRate >= CONSISTENT_MIN).length;
     return { totalMala, avgMala, avgConsistency, mostActive };
   }, [devotees, malaType]);
 
@@ -664,8 +682,8 @@ export default function Analytics({ mode = "admin" }) {
             <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
               <MetricCard icon={Repeat} label={t("admin.averageMala")} value={metrics.avgMala} />
               <MetricCard icon={Repeat} label={t("admin.totalMalaChanted")} value={metrics.totalMala} />
-              <MetricCard icon={Flame} label={t("admin.analyticsConsistencyRate")} value={metrics.avgConsistency} suffix="%" />
-              <MetricCard icon={Users} label={t("admin.analyticsMostActive")} value={metrics.mostActive} />
+              <MetricCard icon={Flame} label={t("admin.analyticsConsistencyRate")} value={metrics.avgConsistency} suffix="%" hint={t("admin.consistencyHint")} />
+              <MetricCard icon={Users} label={t("admin.analyticsMostActive")} value={metrics.mostActive} hint={t("admin.mostActiveHint")} />
             </div>
 
             <GoldDivider />

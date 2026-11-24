@@ -114,6 +114,11 @@ export function AuthProvider({ children }) {
     return updated;
   }, [user]);
 
+  // Profile photo changed (uploaded/removed via avatarService) — update in place.
+  const setAvatarUrl = useCallback((avatarUrl) => {
+    setUser((prev) => (prev ? { ...prev, avatarUrl } : prev));
+  }, []);
+
   const value = {
     user,
     isAuthenticated: Boolean(user),
@@ -126,6 +131,7 @@ export function AuthProvider({ children }) {
     logout,
     endSessionAfterRegistration,
     updateProfile,
+    setAvatarUrl,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

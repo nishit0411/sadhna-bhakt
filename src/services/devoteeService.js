@@ -139,11 +139,15 @@ function summarize(devotee, records, forDate, windowDays = 30) {
     : Number.isFinite(windowDays)
       ? records.slice(-windowDays)
       : records;
+  // All time: every day since the devotee's first report (not the number of
+  // reports itself, which made all-time consistency always 100%).
   const windowSize = range
     ? daysInclusive(range.from, range.to)
     : Number.isFinite(windowDays)
       ? windowDays
-      : windowRecords.length;
+      : records.length
+        ? Math.max(1, daysInclusive(records[0].date, targetDate))
+        : 1;
   const windowTotalMala = windowRecords.reduce((sum, r) => sum + r.totalMala, 0);
   const avgMala = windowRecords.length ? Math.round((windowTotalMala / windowRecords.length) * 10) / 10 : 0;
 
@@ -343,7 +347,7 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
   const recordsByDevotee = allowed ? new Map([...loaded].filter(([id]) => allowed.has(id))) : loaded;
 
   const byDate = new Map();
-  const breakdownTotals = { mala: 0, tulsi: 0, granth: 0, harikatha: 0, bhog: 0, gurudev: 0, count: 0 };
+  const breakdownTotals = { mala: 0, tulsi: 0, granth: 0, harikatha: 0, kirtan: 0, mangalaarati: 0, bhog: 0, gurudev: 0, count: 0 };
   let totalMala = 0;
 
   recordsByDevotee.forEach((allRecords) => {
@@ -363,6 +367,8 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
       if (r.tulsiSeva) breakdownTotals.tulsi += 1;
       if (readAnyGranth(r)) breakdownTotals.granth += 1;
       if (listenedAnyHarikatha(r)) breakdownTotals.harikatha += 1;
+      if (r.gaudiyaKirtan) breakdownTotals.kirtan += 1;
+      if (r.mangalaAratiDone) breakdownTotals.mangalaarati += 1;
       if (r.bhogOffered) breakdownTotals.bhog += 1;
       if (r.gurudevRemembrance) breakdownTotals.gurudev += 1;
       breakdownTotals.count += 1;
@@ -390,6 +396,8 @@ export async function getSanghaMonthlyOverview(year, monthIndex, options = {}) {
           { key: "tulsi", label: "Tulsi Seva", value: Math.round((breakdownTotals.tulsi / breakdownTotals.count) * 100) },
           { key: "granth", label: "Granth Reading", value: Math.round((breakdownTotals.granth / breakdownTotals.count) * 100) },
           { key: "harikatha", label: "Harikatha", value: Math.round((breakdownTotals.harikatha / breakdownTotals.count) * 100) },
+          { key: "kirtan", label: "Gaudiya Kirtan", value: Math.round((breakdownTotals.kirtan / breakdownTotals.count) * 100) },
+          { key: "mangalaarati", label: "Mangala Arati", value: Math.round((breakdownTotals.mangalaarati / breakdownTotals.count) * 100) },
           { key: "bhog", label: "Bhog & Prasadam", value: Math.round((breakdownTotals.bhog / breakdownTotals.count) * 100) },
           { key: "gurudev", label: "Gurudev Remembrance", value: Math.round((breakdownTotals.gurudev / breakdownTotals.count) * 100) },
         ]

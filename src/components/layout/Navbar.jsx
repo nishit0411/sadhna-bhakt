@@ -4,6 +4,7 @@ import { Bell, LogOut, Menu, User as UserIcon } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
 import { useTranslation } from "../../i18n/LanguageContext";
 import Logo from "./Logo";
+import Avatar from "../ui/Avatar";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 export default function Navbar({ onMenuClick }) {
@@ -57,9 +58,13 @@ export default function Navbar({ onMenuClick }) {
             aria-haspopup="menu"
             aria-expanded={menuOpen}
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-maroon-500 text-xs font-semibold text-cream-50">
-              {user?.initials ?? <UserIcon className="h-4 w-4" />}
-            </span>
+            {user ? (
+              <Avatar person={user} size="xs" tone="maroon" />
+            ) : (
+              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-maroon-500 text-xs font-semibold text-cream-50">
+                <UserIcon className="h-4 w-4" />
+              </span>
+            )}
             <span className="hidden text-sm font-medium text-brown-800 sm:inline">{user?.name?.split(" ")[0]}</span>
           </button>
 

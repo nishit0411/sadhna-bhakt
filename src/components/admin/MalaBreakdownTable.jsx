@@ -5,7 +5,7 @@ import EmptyState from "../ui/EmptyState";
 import { useTranslation } from "../../i18n/LanguageContext";
 
 const SORTERS = {
-  name: (r) => r.name?.toLowerCase() ?? "",
+  name: (r) => (r.name ?? "").trim().replace(/\s+/g, " ").toLowerCase(),
   totalMala: (r) => r.totalMala ?? 0,
   onAsan: (r) => r.malaOnAsan ?? 0,
   withoutAsan: (r) => r.malaWithoutAsan ?? 0,
@@ -34,7 +34,7 @@ function SortableHeader({ label, sortKeyName, activeKey, dir, onSort, align = "l
 export default function MalaBreakdownTable({ rows, basePath = "/admin/devotees" }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [sortKey, setSortKey] = useState(null);
+  const [sortKey, setSortKey] = useState("name"); // A–Z by default
   const [sortDir, setSortDir] = useState("asc");
 
   function handleSort(key) {

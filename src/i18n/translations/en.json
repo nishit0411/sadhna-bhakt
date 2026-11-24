@@ -50,7 +50,8 @@
     "mentorDashboard": "My Mentees",
     "mentorReports": "Reports",
     "mentorAnalytics": "Analytics",
-    "mentorDevotees": "Devotees"
+    "mentorDevotees": "Devotees",
+    "mentorHome": "Dashboard"
   },
   "mentor": {
     "activeMentees": "Active Mentees",
@@ -509,7 +510,15 @@
     "emailChangePending": "A confirmation link has been sent to your new email address. Your email will update once you confirm it.",
     "emailChangeHelper": "Changing this requires confirming a link sent to the new address.",
     "exportEmpty": "You have no Sadhana records to download yet.",
-    "exportDone": "Downloaded {{count}} Sadhana records."
+    "exportDone": "Downloaded {{count}} Sadhana records.",
+    "changePhoto": "Change profile photo",
+    "removePhoto": "Remove photo",
+    "photoUpdated": "Profile photo updated.",
+    "photoRemoved": "Profile photo removed.",
+    "photoErrType": "Please choose a JPG, PNG or WebP image.",
+    "photoErrSize": "That image is too large (max 15 MB).",
+    "photoErrDecode": "This image could not be read. Try a JPG or PNG (iPhone: take a screenshot of the photo).",
+    "photoErrUpload": "Could not save the photo. Please try again."
   },
   "adminLogin": {
     "eyebrow": "Restricted Access",
@@ -698,7 +707,10 @@
     "malaSummaryOn": "Mala Summary — {{day}}",
     "sadhanaOverviewOn": "Sadhana Overview — {{day}}",
     "previousDay": "Previous day",
-    "nextDay": "Next day"
+    "nextDay": "Next day",
+    "consistencyHint": "Average of days with a report ÷ days in the period.",
+    "mostActiveHint": "Devotees reporting on 80%+ of days.",
+    "activityConsistencyHint": "% of reports where each practice was done (Mala: average vs 16 rounds)."
   },
   "errors": {
     "generic": "Something went wrong. Please try again.",

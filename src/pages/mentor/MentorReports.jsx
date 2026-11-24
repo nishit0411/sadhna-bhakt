@@ -112,7 +112,7 @@ export default function MentorReports() {
                   <ChartCard title={t("mentor.monthlyOverview")} subtitle={chartSubtitle}>
                     <JapaRoundsChart data={overview.dailyMalaAverages} />
                   </ChartCard>
-                  <ChartCard title={t("admin.activityConsistency")} subtitle={chartSubtitle} height={300}>
+                  <ChartCard title={t("admin.activityConsistency")} subtitle={`${chartSubtitle} · ${t("admin.activityConsistencyHint")}`} height={300}>
                     <ActivityConsistencyChart data={translatedBreakdown} />
                   </ChartCard>
                 </div>

@@ -59,6 +59,7 @@ export function mapProfileRow(row) {
     displayOrder: row.display_order ?? null,
     role: row.role,
     avatarColor: row.avatar_color ?? "maroon",
+    avatarUrl: row.avatar_url ?? null,
     initials,
     joinedOn: row.created_at,
     dob: row.date_of_birth ?? null,

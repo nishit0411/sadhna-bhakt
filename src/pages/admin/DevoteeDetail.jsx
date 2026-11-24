@@ -22,9 +22,9 @@ import { formatLongDate, formatMonthYear } from "../../utils/dateHelpers";
 import { formatDateDDMMYYYY } from "../../utils/dateFormatter";
 import { NO_GRANTH_VALUE } from "../../data/granthList";
 import { NO_HARIKATHA_VALUE } from "../../data/harikathaList";
+import Avatar from "../../components/ui/Avatar";
 import { formatMentorNames } from "../../data/mentorList";
 
-const TONES = { maroon: "bg-maroon-500", saffron: "bg-saffron-500", sage: "bg-sage-500" };
 
 function initiationSummary(devotee) {
   if (!devotee.dikshaStage) return null;
@@ -154,9 +154,7 @@ export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
       </div>
 
       <Card className="flex flex-col items-center gap-4 text-center sm:flex-row sm:text-left">
-        <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-2xl font-semibold text-cream-50 ${TONES[devotee.avatarColor] ?? TONES.maroon}`}>
-          {devotee.initials}
-        </span>
+        <Avatar person={devotee} size="lg" />
         <div className="flex-1">
           <p className="font-display text-2xl font-semibold text-brown-900">{devotee.name}</p>
           <p className="text-sm text-brown-500">
@@ -184,7 +182,7 @@ export default function DevoteeDetail({ backPath = "/admin/devotees" }) {
 
       {records.length ? (
         <>
-          <ChartCard title={t("admin.activityConsistency")} subtitle={t("admin.thisMonthDaysSubmitted", { count: records.length })} height={280}>
+          <ChartCard title={t("admin.activityConsistency")} subtitle={`${t("admin.thisMonthDaysSubmitted", { count: records.length })} · ${t("admin.activityConsistencyHint")}`} height={280}>
             <ActivityConsistencyChart data={breakdown} />
           </ChartCard>
 
