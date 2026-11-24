@@ -17,7 +17,7 @@ export default function MentorLayout() {
   useEffect(() => preloadPages("mentor"), []);
 
   const NAV_ITEMS = [
-    { label: t("nav.mentorDashboard"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },
+    { label: t("nav.mentorHome"), to: "/mentor/dashboard", icon: LayoutDashboard, end: true },
     { label: t("nav.mentorDevotees"), to: "/mentor/devotees", icon: Users },
     { label: t("nav.dailySadhana"), to: "/mentor/sadhana", icon: NotebookPen },
     { label: t("nav.myProfile"), to: "/mentor/profile", icon: UserRound },
